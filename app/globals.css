@@ -1,0 +1,4628 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  background: #080303;
+  color: #f5f5f3;
+  font-family: "Inter", sans-serif;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* =================================
+   MAIN
+================================= */
+
+.landing {
+  position: relative;
+
+  width: 100vw;
+  height: 100vh;
+  min-height: 600px;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(100, 0, 0, 0.24) 0%,
+      rgba(25, 0, 0, 0.16) 28%,
+      rgba(8, 3, 3, 0) 65%
+    ),
+    #080303;
+}
+
+/* Cinematic atmosphere */
+
+.landing::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 45%,
+      rgba(150, 0, 0, 0.18),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at 15% 80%,
+      rgba(90, 0, 0, 0.12),
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse at 85% 15%,
+      rgba(100, 0, 0, 0.1),
+      transparent 45%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.45)
+    );
+
+  pointer-events: none;
+
+  z-index: 1;
+}
+
+/* =================================
+   GRAIN
+================================= */
+
+.grain {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  opacity: 0.032;
+
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+
+  pointer-events: none;
+
+  z-index: 20;
+}
+
+/* =================================
+   SPIDER FIELD
+================================= */
+
+.spider-field {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  pointer-events: none;
+
+  z-index: 2;
+}
+
+/* =================================
+   SPIDER BASE
+================================= */
+
+.spider {
+  position: absolute;
+
+  will-change: transform;
+
+  transform-origin: center;
+
+  pointer-events: none;
+}
+
+.spider img {
+  display: block;
+
+  width: 100%;
+  height: auto;
+
+  user-select: none;
+  -webkit-user-drag: none;
+
+  filter:
+    drop-shadow(0 0 8px rgba(255, 255, 255, 0.08))
+    drop-shadow(0 0 28px rgba(120, 0, 0, 0.12));
+}
+
+/* =================================
+   SPIDER 1
+   TOP LEFT
+================================= */
+
+.spider-1 {
+  top: 8%;
+  left: 7%;
+
+  width: 125px;
+
+  opacity: 0.13;
+
+  filter: blur(0.4px);
+
+  animation: floatOne 12s ease-in-out infinite;
+}
+
+.spider-1 img {
+  transform: rotate(-18deg);
+}
+
+/* =================================
+   SPIDER 2
+   TOP RIGHT
+================================= */
+
+.spider-2 {
+  top: 14%;
+  right: 8%;
+
+  width: 165px;
+
+  opacity: 0.11;
+
+  filter: blur(1.2px);
+
+  animation: floatTwo 15s ease-in-out infinite;
+}
+
+.spider-2 img {
+  transform: rotate(17deg);
+}
+
+/* =================================
+   SPIDER 3
+   LEFT MID
+================================= */
+
+.spider-3 {
+  top: 49%;
+  left: 4%;
+
+  width: 105px;
+
+  opacity: 0.09;
+
+  filter: blur(2px);
+
+  animation: floatThree 17s ease-in-out infinite;
+}
+
+.spider-3 img {
+  transform: rotate(12deg);
+}
+
+/* =================================
+   SPIDER 4
+   RIGHT MID
+================================= */
+
+.spider-4 {
+  top: 58%;
+  right: 5%;
+
+  width: 135px;
+
+  opacity: 0.12;
+
+  filter: blur(0.8px);
+
+  animation: floatFour 14s ease-in-out infinite;
+}
+
+.spider-4 img {
+  transform: rotate(-25deg);
+}
+
+/* =================================
+   SPIDER 5
+   BOTTOM
+================================= */
+
+.spider-5 {
+  bottom: 4%;
+  left: 43%;
+
+  width: 85px;
+
+  opacity: 0.07;
+
+  filter: blur(2.5px);
+
+  animation: floatFive 18s ease-in-out infinite;
+}
+
+.spider-5 img {
+  transform: rotate(30deg);
+}
+
+/* =================================
+   FLOATING MOTION
+================================= */
+
+@keyframes floatOne {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  25% {
+    transform: translate3d(18px, -12px, 0) rotate(4deg);
+  }
+
+  50% {
+    transform: translate3d(-8px, 15px, 0) rotate(-3deg);
+  }
+
+  75% {
+    transform: translate3d(12px, 8px, 0) rotate(5deg);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes floatTwo {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  30% {
+    transform: translate3d(-20px, 13px, 0) rotate(-5deg);
+  }
+
+  60% {
+    transform: translate3d(10px, -16px, 0) rotate(4deg);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes floatThree {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  35% {
+    transform: translate3d(14px, -18px, 0) rotate(6deg);
+  }
+
+  70% {
+    transform: translate3d(-12px, 12px, 0) rotate(-5deg);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes floatFour {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  30% {
+    transform: translate3d(-15px, -10px, 0) rotate(-4deg);
+  }
+
+  65% {
+    transform: translate3d(16px, 14px, 0) rotate(5deg);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes floatFive {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  40% {
+    transform: translate3d(10px, -12px, 0) rotate(5deg);
+  }
+
+  75% {
+    transform: translate3d(-13px, 8px, 0) rotate(-5deg);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+/* =================================
+   HEADER
+================================= */
+
+.header {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+
+  padding: 30px 40px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  z-index: 10;
+}
+
+.mini-logo {
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.18em;
+
+  color: #ffffff;
+}
+
+.menu {
+  border: 0;
+  outline: none;
+
+  background: transparent;
+
+  color: #ffffff;
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 11px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.2em;
+
+  cursor: pointer;
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.menu:hover {
+  opacity: 0.6;
+
+  transform: translateX(-3px);
+}
+
+/* =================================
+   HERO
+================================= */
+
+.hero {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  z-index: 5;
+}
+
+/* =================================
+   BRAND
+================================= */
+
+.brand-mark {
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: clamp(90px, 14vw, 210px);
+
+  line-height: 0.8;
+
+  font-weight: 700;
+
+  letter-spacing: -0.075em;
+
+  color: #f5f5f3;
+
+  text-shadow:
+    0 0 20px rgba(255, 255, 255, 0.03),
+    0 0 60px rgba(130, 0, 0, 0.12);
+
+  animation:
+    logoReveal 1.5s cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
+}
+
+/* =================================
+   CAMPAIGN
+================================= */
+
+.campaign-title {
+  margin-top: 25px;
+
+  font-family: "Inter", sans-serif;
+
+  font-size: clamp(9px, 1vw, 12px);
+
+  font-weight: 500;
+
+  letter-spacing: 0.5em;
+
+  color: rgba(255, 255, 255, 0.55);
+
+  padding-left: 0.5em;
+
+  animation:
+    subtitleReveal 1.2s ease 0.3s both;
+}
+
+/* =================================
+   SHOP BUTTON
+================================= */
+
+.shop-button {
+  position: relative;
+
+  margin-top: 55px;
+
+  width: 190px;
+  height: 54px;
+
+  border: 1px solid rgba(255, 255, 255, 0.22);
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.025);
+
+  color: #ffffff;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 18px;
+
+  font-family: "Inter", sans-serif;
+
+  cursor: pointer;
+
+  overflow: hidden;
+
+  transition:
+    transform 0.35s ease,
+    border-color 0.35s ease,
+    background 0.35s ease;
+
+  animation:
+    buttonReveal 1s ease 0.6s both;
+}
+
+.shop-button:hover {
+  transform: scale(1.05);
+
+  border-color: rgba(255, 255, 255, 0.5);
+
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.shop-text {
+  position: relative;
+
+  z-index: 3;
+
+  font-size: 10px;
+
+  font-weight: 600;
+
+  letter-spacing: 0.22em;
+}
+
+.shop-arrow {
+  position: relative;
+
+  z-index: 3;
+
+  font-size: 18px;
+
+  line-height: 1;
+
+  transition: transform 0.3s ease;
+}
+
+.shop-button:hover .shop-arrow {
+  transform: translate(3px, -3px);
+}
+
+/* =================================
+   BLOOD
+================================= */
+
+.blood {
+  position: absolute;
+
+  width: 7px;
+  height: 11px;
+
+  border-radius: 50% 50% 55% 55%;
+
+  background: #9c0000;
+
+  opacity: 0;
+
+  transform:
+    translateY(-10px)
+    scale(0.6);
+
+  transition:
+    opacity 0.3s ease,
+    transform 0.35s ease;
+}
+
+.blood-one {
+  left: 28px;
+  top: 5px;
+}
+
+.blood-two {
+  left: 45px;
+  top: 8px;
+
+  width: 5px;
+  height: 8px;
+}
+
+.blood-three {
+  right: 30px;
+  top: 4px;
+
+  width: 6px;
+  height: 9px;
+}
+
+.shop-button:hover .blood {
+  opacity: 1;
+
+  transform:
+    translateY(0)
+    scale(1);
+}
+
+/* =================================
+   FOOTER
+================================= */
+
+.footer {
+  position: absolute;
+
+  bottom: 28px;
+  left: 0;
+
+  width: 100%;
+
+  padding: 0 40px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  color: rgba(255, 255, 255, 0.35);
+
+  font-size: 9px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.18em;
+
+  z-index: 10;
+}
+
+/* =================================
+   REVEAL ANIMATIONS
+================================= */
+
+@keyframes logoReveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 35px, 0);
+    filter: blur(6px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes subtitleReveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes buttonReveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 15px, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* =================================
+   MOBILE
+================================= */
+
+@media (max-width: 700px) {
+  .header {
+    padding: 24px 22px;
+  }
+
+  .footer {
+    bottom: 20px;
+
+    padding: 0 22px;
+
+    font-size: 7px;
+  }
+
+  .spider-1 {
+    top: 10%;
+    left: 2%;
+
+    width: 85px;
+  }
+
+  .spider-2 {
+    top: 13%;
+    right: 2%;
+
+    width: 105px;
+  }
+
+  .spider-3 {
+    top: 48%;
+    left: -2%;
+
+    width: 75px;
+  }
+
+  .spider-4 {
+    top: 60%;
+    right: -2%;
+
+    width: 90px;
+  }
+
+  .spider-5 {
+    bottom: 7%;
+    left: 42%;
+
+    width: 60px;
+  }
+
+  .brand-mark {
+    font-size: clamp(62px, 19vw, 120px);
+
+    letter-spacing: -0.08em;
+  }
+
+  .campaign-title {
+    margin-top: 20px;
+
+    font-size: 7px;
+
+    letter-spacing: 0.35em;
+  }
+
+  .shop-button {
+    margin-top: 42px;
+
+    width: 170px;
+    height: 50px;
+  }
+}
+
+/* =================================
+   SHORT SCREEN
+================================= */
+
+@media (max-height: 650px) {
+  .spider-1 {
+    top: 4%;
+  }
+
+  .spider-2 {
+    top: 7%;
+  }
+
+  .campaign-title {
+    margin-top: 16px;
+  }
+
+  .shop-button {
+    margin-top: 35px;
+  }
+
+  .footer {
+    bottom: 16px;
+  }
+}
+
+/* =================================
+   PREMIUM RIGHT SIDE SPIDER WEB
+================================= */
+
+.background-web {
+  position: absolute;
+
+  width: 620px;
+  height: 620px;
+
+  right: -180px;
+  top: 50%;
+
+  transform: translateY(-50%) rotate(-12deg);
+
+  opacity: 0.11;
+
+  filter: blur(3px);
+
+  pointer-events: none;
+
+  z-index: 2;
+
+  mix-blend-mode: screen;
+
+  mask-image: radial-gradient(
+    circle,
+    black 15%,
+    rgba(0, 0, 0, 0.8) 48%,
+    transparent 82%
+  );
+
+  -webkit-mask-image: radial-gradient(
+    circle,
+    black 15%,
+    rgba(0, 0, 0, 0.8) 48%,
+    transparent 82%
+  );
+}
+
+/* Soft red glow */
+
+.background-web::before {
+  content: "";
+
+  position: absolute;
+  inset: 8%;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle,
+    rgba(130, 0, 0, 0.18),
+    transparent 68%
+  );
+
+  filter: blur(40px);
+}
+
+/* Web radial lines */
+
+.web-line {
+  position: absolute;
+
+  left: 50%;
+  top: 0;
+
+  width: 1px;
+  height: 100%;
+
+  transform-origin: center;
+
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 35%,
+    rgba(255, 255, 255, 0.3) 65%,
+    transparent 100%
+  );
+}
+
+.web-line-1 {
+  transform: rotate(0deg);
+}
+
+.web-line-2 {
+  transform: rotate(36deg);
+}
+
+.web-line-3 {
+  transform: rotate(72deg);
+}
+
+.web-line-4 {
+  transform: rotate(108deg);
+}
+
+.web-line-5 {
+  transform: rotate(144deg);
+}
+
+.web-line-1::after,
+.web-line-2::after,
+.web-line-3::after,
+.web-line-4::after,
+.web-line-5::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  top: 0;
+
+  width: 1px;
+  height: 100%;
+
+  background: inherit;
+
+  transform: rotate(36deg);
+}
+
+/* Web rings */
+
+.web-ring {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  border: 1px solid rgba(255, 255, 255, 0.28);
+
+  border-radius: 50%;
+
+  transform: translate(-50%, -50%);
+}
+
+.web-ring-1 {
+  width: 100px;
+  height: 100px;
+}
+
+.web-ring-2 {
+  width: 185px;
+  height: 185px;
+}
+
+.web-ring-3 {
+  width: 285px;
+  height: 285px;
+}
+
+.web-ring-4 {
+  width: 410px;
+  height: 410px;
+}
+
+.web-ring-5 {
+  width: 545px;
+  height: 545px;
+}
+
+/* Soft outer fade */
+
+.background-web::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background: radial-gradient(
+    circle at center,
+    transparent 15%,
+    rgba(8, 3, 3, 0.08) 50%,
+    rgba(8, 3, 3, 0.9) 88%
+  );
+
+  pointer-events: none;
+}
+
+/* =================================
+   MOBILE
+================================= */
+
+@media (max-width: 700px) {
+  .background-web {
+    width: 430px;
+    height: 430px;
+
+    right: -185px;
+    top: 52%;
+
+    opacity: 0.09;
+
+    filter: blur(3px);
+  }
+
+  .web-ring-1 {
+    width: 70px;
+    height: 70px;
+  }
+
+  .web-ring-2 {
+    width: 130px;
+    height: 130px;
+  }
+
+  .web-ring-3 {
+    width: 200px;
+    height: 200px;
+  }
+
+  .web-ring-4 {
+    width: 290px;
+    height: 290px;
+  }
+
+  .web-ring-5 {
+    width: 380px;
+    height: 380px;
+  }
+}
+
+/* =================================
+   MENU OVERLAY
+================================= */
+
+.menu-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100vh;
+
+  background: #080303;
+
+  z-index: 100;
+
+  visibility: hidden;
+
+  opacity: 0;
+
+  transform: translateY(-100%);
+
+  transition:
+    transform 0.65s cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 0.45s ease,
+    visibility 0.65s;
+
+  overflow: hidden;
+}
+
+.menu-overlay.menu-open {
+  visibility: visible;
+
+  opacity: 1;
+
+  transform: translateY(0);
+}
+
+/* Background atmosphere */
+
+.menu-background {
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    radial-gradient(
+      ellipse at 70% 40%,
+      rgba(130, 0, 0, 0.18),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 20% 80%,
+      rgba(90, 0, 0, 0.12),
+      transparent 45%
+    );
+
+  pointer-events: none;
+}
+
+/* Top */
+
+.menu-top {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+
+  padding: 30px 40px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  z-index: 3;
+}
+
+.menu-logo {
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.18em;
+
+  color: #ffffff;
+}
+
+.menu-close {
+  border: 0;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.8);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 10px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.2em;
+
+  cursor: pointer;
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.menu-close span {
+  display: inline-block;
+
+  margin-left: 7px;
+
+  font-size: 22px;
+
+  font-weight: 300;
+
+  line-height: 0;
+
+  vertical-align: -2px;
+}
+
+.menu-close:hover {
+  opacity: 0.55;
+
+  transform: translateX(-3px);
+}
+
+/* Navigation */
+
+.menu-links {
+  position: relative;
+
+  z-index: 2;
+
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 5px;
+}
+
+.menu-links button {
+  border: 0;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.82);
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: clamp(42px, 6vw, 82px);
+
+  font-weight: 600;
+
+  letter-spacing: -0.055em;
+
+  cursor: pointer;
+
+  line-height: 1.05;
+
+  transition:
+    color 0.3s ease,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.menu-links button:hover {
+  color: #ffffff;
+
+  transform: translateX(14px);
+}
+
+/* Footer */
+
+.menu-footer {
+  position: absolute;
+
+  bottom: 28px;
+  left: 0;
+
+  width: 100%;
+
+  padding: 0 40px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  color: rgba(255, 255, 255, 0.3);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 9px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.18em;
+
+  z-index: 3;
+}
+
+/* =================================
+   MOBILE MENU
+================================= */
+
+@media (max-width: 700px) {
+  .menu-top {
+    padding: 24px 22px;
+  }
+
+  .menu-links {
+    gap: 8px;
+  }
+
+  .menu-links button {
+    font-size: clamp(38px, 12vw, 62px);
+  }
+
+  .menu-footer {
+    bottom: 20px;
+
+    padding: 0 22px;
+
+    font-size: 7px;
+  }
+}
+
+/* =================================
+   MENU CLICK FIX
+================================= */
+
+.menu-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+
+  width: 100vw !important;
+  height: 100vh !important;
+
+  background: #080303 !important;
+
+  z-index: 9999 !important;
+
+  visibility: hidden;
+  opacity: 0;
+
+  transform: translateY(-100%);
+
+  pointer-events: none;
+
+  transition:
+    transform 0.65s cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 0.45s ease,
+    visibility 0.65s;
+}
+
+.menu-overlay.menu-open {
+  visibility: visible !important;
+
+  opacity: 1 !important;
+
+  transform: translateY(0) !important;
+
+  pointer-events: auto !important;
+}
+
+.menu-top,
+.menu-links,
+.menu-footer {
+  position: relative;
+
+  z-index: 10000;
+}
+
+.menu-top {
+  position: absolute;
+}
+
+.menu-footer {
+  position: absolute;
+}
+
+.menu-close,
+.menu-links button {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* =================================
+   STOKED MENU - FINAL FIX
+================================= */
+
+.menu-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+
+  width: 100vw !important;
+  height: 100vh !important;
+
+  background: #080303 !important;
+
+  z-index: 999999 !important;
+
+  display: flex !important;
+  flex-direction: column;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translateY(-100%);
+
+  transition:
+    transform 0.6s ease,
+    opacity 0.4s ease,
+    visibility 0.6s ease;
+}
+
+.menu-overlay.menu-open {
+  opacity: 1 !important;
+
+  visibility: visible !important;
+
+  pointer-events: auto !important;
+
+  transform: translateY(0) !important;
+}
+
+/* Menu top */
+
+.menu-top {
+  position: absolute !important;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+
+  padding: 30px 40px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  z-index: 1000000;
+}
+
+.menu-logo {
+  color: white;
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.18em;
+}
+
+.menu-close {
+  border: none;
+
+  background: transparent;
+
+  color: white;
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 10px;
+
+  letter-spacing: 0.2em;
+
+  cursor: pointer;
+
+  padding: 10px;
+}
+
+/* Menu links */
+
+.menu-links {
+  position: absolute !important;
+
+  inset: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  z-index: 999999;
+}
+
+.menu-links button {
+  border: none;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.8);
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: clamp(40px, 6vw, 80px);
+
+  font-weight: 600;
+
+  letter-spacing: -0.05em;
+
+  cursor: pointer;
+
+  transition: 0.3s ease;
+}
+
+.menu-links button:hover {
+  color: white;
+
+  transform: translateX(12px);
+}
+
+/* Footer */
+
+.menu-footer {
+  position: absolute !important;
+
+  bottom: 28px;
+
+  left: 0;
+
+  width: 100%;
+
+  padding: 0 40px;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  color: rgba(255, 255, 255, 0.3);
+
+  font-size: 9px;
+
+  letter-spacing: 0.18em;
+
+  z-index: 1000000;
+}
+
+/* Mobile */
+
+@media (max-width: 700px) {
+  .menu-top {
+    padding: 24px 22px;
+  }
+
+  .menu-links button {
+    font-size: 12vw;
+  }
+
+  .menu-footer {
+    bottom: 20px;
+
+    padding: 0 22px;
+
+    font-size: 7px;
+  }
+}
+
+/* SIDE MENU */
+
+.menu-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 999999 !important;
+
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+
+  transition: opacity 0.35s ease;
+}
+
+.menu-overlay.menu-open {
+  visibility: visible !important;
+  pointer-events: auto !important;
+  opacity: 1;
+}
+
+.menu-backdrop {
+  position: absolute;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.menu-panel {
+  position: absolute;
+
+  top: 0;
+  right: 0;
+
+  width: 330px;
+  max-width: 86vw;
+
+  height: 100vh;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(35, 5, 5, 0.98),
+      rgba(7, 2, 2, 0.99)
+    );
+
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+
+  transform: translateX(100%);
+
+  transition:
+    transform 0.65s cubic-bezier(0.76, 0, 0.24, 1);
+
+  overflow: hidden;
+}
+
+.menu-overlay.menu-open .menu-panel {
+  transform: translateX(0);
+}
+
+.menu-panel .menu-top {
+  position: absolute !important;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+
+  padding: 30px 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  z-index: 3;
+}
+
+.menu-logo {
+  color: white;
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.menu-close {
+  border: none;
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.75);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 9px;
+  letter-spacing: 0.18em;
+
+  cursor: pointer;
+  padding: 8px;
+
+  transition: 0.3s ease;
+}
+
+.menu-close span {
+  font-size: 20px;
+  margin-left: 5px;
+}
+
+.menu-close:hover {
+  color: white;
+  transform: translateX(-3px);
+}
+
+.menu-panel .menu-links {
+  position: absolute !important;
+
+  inset: 0;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-start;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 0 50px;
+
+  z-index: 2;
+}
+
+.menu-panel .menu-links button {
+  border: none;
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.75);
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: clamp(34px, 4vw, 58px);
+
+  font-weight: 600;
+  letter-spacing: -0.055em;
+
+  cursor: pointer;
+
+  transition:
+    color 0.3s ease,
+    transform 0.35s ease;
+}
+
+.menu-panel .menu-links button:hover {
+  color: white;
+  transform: translateX(10px);
+}
+
+.menu-panel .menu-footer {
+  position: absolute !important;
+
+  bottom: 28px;
+  left: 0;
+
+  width: 100%;
+
+  padding: 0 32px;
+
+  display: flex;
+  justify-content: space-between;
+
+  color: rgba(255, 255, 255, 0.28);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 8px;
+  letter-spacing: 0.15em;
+
+  z-index: 3;
+}
+
+@media (max-width: 700px) {
+  .menu-panel {
+    width: 86vw;
+  }
+
+  .menu-panel .menu-top {
+    padding: 24px 22px;
+  }
+
+  .menu-panel .menu-links {
+    padding: 0 32px;
+    gap: 5px;
+  }
+
+  .menu-panel .menu-links button {
+    font-size: 11vw;
+  }
+
+  .menu-panel .menu-footer {
+    bottom: 20px;
+    padding: 0 22px;
+    font-size: 7px;
+  }
+}
+
+/* =================================
+   PREMIUM MENU TYPOGRAPHY
+================================= */
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  background: #080303;
+  color: #f5f5f3;
+  font-family: "Inter", sans-serif;
+
+  /* FIXED: allow page scrolling */
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+button {
+  font: inherit;
+}
+
+button:focus,
+button:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+
+/* =========================================================
+   MAIN LANDING
+========================================================= */
+
+.landing {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-height: 600px;
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(100, 0, 0, 0.24) 0%,
+      rgba(25, 0, 0, 0.16) 28%,
+      rgba(8, 3, 3, 0) 65%
+    ),
+    #080303;
+}
+
+
+/* Cinematic atmosphere */
+
+.landing::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 45%,
+      rgba(150, 0, 0, 0.18),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at 15% 80%,
+      rgba(90, 0, 0, 0.12),
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse at 85% 15%,
+      rgba(100, 0, 0, 0.1),
+      transparent 45%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.45)
+    );
+
+  pointer-events: none;
+  z-index: 1;
+}
+
+
+/* =========================================================
+   GRAIN
+========================================================= */
+
+.grain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+
+  opacity: 0.032;
+
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+
+  pointer-events: none;
+  z-index: 20;
+}
+
+
+/* =========================================================
+   SPIDER FIELD
+========================================================= */
+
+.spider-field {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+
+  pointer-events: none;
+  z-index: 2;
+
+  isolation: isolate;
+}
+
+
+/* =========================================================
+   SPIDER BASE
+========================================================= */
+
+.spider {
+  position: absolute;
+
+  will-change: transform;
+  transform-origin: center;
+
+  pointer-events: none;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.spider img {
+  display: block;
+  width: 100%;
+  height: auto;
+
+  user-select: none;
+  -webkit-user-drag: none;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  filter:
+    drop-shadow(0 0 8px rgba(255, 255, 255, 0.08))
+    drop-shadow(0 0 28px rgba(120, 0, 0, 0.12));
+}
+
+
+/* =========================================================
+   SPIDER 1
+========================================================= */
+
+.spider-1 {
+  top: 8%;
+  left: 7%;
+  width: 125px;
+  opacity: 0.13;
+
+  filter: blur(0.4px);
+
+  animation: floatOne 12s ease-in-out infinite;
+}
+
+.spider-1 img {
+  transform: rotate(-18deg);
+}
+
+
+/* =========================================================
+   SPIDER 2
+========================================================= */
+
+.spider-2 {
+  top: 14%;
+  right: 8%;
+  width: 165px;
+  opacity: 0.11;
+
+  filter: blur(1.2px);
+
+  animation: floatTwo 15s ease-in-out infinite;
+}
+
+.spider-2 img {
+  transform: rotate(17deg);
+}
+
+
+/* =========================================================
+   SPIDER 3
+========================================================= */
+
+.spider-3 {
+  top: 49%;
+  left: 4%;
+  width: 105px;
+  opacity: 0.09;
+
+  filter: blur(2px);
+
+  animation: floatThree 17s ease-in-out infinite;
+}
+
+.spider-3 img {
+  transform: rotate(12deg);
+}
+
+
+/* =========================================================
+   SPIDER 4
+========================================================= */
+
+.spider-4 {
+  top: 58%;
+  right: 5%;
+  width: 135px;
+  opacity: 0.12;
+
+  filter: blur(0.8px);
+
+  animation: floatFour 14s ease-in-out infinite;
+}
+
+.spider-4 img {
+  transform: rotate(-25deg);
+}
+
+
+/* =========================================================
+   SPIDER 5
+========================================================= */
+
+.spider-5 {
+  bottom: 4%;
+  left: 43%;
+  width: 85px;
+  opacity: 0.07;
+
+  filter: blur(2.5px);
+
+  animation: floatFive 18s ease-in-out infinite;
+}
+
+.spider-5 img {
+  transform: rotate(30deg);
+}
+
+
+/* =========================================================
+   FLOATING MOTION
+========================================================= */
+
+@keyframes floatOne {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  25% {
+    transform: translate3d(18px, -12px, 0) rotate(4deg);
+  }
+
+  50% {
+    transform: translate3d(-8px, 15px, 0) rotate(-3deg);
+  }
+
+  75% {
+    transform: translate3d(12px, 8px, 0) rotate(5deg);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes floatTwo {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  30% {
+    transform: translate3d(-20px, 13px, 0) rotate(-5deg);
+  }
+
+  60% {
+    transform: translate3d(10px, -16px, 0) rotate(4deg);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes floatThree {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  35% {
+    transform: translate3d(14px, -18px, 0) rotate(6deg);
+  }
+
+  70% {
+    transform: translate3d(-12px, 12px, 0) rotate(-5deg);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes floatFour {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  30% {
+    transform: translate3d(-15px, -10px, 0) rotate(-4deg);
+  }
+
+  65% {
+    transform: translate3d(16px, 14px, 0) rotate(5deg);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes floatFive {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  40% {
+    transform: translate3d(10px, -12px, 0) rotate(5deg);
+  }
+
+  75% {
+    transform: translate3d(-13px, 8px, 0) rotate(-5deg);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+
+  padding: 30px 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  z-index: 100000;
+}
+
+.mini-logo {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #ffffff;
+
+  pointer-events: none;
+}
+
+.menu {
+  position: relative;
+
+  border: 0;
+  outline: none;
+  background: transparent;
+
+  color: #ffffff;
+
+  font-family: "Inter", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+
+  cursor: pointer;
+
+  z-index: 100001;
+
+  pointer-events: auto;
+  touch-action: manipulation;
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.menu:hover {
+  opacity: 0.6;
+  transform: translateX(-3px);
+}
+
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  z-index: 5;
+}
+
+
+/* =========================================================
+   BRAND
+========================================================= */
+
+.brand-mark {
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: clamp(90px, 14vw, 210px);
+
+  line-height: 0.8;
+
+  font-weight: 700;
+
+  letter-spacing: -0.075em;
+
+  color: #f5f5f3;
+
+  text-shadow:
+    0 0 20px rgba(255, 255, 255, 0.03),
+    0 0 60px rgba(130, 0, 0, 0.12);
+
+  animation:
+    logoReveal 1.5s cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
+}
+
+
+/* =========================================================
+   CAMPAIGN
+========================================================= */
+
+.campaign-title {
+  margin-top: 25px;
+
+  font-family: "Inter", sans-serif;
+
+  font-size: clamp(9px, 1vw, 12px);
+
+  font-weight: 500;
+
+  letter-spacing: 0.5em;
+
+  color: rgba(255, 255, 255, 0.55);
+
+  padding-left: 0.5em;
+
+  animation:
+    subtitleReveal 1.2s ease 0.3s both;
+}
+
+
+/* =========================================================
+   SHOP BUTTON
+========================================================= */
+
+.shop-button {
+  position: relative;
+
+  margin-top: 55px;
+
+  width: 190px;
+  height: 54px;
+
+  border: 1px solid rgba(255, 255, 255, 0.22);
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.025);
+
+  color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 18px;
+
+  font-family: "Inter", sans-serif;
+
+  cursor: pointer;
+
+  overflow: hidden;
+
+  transition:
+    transform 0.35s ease,
+    border-color 0.35s ease,
+    background 0.35s ease;
+
+  animation:
+    buttonReveal 1s ease 0.6s both;
+}
+
+.shop-button:hover {
+  transform: scale(1.05);
+
+  border-color: rgba(255, 255, 255, 0.5);
+
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.shop-text {
+  position: relative;
+  z-index: 3;
+
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+}
+
+.shop-arrow {
+  position: relative;
+  z-index: 3;
+
+  font-size: 18px;
+  line-height: 1;
+
+  transition: transform 0.3s ease;
+}
+
+.shop-button:hover .shop-arrow {
+  transform: translate(3px, -3px);
+}
+
+
+/* =========================================================
+   BLOOD
+========================================================= */
+
+.blood {
+  position: absolute;
+
+  width: 7px;
+  height: 11px;
+
+  border-radius: 50% 50% 55% 55%;
+
+  background: #9c0000;
+
+  opacity: 0;
+
+  transform:
+    translateY(-10px)
+    scale(0.6);
+
+  transition:
+    opacity 0.3s ease,
+    transform 0.35s ease;
+}
+
+.blood-one {
+  left: 28px;
+  top: 5px;
+}
+
+.blood-two {
+  left: 45px;
+  top: 8px;
+
+  width: 5px;
+  height: 8px;
+}
+
+.blood-three {
+  right: 30px;
+  top: 4px;
+
+  width: 6px;
+  height: 9px;
+}
+
+.shop-button:hover .blood {
+  opacity: 1;
+
+  transform:
+    translateY(0)
+    scale(1);
+}
+
+
+/* =========================================================
+   LANDING FOOTER
+========================================================= */
+
+.footer {
+  position: absolute;
+
+  bottom: 28px;
+  left: 0;
+
+  width: 100%;
+
+  padding: 0 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  color: rgba(255, 255, 255, 0.35);
+
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+
+  z-index: 10;
+}
+
+
+/* =========================================================
+   REVEAL ANIMATIONS
+========================================================= */
+
+@keyframes logoReveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 35px, 0);
+    filter: blur(6px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes subtitleReveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes buttonReveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 15px, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+
+/* =========================================================
+   MOBILE LANDING
+========================================================= */
+
+@media (max-width: 700px) {
+  .header {
+    padding: 24px 22px;
+  }
+
+  .footer {
+    bottom: 20px;
+    padding: 0 22px;
+    font-size: 7px;
+  }
+
+  .spider-1 {
+    top: 10%;
+    left: 2%;
+    width: 85px;
+  }
+
+  .spider-2 {
+    top: 13%;
+    right: 2%;
+    width: 105px;
+  }
+
+  .spider-3 {
+    top: 48%;
+    left: -2%;
+    width: 75px;
+  }
+
+  .spider-4 {
+    top: 60%;
+    right: -2%;
+    width: 90px;
+  }
+
+  .spider-5 {
+    bottom: 7%;
+    left: 42%;
+    width: 60px;
+  }
+
+  .brand-mark {
+    font-size: clamp(62px, 19vw, 120px);
+    letter-spacing: -0.08em;
+  }
+
+  .campaign-title {
+    margin-top: 20px;
+    font-size: 7px;
+    letter-spacing: 0.35em;
+  }
+
+  .shop-button {
+    margin-top: 42px;
+    width: 170px;
+    height: 50px;
+  }
+}
+
+
+/* =========================================================
+   SHORT SCREEN
+========================================================= */
+
+@media (max-height: 650px) {
+  .spider-1 {
+    top: 4%;
+  }
+
+  .spider-2 {
+    top: 7%;
+  }
+
+  .campaign-title {
+    margin-top: 16px;
+  }
+
+  .shop-button {
+    margin-top: 35px;
+  }
+
+  .footer {
+    bottom: 16px;
+  }
+}
+
+
+/* =========================================================
+   PREMIUM RIGHT SIDE SPIDER WEB
+========================================================= */
+
+.background-web {
+  position: absolute;
+
+  width: 620px;
+  height: 620px;
+
+  right: -180px;
+  top: 50%;
+
+  transform:
+    translateY(-50%)
+    rotate(-12deg);
+
+  opacity: 0.11;
+
+  filter: blur(3px);
+
+  pointer-events: none;
+
+  z-index: 2;
+
+  mix-blend-mode: screen;
+
+  mask-image:
+    radial-gradient(
+      circle,
+      black 15%,
+      rgba(0, 0, 0, 0.8) 48%,
+      transparent 82%
+    );
+
+  -webkit-mask-image:
+    radial-gradient(
+      circle,
+      black 15%,
+      rgba(0, 0, 0, 0.8) 48%,
+      transparent 82%
+    );
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+
+/* Soft red glow */
+
+.background-web::before {
+  content: "";
+
+  position: absolute;
+  inset: 8%;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(130, 0, 0, 0.18),
+      transparent 68%
+    );
+
+  filter: blur(40px);
+
+  pointer-events: none;
+}
+
+
+/* Web radial lines */
+
+.web-line {
+  position: absolute;
+
+  left: 50%;
+  top: 0;
+
+  width: 1px;
+  height: 100%;
+
+  transform-origin: center;
+
+  background:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(255, 255, 255, 0.4) 35%,
+      rgba(255, 255, 255, 0.3) 65%,
+      transparent 100%
+    );
+}
+
+.web-line-1 {
+  transform: rotate(0deg);
+}
+
+.web-line-2 {
+  transform: rotate(36deg);
+}
+
+.web-line-3 {
+  transform: rotate(72deg);
+}
+
+.web-line-4 {
+  transform: rotate(108deg);
+}
+
+.web-line-5 {
+  transform: rotate(144deg);
+}
+
+.web-line-1::after,
+.web-line-2::after,
+.web-line-3::after,
+.web-line-4::after,
+.web-line-5::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  top: 0;
+
+  width: 1px;
+  height: 100%;
+
+  background: inherit;
+
+  transform: rotate(36deg);
+}
+
+
+/* Web rings */
+
+.web-ring {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  border: 1px solid rgba(255, 255, 255, 0.28);
+
+  border-radius: 50%;
+
+  transform: translate(-50%, -50%);
+}
+
+.web-ring-1 {
+  width: 100px;
+  height: 100px;
+}
+
+.web-ring-2 {
+  width: 185px;
+  height: 185px;
+}
+
+.web-ring-3 {
+  width: 285px;
+  height: 285px;
+}
+
+.web-ring-4 {
+  width: 410px;
+  height: 410px;
+}
+
+.web-ring-5 {
+  width: 545px;
+  height: 545px;
+}
+
+
+/* Soft outer fade */
+
+.background-web::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 15%,
+      rgba(8, 3, 3, 0.08) 50%,
+      rgba(8, 3, 3, 0.9) 88%
+    );
+
+  pointer-events: none;
+}
+
+
+/* Mobile web */
+
+@media (max-width: 700px) {
+  .background-web {
+    width: 430px;
+    height: 430px;
+
+    right: -185px;
+    top: 52%;
+
+    opacity: 0.09;
+
+    filter: blur(3px);
+  }
+
+  .web-ring-1 {
+    width: 70px;
+    height: 70px;
+  }
+
+  .web-ring-2 {
+    width: 130px;
+    height: 130px;
+  }
+
+  .web-ring-3 {
+    width: 200px;
+    height: 200px;
+  }
+
+  .web-ring-4 {
+    width: 290px;
+    height: 290px;
+  }
+
+  .web-ring-5 {
+    width: 380px;
+    height: 380px;
+  }
+}
+
+
+/* =========================================================
+   LEGACY MENU
+   Kept for compatibility with other pages/components
+========================================================= */
+
+.menu-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+
+  width: 100vw !important;
+  height: 100vh !important;
+
+  background: #080303 !important;
+
+  z-index: 999999 !important;
+
+  display: flex !important;
+  flex-direction: column;
+
+  visibility: hidden;
+  opacity: 0;
+
+  pointer-events: none;
+
+  transform: translateY(-100%);
+
+  transition:
+    transform 0.6s ease,
+    opacity 0.4s ease,
+    visibility 0.6s ease;
+
+  overflow: hidden;
+}
+
+.menu-overlay.menu-open {
+  visibility: visible !important;
+  opacity: 1 !important;
+
+  pointer-events: auto !important;
+
+  transform: translateY(0) !important;
+}
+
+.menu-background {
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      ellipse at 70% 40%,
+      rgba(130, 0, 0, 0.18),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 20% 80%,
+      rgba(90, 0, 0, 0.12),
+      transparent 45%
+    );
+
+  pointer-events: none;
+}
+
+.menu-top {
+  position: absolute !important;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+
+  padding: 27px 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  z-index: 1000000;
+}
+
+.menu-logo {
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.25em;
+
+  color: white;
+
+  opacity: 0.9;
+}
+
+.menu-close {
+  border: 0;
+  outline: none;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.45);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 7px;
+  font-weight: 500;
+
+  letter-spacing: 0.16em;
+
+  padding: 8px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  cursor: pointer;
+
+  pointer-events: auto;
+
+  touch-action: manipulation;
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.menu-close:hover {
+  opacity: 0.65;
+  transform: translateX(-3px);
+}
+
+.menu-close span {
+  font-size: 19px;
+  line-height: 1;
+
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.menu-links {
+  position: absolute !important;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  z-index: 999999;
+
+  pointer-events: auto;
+}
+
+.menu-links button {
+  border: 0;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.8);
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: clamp(40px, 6vw, 80px);
+
+  font-weight: 600;
+
+  letter-spacing: -0.05em;
+
+  cursor: pointer;
+
+  transition:
+    color 0.3s ease,
+    transform 0.35s ease;
+}
+
+.menu-links button:hover {
+  color: white;
+  transform: translateX(12px);
+}
+
+.menu-footer {
+  position: absolute !important;
+
+  bottom: 28px;
+  left: 0;
+
+  width: 100%;
+
+  padding: 0 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  color: rgba(255, 255, 255, 0.22);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 7px;
+
+  letter-spacing: 0.18em;
+
+  z-index: 1000000;
+}
+
+
+/* Legacy side panel */
+
+.menu-backdrop {
+  position: absolute;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.45);
+
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.menu-panel {
+  position: absolute;
+
+  top: 0;
+  right: 0;
+
+  width: 330px;
+  max-width: 86vw;
+
+  height: 100vh;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(35, 5, 5, 0.98),
+      rgba(7, 2, 2, 0.99)
+    );
+
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+
+  transform: translateX(100%);
+
+  transition:
+    transform 0.65s cubic-bezier(0.76, 0, 0.24, 1);
+
+  overflow: hidden;
+}
+
+.menu-overlay.menu-open .menu-panel {
+  transform: translateX(0);
+}
+
+.menu-panel .menu-top {
+  padding: 27px 25px;
+}
+
+.menu-panel .menu-links {
+  position: absolute !important;
+
+  inset: 0;
+
+  padding: 0 25px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: stretch;
+  justify-content: center;
+
+  gap: 7px;
+}
+
+.menu-panel .menu-links button {
+  position: relative;
+
+  width: 100%;
+  height: 55px;
+
+  padding: 0 16px;
+
+  display: flex;
+  align-items: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.055);
+
+  border-radius: 2px;
+
+  background: rgba(255, 255, 255, 0.018);
+
+  color: rgba(255, 255, 255, 0.58);
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: 14px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.08em;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  transform: none;
+
+  transition:
+    background 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease,
+    padding-left 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.menu-panel .menu-links button::before {
+  content: "01";
+
+  width: 25px;
+
+  flex-shrink: 0;
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 7px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.1em;
+
+  color: rgba(255, 255, 255, 0.2);
+
+  transition: color 0.35s ease;
+}
+
+.menu-panel .menu-links button:nth-child(2)::before {
+  content: "02";
+}
+
+.menu-panel .menu-links button:nth-child(3)::before {
+  content: "03";
+}
+
+.menu-panel .menu-links button:nth-child(4)::before {
+  content: "04";
+}
+
+.menu-panel .menu-links button:nth-child(5)::before {
+  content: "05";
+}
+
+.menu-panel .menu-links button::after {
+  display: none;
+}
+
+.menu-panel .menu-links button:hover {
+  color: white;
+
+  padding-left: 22px;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(130, 0, 0, 0.18),
+      rgba(255, 255, 255, 0.025)
+    );
+
+  border-color: rgba(150, 0, 0, 0.3);
+
+  box-shadow:
+    inset 2px 0 0 rgba(150, 0, 0, 0.85),
+    0 8px 30px rgba(0, 0, 0, 0.18);
+}
+
+.menu-panel .menu-links button:hover::before {
+  color: rgba(180, 0, 0, 0.9);
+}
+
+.menu-panel .menu-footer {
+  position: absolute !important;
+
+  bottom: 28px;
+  left: 0;
+
+  width: 100%;
+
+  padding: 0 25px;
+
+  display: flex;
+  justify-content: space-between;
+
+  color: rgba(255, 255, 255, 0.22);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 0.18em;
+}
+
+
+/* =========================================================
+   LEGACY MENU MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+  .menu-panel {
+    width: 285px;
+    max-width: 86vw;
+  }
+
+  .menu-panel .menu-top {
+    padding: 24px 20px;
+  }
+
+  .menu-panel .menu-links {
+    padding: 0 18px;
+    gap: 6px;
+  }
+
+  .menu-panel .menu-links button {
+    height: 50px;
+    font-size: 12px;
+    padding: 0 13px;
+  }
+
+  .menu-panel .menu-links button:hover {
+    padding-left: 19px;
+  }
+
+  .menu-panel .menu-footer {
+    bottom: 20px;
+    padding: 0 20px;
+    font-size: 7px;
+  }
+}
+
+
+/* =========================================================
+   STOKED — CLEAN MENU
+   CURRENT PAGE MENU
+========================================================= */
+
+.stoked-menu {
+  position: fixed !important;
+
+  inset: 0 !important;
+
+  width: 100vw !important;
+  height: 100dvh !important;
+
+  z-index: 2147483647 !important;
+
+  display: block !important;
+
+  visibility: hidden !important;
+  opacity: 0 !important;
+
+  pointer-events: none !important;
+
+  transform: none !important;
+
+  overflow: hidden !important;
+
+  transition:
+    opacity 0.35s ease,
+    visibility 0.35s ease !important;
+
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+.stoked-menu.stoked-menu-visible {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+
+/* =========================================================
+   STOKED MENU BACKDROP
+========================================================= */
+
+.stoked-menu-backdrop {
+  position: absolute !important;
+
+  inset: 0 !important;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  border: 0 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  background: rgba(0, 0, 0, 0.45) !important;
+
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+
+  cursor: pointer !important;
+
+  pointer-events: auto !important;
+
+  -webkit-tap-highlight-color: transparent !important;
+
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+
+/* =========================================================
+   STOKED MENU PANEL
+========================================================= */
+
+.stoked-menu-panel {
+  position: absolute !important;
+
+  top: 0 !important;
+  right: 0 !important;
+
+  width: 330px !important;
+  max-width: 86vw !important;
+
+  height: 100dvh !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(35, 5, 5, 0.98),
+      rgba(7, 2, 2, 0.99)
+    ) !important;
+
+  border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+
+  transform: translateX(105%) !important;
+
+  transition:
+    transform 0.65s cubic-bezier(0.76, 0, 0.24, 1) !important;
+
+  overflow: hidden !important;
+
+  z-index: 2 !important;
+
+  pointer-events: auto !important;
+
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+
+  will-change: transform;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.stoked-menu.stoked-menu-visible .stoked-menu-panel {
+  transform: translateX(0) !important;
+}
+
+
+/* =========================================================
+   STOKED MENU TOP
+========================================================= */
+
+.stoked-menu-top {
+  position: absolute !important;
+
+  top: 0 !important;
+  left: 0 !important;
+
+  width: 100% !important;
+
+  padding: 27px 25px !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: space-between !important;
+
+  z-index: 10 !important;
+}
+
+.stoked-menu-logo {
+  font-family: "Space Grotesk", sans-serif !important;
+
+  font-size: 11px !important;
+
+  font-weight: 700 !important;
+
+  letter-spacing: 0.25em !important;
+
+  color: white !important;
+
+  opacity: 0.9 !important;
+
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.stoked-menu-close {
+  border: 0 !important;
+  outline: none !important;
+
+  background: transparent !important;
+
+  color: rgba(255, 255, 255, 0.45) !important;
+
+  font-family: "Inter", sans-serif !important;
+
+  font-size: 7px !important;
+
+  font-weight: 500 !important;
+
+  letter-spacing: 0.16em !important;
+
+  padding: 8px !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+
+  gap: 5px !important;
+
+  cursor: pointer !important;
+
+  pointer-events: auto !important;
+
+  -webkit-tap-highlight-color: transparent !important;
+
+  user-select: none !important;
+  -webkit-user-select: none !important;
+
+  touch-action: manipulation !important;
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease !important;
+}
+
+.stoked-menu-close:hover {
+  opacity: 0.65 !important;
+  transform: translateX(-3px);
+}
+
+.stoked-menu-close span {
+  font-size: 19px !important;
+
+  line-height: 1 !important;
+
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+
+/* =========================================================
+   STOKED MENU NAVIGATION
+========================================================= */
+
+.stoked-menu-links {
+  position: absolute !important;
+
+  inset: 0 !important;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  padding: 0 25px !important;
+
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  align-items: stretch !important;
+
+  justify-content: center !important;
+
+  gap: 7px !important;
+
+  z-index: 5 !important;
+
+  pointer-events: auto !important;
+}
+
+.stoked-menu-links button {
+  position: relative !important;
+
+  width: 100% !important;
+  height: 55px !important;
+
+  padding: 0 16px !important;
+
+  display: flex !important;
+  align-items: center !important;
+
+  border: 1px solid rgba(255, 255, 255, 0.055) !important;
+
+  border-radius: 2px !important;
+
+  background: rgba(255, 255, 255, 0.018) !important;
+
+  color: rgba(255, 255, 255, 0.58) !important;
+
+  font-family: "Space Grotesk", sans-serif !important;
+
+  font-size: 14px !important;
+
+  font-weight: 500 !important;
+
+  letter-spacing: 0.08em !important;
+
+  line-height: 1 !important;
+
+  cursor: pointer !important;
+
+  pointer-events: auto !important;
+
+  outline: none !important;
+
+  -webkit-tap-highlight-color: transparent !important;
+
+  user-select: none !important;
+  -webkit-user-select: none !important;
+
+  -webkit-touch-callout: none !important;
+
+  touch-action: manipulation !important;
+
+  transform: none !important;
+
+  transition:
+    background 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease,
+    padding-left 0.35s ease,
+    box-shadow 0.35s ease !important;
+}
+
+
+/* Numbers */
+
+.stoked-menu-links button::before {
+  content: "01" !important;
+
+  width: 25px !important;
+
+  flex-shrink: 0 !important;
+
+  font-family: "Inter", sans-serif !important;
+
+  font-size: 7px !important;
+
+  font-weight: 500 !important;
+
+  letter-spacing: 0.1em !important;
+
+  color: rgba(255, 255, 255, 0.2) !important;
+
+  transition: color 0.35s ease !important;
+}
+
+.stoked-menu-links button:nth-child(2)::before {
+  content: "02" !important;
+}
+
+.stoked-menu-links button:nth-child(3)::before {
+  content: "03" !important;
+}
+
+.stoked-menu-links button:nth-child(4)::before {
+  content: "04" !important;
+}
+
+.stoked-menu-links button:nth-child(5)::before {
+  content: "05" !important;
+}
+
+
+/* Hover */
+
+.stoked-menu-links button:hover {
+  color: white !important;
+
+  padding-left: 22px !important;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(130, 0, 0, 0.18),
+      rgba(255, 255, 255, 0.025)
+    ) !important;
+
+  border-color: rgba(150, 0, 0, 0.3) !important;
+
+  box-shadow:
+    inset 2px 0 0 rgba(150, 0, 0, 0.85),
+    0 8px 30px rgba(0, 0, 0, 0.18) !important;
+}
+
+.stoked-menu-links button:hover::before {
+  color: rgba(180, 0, 0, 0.9) !important;
+}
+
+
+/* =========================================================
+   STOKED MENU FOOTER
+========================================================= */
+
+.stoked-menu-footer {
+  position: absolute !important;
+
+  bottom: 28px !important;
+  left: 0 !important;
+
+  width: 100% !important;
+
+  padding: 0 25px !important;
+
+  display: flex !important;
+
+  justify-content: space-between !important;
+  align-items: center !important;
+
+  color: rgba(255, 255, 255, 0.22) !important;
+
+  font-family: "Inter", sans-serif !important;
+
+  font-size: 6px !important;
+
+  letter-spacing: 0.18em !important;
+
+  z-index: 10 !important;
+
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+
+/* =========================================================
+   STOKED MENU MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+  .stoked-menu-panel {
+    width: 285px !important;
+    max-width: 86vw !important;
+  }
+
+  .stoked-menu-top {
+    padding: 24px 20px !important;
+  }
+
+  .stoked-menu-links {
+    padding: 0 18px !important;
+    gap: 6px !important;
+  }
+
+  .stoked-menu-links button {
+    height: 50px !important;
+    font-size: 12px !important;
+    padding: 0 13px !important;
+  }
+
+  .stoked-menu-links button:hover {
+    padding-left: 19px !important;
+  }
+
+  .stoked-menu-footer {
+    bottom: 20px !important;
+    padding: 0 20px !important;
+  }
+}
+
+
+/* =========================================================
+   STOKED MENU TOUCH FIX
+========================================================= */
+
+@media (max-width: 700px) {
+  .header {
+    position: absolute !important;
+
+    z-index: 2147483640 !important;
+
+    pointer-events: none !important;
+  }
+
+  .header .menu {
+    pointer-events: auto !important;
+
+    position: relative !important;
+
+    z-index: 2147483647 !important;
+
+    touch-action: manipulation !important;
+
+    cursor: pointer !important;
+  }
+
+  .header .mini-logo {
+    pointer-events: none !important;
+  }
+
+  .spider-field,
+  .background-web,
+  .grain,
+  .hero,
+  .footer {
+    pointer-events: none !important;
+  }
+
+  .stoked-menu {
+    pointer-events: none !important;
+  }
+
+  .stoked-menu.stoked-menu-visible {
+    pointer-events: auto !important;
+  }
+}
+
+
+/* =========================================================
+   SHOP PAGE
+========================================================= */
+
+.shop-page {
+  position: relative;
+
+  min-height: 100vh;
+
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(
+      ellipse at 78% 18%,
+      rgba(95, 0, 0, 0.13),
+      transparent 32%
+    ),
+    radial-gradient(
+      ellipse at 20% 65%,
+      rgba(255, 255, 255, 0.025),
+      transparent 28%
+    ),
+    #070303;
+
+  color: #f4f1ed;
+}
+
+
+/* =========================================================
+   SHOP NOISE
+========================================================= */
+
+.shop-noise {
+  position: fixed;
+
+  inset: -50%;
+
+  z-index: 50;
+
+  pointer-events: none;
+
+  opacity: 0.055;
+
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
+
+  transform: rotate(4deg);
+}
+
+
+/* =========================================================
+   SHOP NAV
+========================================================= */
+
+.shop-nav {
+  position: relative;
+
+  z-index: 10;
+
+  height: 82px;
+
+  padding: 0 38px;
+
+  display: grid;
+
+  grid-template-columns: 1fr auto 1fr;
+
+  align-items: center;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+}
+
+.shop-brand {
+  color: white;
+
+  text-decoration: none;
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.22em;
+}
+
+.shop-brand span {
+  margin-left: 4px;
+
+  font-size: 6px;
+
+  vertical-align: top;
+
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.shop-nav-center {
+  color: rgba(255, 255, 255, 0.32);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 7px;
+
+  letter-spacing: 0.25em;
+}
+
+.shop-nav-right {
+  justify-self: end;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 28px;
+}
+
+.shop-nav-link,
+.shop-cart {
+  color: rgba(255, 255, 255, 0.45);
+
+  text-decoration: none;
+
+  border: 0;
+
+  background: transparent;
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 7px;
+
+  letter-spacing: 0.2em;
+
+  cursor: pointer;
+
+  transition: color 0.3s ease;
+}
+
+.shop-nav-link:hover,
+.shop-cart:hover {
+  color: white;
+}
+
+.shop-cart b {
+  margin-left: 5px;
+
+  color: rgba(160, 0, 0, 0.9);
+
+  font-weight: 400;
+}
+
+
+/* =========================================================
+   SHOP INTRO
+========================================================= */
+
+.shop-intro {
+  min-height: 560px;
+
+  padding: 95px 38px 55px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: space-between;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+}
+
+.shop-intro-meta {
+  display: flex;
+
+  justify-content: space-between;
+
+  color: rgba(255, 255, 255, 0.25);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 7px;
+
+  letter-spacing: 0.22em;
+}
+
+.shop-intro h1 {
+  margin: 0;
+
+  max-width: 1000px;
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: clamp(70px, 12vw, 175px);
+
+  font-weight: 400;
+
+  line-height: 0.78;
+
+  letter-spacing: -0.085em;
+
+  color: #eeeae5;
+}
+
+.shop-intro h1 i {
+  display: inline-block;
+
+  margin-left: 15px;
+
+  color: rgba(150, 0, 0, 0.85);
+
+  font-family: Georgia, serif;
+
+  font-size: 0.32em;
+
+  font-weight: 400;
+
+  font-style: italic;
+
+  letter-spacing: -0.03em;
+
+  vertical-align: top;
+}
+
+.shop-intro-bottom {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: end;
+}
+
+.shop-intro-bottom p {
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.38);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 8px;
+
+  line-height: 1.8;
+
+  letter-spacing: 0.2em;
+}
+
+.scroll-mark {
+  color: rgba(255, 255, 255, 0.22);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 0.2em;
+}
+
+
+/* =========================================================
+   COLLECTION BAR
+========================================================= */
+
+.collection-bar {
+  height: 58px;
+
+  padding: 0 38px;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+
+  color: rgba(255, 255, 255, 0.25);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 0.22em;
+}
+
+
+/* =========================================================
+   PRODUCT GRID
+========================================================= */
+
+.shop-products {
+  padding: 35px 38px 130px;
+
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 90px 24px;
+}
+
+.shop-product {
+  min-width: 0;
+}
+
+
+/* Product visual */
+
+.product-visual {
+  position: relative;
+
+  height: min(680px, 48vw);
+
+  overflow: hidden;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  background:
+    radial-gradient(
+      circle at 50% 48%,
+      rgba(120, 0, 0, 0.12),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(255, 255, 255, 0.008)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.065);
+
+  transition:
+    border-color 0.5s ease,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.product-visual::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    linear-gradient(
+      115deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.035) 50%,
+      transparent 60%
+    );
+
+  transform: translateX(-100%);
+
+  transition: transform 0.8s ease;
+}
+
+.shop-product:hover .product-visual {
+  transform: translateY(-6px);
+
+  border-color: rgba(150, 0, 0, 0.28);
+}
+
+.shop-product:hover .product-visual::before {
+  transform: translateX(100%);
+}
+
+.visual-glow {
+  position: absolute;
+
+  width: 45%;
+
+  aspect-ratio: 1;
+
+  border-radius: 50%;
+
+  background: rgba(110, 0, 0, 0.12);
+
+  filter: blur(70px);
+}
+
+.visual-placeholder {
+  position: relative;
+
+  z-index: 2;
+
+  color: rgba(255, 255, 255, 0.075);
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: clamp(40px, 6vw, 90px);
+
+  font-weight: 700;
+
+  letter-spacing: -0.08em;
+}
+
+.visual-no {
+  position: absolute;
+
+  top: 18px;
+  left: 20px;
+
+  color: rgba(255, 255, 255, 0.25);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 7px;
+
+  letter-spacing: 0.15em;
+}
+
+.visual-status {
+  position: absolute;
+
+  top: 18px;
+  right: 20px;
+
+  color: rgba(255, 255, 255, 0.22);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 0.17em;
+}
+
+.quick-view {
+  position: absolute;
+
+  bottom: 20px;
+  right: 20px;
+
+  padding: 11px 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  background: rgba(0, 0, 0, 0.22);
+
+  color: rgba(255, 255, 255, 0.55);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 0.17em;
+
+  cursor: pointer;
+
+  opacity: 0;
+
+  transform: translateY(8px);
+
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease,
+    background 0.35s ease;
+}
+
+.shop-product:hover .quick-view {
+  opacity: 1;
+
+  transform: translateY(0);
+}
+
+.quick-view:hover {
+  background: rgba(130, 0, 0, 0.25);
+}
+
+.quick-view span {
+  margin-left: 12px;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   PRODUCT DETAILS
+========================================================= */
+
+.product-details {
+  padding-top: 19px;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: flex-start;
+}
+
+.product-title {
+  display: flex;
+
+  gap: 17px;
+}
+
+.product-index {
+  padding-top: 2px;
+
+  color: rgba(255, 255, 255, 0.2);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 0.1em;
+}
+
+.product-title h2 {
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.88);
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: 12px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.05em;
+}
+
+.product-title p {
+  margin: 7px 0 0;
+
+  color: rgba(255, 255, 255, 0.23);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 0.17em;
+}
+
+.product-cost {
+  color: rgba(255, 255, 255, 0.58);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 8px;
+
+  letter-spacing: 0.08em;
+}
+
+
+/* =========================================================
+   SHOP MANIFESTO
+========================================================= */
+
+.shop-manifesto {
+  min-height: 580px;
+
+  padding: 80px 38px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.075);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: space-between;
+}
+
+.shop-manifesto > span {
+  color: rgba(255, 255, 255, 0.23);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 7px;
+
+  letter-spacing: 0.22em;
+}
+
+.shop-manifesto h2 {
+  margin: 0;
+
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: clamp(60px, 10vw, 145px);
+
+  font-weight: 400;
+
+  line-height: 0.78;
+
+  letter-spacing: -0.08em;
+}
+
+.shop-manifesto h2 em {
+  color: rgba(145, 0, 0, 0.82);
+
+  font-family: Georgia, serif;
+
+  font-weight: 400;
+
+  font-style: italic;
+}
+
+.shop-manifesto p {
+  margin: 0;
+
+  align-self: flex-end;
+
+  color: rgba(255, 255, 255, 0.25);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 7px;
+
+  line-height: 1.8;
+
+  letter-spacing: 0.18em;
+}
+
+
+/* =========================================================
+   SHOP FOOTER
+========================================================= */
+
+.shop-bottom {
+  height: 90px;
+
+  padding: 0 38px;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  color: rgba(255, 255, 255, 0.2);
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 6px;
+
+  letter-spacing: 0.18em;
+}
+
+.shop-bottom a {
+  color: rgba(255, 255, 255, 0.35);
+
+  text-decoration: none;
+
+  transition: color 0.3s ease;
+}
+
+.shop-bottom a:hover {
+  color: white;
+}
+
+
+/* =========================================================
+   SHOP MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+  .shop-nav {
+    height: 70px;
+
+    padding: 0 18px;
+
+    grid-template-columns: 1fr auto;
+  }
+
+  .shop-nav-center {
+    display: none;
+  }
+
+  .shop-nav-right {
+    gap: 15px;
+  }
+
+  .shop-intro {
+    min-height: 500px;
+
+    padding: 70px 18px 35px;
+  }
+
+  .shop-intro h1 {
+    font-size: 20vw;
+
+    line-height: 0.82;
+  }
+
+  .shop-intro h1 i {
+    margin-left: 5px;
+  }
+
+  .shop-intro-bottom {
+    align-items: flex-start;
+
+    gap: 30px;
+  }
+
+  .scroll-mark {
+    display: none;
+  }
+
+  .collection-bar {
+    padding: 0 18px;
+  }
+
+  .shop-products {
+    padding: 20px 18px 90px;
+
+    grid-template-columns: 1fr;
+
+    gap: 60px;
+  }
+
+  .product-visual {
+    height: 125vw;
+
+    max-height: 600px;
+  }
+
+  .quick-view {
+    opacity: 1;
+
+    transform: none;
+
+    bottom: 15px;
+    right: 15px;
+  }
+
+  .shop-manifesto {
+    min-height: 470px;
+
+    padding: 55px 18px;
+  }
+
+  .shop-manifesto h2 {
+    font-size: 19vw;
+  }
+
+  .shop-manifesto p {
+    align-self: flex-start;
+  }
+
+  .shop-bottom {
+    height: 75px;
+
+    padding: 0 18px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE TEXT / SELECTION FIX
+========================================================= */
+
+html,
+body,
+.landing,
+.landing * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent !important;
+
+  -webkit-user-select: none !important;
+  user-select: none !important;
+
+  -webkit-touch-callout: none !important;
+}
+
+button:focus,
+button:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+img {
+  -webkit-user-drag: none !important;
+}
+
+
+/* =========================================================
+   MOBILE PERFORMANCE
+   DESIGN + ANIMATIONS PRESERVED
+========================================================= */
+
+@media (max-width: 700px) {
+
+  /* Decorative layers never block touch */
+
+  .background-web,
+  .spider-field,
+  .grain {
+    pointer-events: none !important;
+  }
+
+
+  /* Spider rendering */
+
+  .spider-field {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .spider {
+    will-change: transform;
+
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+
+    animation-play-state: running !important;
+    -webkit-animation-play-state: running !important;
+  }
+
+  .spider img {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+
+    -webkit-user-drag: none;
+  }
+
+
+  /* Background web */
+
+  .background-web {
+    will-change: auto;
+
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+
+  /* Hero animations */
+
+  .brand-mark,
+  .campaign-title,
+  .shop-button {
+    animation-play-state: running !important;
+  }
+
+  .brand-mark {
+    will-change: transform, opacity;
+
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .campaign-title,
+  .shop-button {
+    will-change: transform, opacity;
+
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+
+  /* Menu */
+
+  .header {
+    pointer-events: none !important;
+  }
+
+  .header .menu {
+    pointer-events: auto !important;
+
+    touch-action: manipulation !important;
+
+    cursor: pointer !important;
+
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  .header .mini-logo {
+    pointer-events: none !important;
+  }
+
+  .stoked-menu {
+    pointer-events: none !important;
+  }
+
+  .stoked-menu.stoked-menu-visible {
+    pointer-events: auto !important;
+  }
+
+  .stoked-menu-panel {
+    will-change: transform;
+
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+}
+
+
+/* =========================================================
+   MOBILE SHOP BUTTON TOUCH FIX
+========================================================= */
+
+@media (max-width: 700px) {
+  .hero {
+    pointer-events: auto !important;
+  }
+
+  .hero .shop-button {
+    position: relative !important;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    cursor: pointer !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  .hero .shop-button .shop-text,
+  .hero .shop-button .shop-arrow,
+  .hero .shop-button .blood {
+    pointer-events: none !important;
+  }
+}
+
+
+/* =========================================================
+   SHOP PAGE — ENABLE SCROLL
+========================================================= */
+
+.shop-page {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  min-height: 100vh;
+  height: auto !important;
+}
+
+html:has(.shop-page),
+body:has(.shop-page) {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+
+/* =========================================================
+   PRODUCT PAGE — ENABLE SCROLL
+========================================================= */
+
+.product-page {
+  position: relative;
+
+  width: 100%;
+  min-height: 100vh;
+
+  height: auto !important;
+
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+}
+
+html:has(.product-page),
+body:has(.product-page) {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+
+  height: auto !important;
+  min-height: 100% !important;
+}
