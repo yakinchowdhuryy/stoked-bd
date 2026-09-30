@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  type MouseEvent,
+} from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -18,6 +22,8 @@ type Category = {
   id: string;
   name: string;
   slug: string;
+  min_price: number;
+  max_price: number;
   created_at: string;
 };
 
@@ -26,25 +32,29 @@ const PRODUCTS_PER_PAGE = 12;
 const SPIDER =
   "https://www.pngall.com/wp-content/uploads/13/Spiderman-Logo-No-Background.png";
 
-export default function CategoryShop() {
-  const params = useParams();
+export default function CategoryPage() {
   const router = useRouter();
+  const params = useParams();
 
   const categorySlug =
     typeof params?.category === "string"
       ? params.category
       : Array.isArray(params?.category)
-        ? params.category[0]
-        : "";
+      ? params.category[0]
+      : "";
 
   const ALL_CATEGORY: Category = {
     id: "all",
     name: "ALL COLLECTION",
     slug: "",
+    min_price: 0,
+    max_price: 5000,
     created_at: "",
   };
 
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] =
+    useState<Product[]>([]);
+
   const [productsLoading, setProductsLoading] =
     useState(true);
 
@@ -60,6 +70,15 @@ export default function CategoryShop() {
   const [mobileCategoryOpen, setMobileCategoryOpen] =
     useState(false);
 
+  const [categoryMinPrice, setCategoryMinPrice] =
+    useState(0);
+
+  const [categoryMaxPrice, setCategoryMaxPrice] =
+    useState(5000);
+
+  const [maxPrice, setMaxPrice] =
+    useState(5000);
+
   const [filterOpen, setFilterOpen] =
     useState(false);
 
@@ -69,18 +88,181 @@ export default function CategoryShop() {
   const [currentPage, setCurrentPage] =
     useState(1);
 
-  /*
-    =====================================================
-    LOAD PRODUCTS
-    =====================================================
-  */
+  const [menuOpen, setMenuOpen] =
+    useState(false);
+
+  const [aboutOpen, setAboutOpen] =
+    useState(false);
+
+  const [contactOpen, setContactOpen] =
+    useState(false);
+
+  /* =====================================================
+     MENU HANDLERS
+  ===================================================== */
+
+  const openMenu = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    setAboutOpen(false);
+    setContactOpen(false);
+    setMenuOpen(true);
+  };
+
+  const closeMenu = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    setMenuOpen(false);
+  };
+
+  const goHome = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    setMenuOpen(false);
+    setAboutOpen(false);
+    setContactOpen(false);
+
+    router.push("/");
+  };
+
+  const goToShop = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    setMenuOpen(false);
+    setAboutOpen(false);
+    setContactOpen(false);
+
+    router.push("/shop");
+  };
+
+  const goToAccount = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    setMenuOpen(false);
+    setAboutOpen(false);
+    setContactOpen(false);
+
+    router.push("/account");
+  };
+
+  const openAbout = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    setMenuOpen(false);
+    setContactOpen(false);
+    setAboutOpen(true);
+  };
+
+  const closeAbout = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    setAboutOpen(false);
+    setMenuOpen(false);
+  };
+
+  const openContact = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    setMenuOpen(false);
+    setAboutOpen(false);
+    setContactOpen(true);
+  };
+
+  const closeContact = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    setContactOpen(false);
+    setMenuOpen(false);
+  };
+
+  /* =====================================================
+     SOCIAL
+  ===================================================== */
+
+  const isMobileDevice = () => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return /Android|iPhone|iPad|iPod/i.test(
+      navigator.userAgent
+    );
+  };
+
+  const openInstagram = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    const url =
+      "https://www.instagram.com/stoked.bd/";
+
+    if (isMobileDevice()) {
+      window.location.href = url;
+      return;
+    }
+
+    window.open(
+      url,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
+
+  const openFacebook = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    const url =
+      "https://www.facebook.com/share/1ba7vRfxAB/?mibextid=wwXIfr";
+
+    if (isMobileDevice()) {
+      window.location.href = url;
+      return;
+    }
+
+    window.open(
+      url,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
+
+  const openTikTok = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    const url =
+      "https://www.tiktok.com/@stoked.bd";
+
+    if (isMobileDevice()) {
+      window.location.href = url;
+      return;
+    }
+
+    window.open(
+      url,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
+
+  /* =====================================================
+     LOAD PRODUCTS
+  ===================================================== */
 
   useEffect(() => {
     let mounted = true;
 
     async function loadProducts() {
-      setProductsLoading(true);
-
       const { data, error } = await supabase
         .from("products")
         .select(`
@@ -109,7 +291,7 @@ export default function CategoryShop() {
 
       if (error) {
         console.error(
-          "CATEGORY SHOP PRODUCT LOAD ERROR:",
+          "CATEGORY PRODUCT LOAD ERROR:",
           error
         );
 
@@ -163,18 +345,14 @@ export default function CategoryShop() {
     };
   }, []);
 
-  /*
-    =====================================================
-    LOAD CATEGORIES
-    =====================================================
-  */
+  /* =====================================================
+     LOAD CATEGORIES
+  ===================================================== */
 
   useEffect(() => {
     let mounted = true;
 
     async function loadCategories() {
-      setCategoriesLoading(true);
-
       const {
         data,
         error,
@@ -184,6 +362,8 @@ export default function CategoryShop() {
           id,
           name,
           slug,
+          min_price,
+          max_price,
           created_at
         `)
         .order("created_at", {
@@ -192,7 +372,7 @@ export default function CategoryShop() {
 
       if (error) {
         console.error(
-          "CATEGORY SHOP CATEGORY LOAD ERROR:",
+          "CATEGORY LOAD ERROR:",
           error
         );
 
@@ -221,6 +401,18 @@ export default function CategoryShop() {
           .map(
             (category: Category) => ({
               ...category,
+              min_price:
+                Number.isFinite(
+                  Number(category.min_price)
+                )
+                  ? Number(category.min_price)
+                  : 0,
+              max_price:
+                Number.isFinite(
+                  Number(category.max_price)
+                )
+                  ? Number(category.max_price)
+                  : 5000,
             })
           );
 
@@ -232,36 +424,107 @@ export default function CategoryShop() {
       const currentCategory =
         formattedCategories.find(
           (category) =>
-            category.slug === categorySlug
+            category.slug ===
+            categorySlug
         );
 
-      if (!currentCategory) {
+      if (currentCategory) {
+        setSelectedCategory(
+          currentCategory.name
+        );
+        setCurrentPage(1);
+      } else {
         router.replace("/shop");
-        return;
       }
 
-      setSelectedCategory(
-        currentCategory.name
-      );
-
-      setCurrentPage(1);
       setCategoriesLoading(false);
     }
 
-    if (categorySlug) {
-      loadCategories();
-    }
+    loadCategories();
 
     return () => {
       mounted = false;
     };
   }, [categorySlug, router]);
 
-  /*
-    =====================================================
-    DETECT MOBILE
-    =====================================================
-  */
+  /* =====================================================
+     PRICE RANGE
+  ===================================================== */
+
+  useEffect(() => {
+    if (productsLoading) return;
+
+    const categoryProducts =
+      selectedCategory
+        ? products.filter(
+            (product) =>
+              product.category ===
+              selectedCategory
+          )
+        : [];
+
+    if (
+      categoryProducts.length === 0
+    ) {
+      setCategoryMinPrice(0);
+      setCategoryMaxPrice(0);
+      setMaxPrice(0);
+      setCurrentPage(1);
+      return;
+    }
+
+    const prices =
+      categoryProducts
+        .map((product) =>
+          Number(product.price)
+        )
+        .filter((price) =>
+          Number.isFinite(price)
+        );
+
+    if (prices.length === 0) {
+      setCategoryMinPrice(0);
+      setCategoryMaxPrice(5000);
+      setMaxPrice(5000);
+      setCurrentPage(1);
+      return;
+    }
+
+    const realMinPrice =
+      Math.min(...prices);
+
+    const realMaxPrice =
+      Math.max(...prices);
+
+    setCategoryMinPrice(
+      realMinPrice
+    );
+
+    setCategoryMaxPrice(
+      realMaxPrice
+    );
+
+    setMaxPrice((current) => {
+      if (
+        current < realMinPrice ||
+        current > realMaxPrice
+      ) {
+        return realMaxPrice;
+      }
+
+      return current;
+    });
+
+    setCurrentPage(1);
+  }, [
+    products,
+    productsLoading,
+    selectedCategory,
+  ]);
+
+  /* =====================================================
+     MOBILE CHECK
+  ===================================================== */
 
   useEffect(() => {
     const checkMobile = () => {
@@ -285,27 +548,60 @@ export default function CategoryShop() {
     };
   }, []);
 
-  /*
-    =====================================================
-    FILTER PRODUCTS
-    =====================================================
-  */
+  /* =====================================================
+     KEEP PRICE INSIDE RANGE
+  ===================================================== */
 
-  const filteredProducts =
-    products.filter((product) => {
-      const categoryMatch =
-        selectedCategory !== "" &&
-        product.category ===
-          selectedCategory;
+  useEffect(() => {
+    setMaxPrice((current) => {
+      if (
+        current < categoryMinPrice
+      ) {
+        return categoryMinPrice;
+      }
 
-      return categoryMatch;
+      if (
+        current > categoryMaxPrice
+      ) {
+        return categoryMaxPrice;
+      }
+
+      return current;
     });
 
-  /*
-    =====================================================
-    PAGINATION
-    =====================================================
-  */
+    setCurrentPage(1);
+  }, [
+    categoryMinPrice,
+    categoryMaxPrice,
+  ]);
+
+  /* =====================================================
+     FILTER PRODUCTS
+  ===================================================== */
+
+  const filteredProducts =
+    products.filter(
+      (product) => {
+        const categoryMatch =
+          product.category ===
+          selectedCategory;
+
+        const priceMatch =
+          product.price >=
+            categoryMinPrice &&
+          product.price <=
+            maxPrice;
+
+        return (
+          categoryMatch &&
+          priceMatch
+        );
+      }
+    );
+
+  /* =====================================================
+     PAGINATION
+  ===================================================== */
 
   const totalPages = Math.max(
     1,
@@ -340,17 +636,19 @@ export default function CategoryShop() {
         PRODUCTS_PER_PAGE
     );
 
-  /*
-    =====================================================
-    CATEGORY SELECT
-    =====================================================
-  */
+  /* =====================================================
+     CATEGORY SELECT
+  ===================================================== */
 
   const selectCategory = (
     category: Category
   ) => {
-    setMobileCategoryOpen(false);
+    setSelectedCategory(
+      category.name
+    );
+
     setCurrentPage(1);
+    setMobileCategoryOpen(false);
 
     if (isMobile) {
       setFilterOpen(false);
@@ -366,11 +664,9 @@ export default function CategoryShop() {
     );
   };
 
-  /*
-    =====================================================
-    PAGE CHANGE
-    =====================================================
-  */
+  /* =====================================================
+     PAGE CHANGE
+  ===================================================== */
 
   const changePage = (
     page: number
@@ -390,12 +686,6 @@ export default function CategoryShop() {
     });
   };
 
-  /*
-    =====================================================
-    RENDER
-    =====================================================
-  */
-
   return (
     <main
       className="shop-page"
@@ -409,7 +699,7 @@ export default function CategoryShop() {
     >
       {/* =====================================================
           BACKGROUND
-      ====================================================== */}
+      ===================================================== */}
 
       <div
         style={{
@@ -487,13 +777,17 @@ export default function CategoryShop() {
           zIndex: 5,
         }}
       >
-        {/* =================================================
+        {/* =====================================================
             HEADER
-        ================================================== */}
+            EXACT SHOP HEADER
+        ===================================================== */}
 
         <header
           style={{
-            position: "relative",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
             width: "100%",
             display: "flex",
             alignItems: "center",
@@ -503,430 +797,205 @@ export default function CategoryShop() {
             minHeight: isMobile
               ? "64px"
               : "70px",
+            zIndex: 2147483640,
+            pointerEvents: "none",
           }}
         >
           <Link
             href="/"
+            className="mini-logo"
             style={{
-              color:
-                "rgba(255,255,255,.9)",
-              textDecoration:
-                "none",
-              fontFamily:
-                '"Space Grotesk", sans-serif',
-              fontSize:
-                isMobile
-                  ? "10px"
-                  : "11px",
-              fontWeight: 600,
-              letterSpacing:
-                ".22em",
+              textDecoration: "none",
+              pointerEvents: "auto",
+              display: "block",
               flexShrink: 0,
             }}
           >
             STOKED
-            <span
-              style={{
-                fontSize: "7px",
-                marginLeft: "2px",
-                opacity: 0.65,
-              }}
-            >
-              ®
-            </span>
           </Link>
 
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: isMobile
-                ? "2px"
-                : "4px",
+              gap: "2px",
               marginLeft: "auto",
-              padding: isMobile
-                ? "3px"
-                : "4px",
-              border: isMobile
-                ? "1px solid rgba(255,255,255,.11)"
-                : "1px solid rgba(255,255,255,.09)",
-              borderRadius:
-                isMobile
-                  ? "14px"
-                  : "0px",
+              padding: "3px",
+              border:
+                "1px solid rgba(255,255,255,.11)",
+              borderRadius: "14px",
               background:
-                isMobile
-                  ? "linear-gradient(135deg, rgba(255,255,255,.065), rgba(255,255,255,.018))"
-                  : "rgba(255,255,255,.025)",
+                "linear-gradient(135deg, rgba(255,255,255,.065), rgba(255,255,255,.018))",
               boxShadow:
-                isMobile
-                  ? "0 12px 35px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05)"
-                  : "0 8px 30px rgba(0,0,0,.18)",
+                "0 12px 35px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05)",
               backdropFilter:
                 "blur(14px)",
               WebkitBackdropFilter:
                 "blur(14px)",
+              pointerEvents: "auto",
             }}
           >
-            {/* MOBILE FILTER */}
-
-            {isMobile && (
-              <>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFilterOpen(true)
-                  }
-                  aria-label="Open filter"
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                    border: 0,
-                    borderRadius:
-                      "10px",
-                    background:
-                      "rgba(255,255,255,.025)",
-                    color:
-                      "rgba(255,255,255,.78)",
-                    display:
-                      "flex",
-                    alignItems:
-                      "center",
-                    justifyContent:
-                      "center",
-                    cursor:
-                      "pointer",
-                    touchAction:
-                      "manipulation",
-                  }}
-                >
-                  <span
-                    style={{
-                      display:
-                        "flex",
-                      flexDirection:
-                        "column",
-                      gap: "4px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width:
-                          "16px",
-                        height:
-                          "1px",
-                        background:
-                          "rgba(255,255,255,.8)",
-                      }}
-                    />
-
-                    <span
-                      style={{
-                        width:
-                          "11px",
-                        height:
-                          "1px",
-                        background:
-                          "rgba(255,255,255,.55)",
-                      }}
-                    />
-
-                    <span
-                      style={{
-                        width:
-                          "14px",
-                        height:
-                          "1px",
-                        background:
-                          "rgba(255,255,255,.68)",
-                      }}
-                    />
-                  </span>
-                </button>
-
-                <span
-                  style={{
-                    width: "1px",
-                    height: "22px",
-                    background:
-                      "rgba(255,255,255,.07)",
-                    margin:
-                      "0 2px",
-                  }}
-                />
-              </>
-            )}
-
-            {/* EXIT */}
-
-            <Link
-              href="/"
-              style={{
-                minHeight:
-                  isMobile
-                    ? "40px"
-                    : "44px",
-                padding:
-                  isMobile
-                    ? "0 9px"
-                    : "0 9px",
-                display:
-                  "flex",
-                alignItems:
-                  "center",
-                justifyContent:
-                  "center",
-                color:
-                  "rgba(255,255,255,.52)",
-                textDecoration:
-                  "none",
-                fontFamily:
-                  '"Space Grotesk", sans-serif',
-                fontSize:
-                  isMobile
-                    ? "8px"
-                    : "12px",
-                fontWeight: 500,
-                letterSpacing:
-                  isMobile
-                    ? ".13em"
-                    : ".15em",
-                borderRadius:
-                  isMobile
-                    ? "9px"
-                    : "0px",
-                transition:
-                  "all .25s ease",
-              }}
-            >
-              EXIT
-            </Link>
-
-            {isMobile && (
-              <span
-                style={{
-                  width: "1px",
-                  height: "18px",
-                  background:
-                    "rgba(255,255,255,.07)",
-                }}
-              />
-            )}
-
-            {/* MY ACCOUNT */}
-
             <Link
               href="/account"
               style={{
-                minHeight:
-                  isMobile
-                    ? "40px"
-                    : "44px",
-                padding:
-                  isMobile
-                    ? "0 9px"
-                    : "0 9px",
-                display:
-                  "flex",
-                alignItems:
-                  "center",
-                justifyContent:
-                  "center",
+                minHeight: "40px",
+                padding: "0 9px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 color:
                   "rgba(255,255,255,.72)",
-                textDecoration:
-                  "none",
+                textDecoration: "none",
                 fontFamily:
                   '"Space Grotesk", sans-serif',
-                fontSize:
-                  isMobile
-                    ? "8px"
-                    : "12px",
+                fontSize: "8px",
                 fontWeight: 600,
-                letterSpacing:
-                  isMobile
-                    ? ".11em"
-                    : ".15em",
-                borderRadius:
-                  isMobile
-                    ? "9px"
-                    : "0px",
+                letterSpacing: ".11em",
+                borderRadius: "9px",
                 background:
-                  isMobile
-                    ? "rgba(255,255,255,.045)"
-                    : "transparent",
-                boxShadow:
-                  isMobile
-                    ? "inset 0 1px 0 rgba(255,255,255,.035)"
-                    : "none",
-                cursor:
-                  "pointer",
-                transition:
-                  "all .25s ease",
-                whiteSpace:
-                  "nowrap",
+                  "rgba(255,255,255,.045)",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
               }}
             >
               MY ACCOUNT
             </Link>
 
-            {isMobile && (
-              <span
-                style={{
-                  width: "1px",
-                  height: "18px",
-                  background:
-                    "rgba(255,255,255,.07)",
-                }}
-              />
-            )}
-
-            {/* BAG */}
+            <span
+              style={{
+                width: "1px",
+                height: "18px",
+                background:
+                  "rgba(255,255,255,.07)",
+              }}
+            />
 
             <Link
               href="/cart"
               style={{
-                minHeight:
-                  isMobile
-                    ? "40px"
-                    : "44px",
-                padding:
-                  isMobile
-                    ? "0 9px"
-                    : "0 10px",
-                display:
-                  "flex",
-                alignItems:
-                  "center",
-                justifyContent:
-                  "center",
-                gap:
-                  isMobile
-                    ? "5px"
-                    : "6px",
+                minHeight: "40px",
+                padding: "0 9px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "5px",
                 border: 0,
-                borderRadius:
-                  isMobile
-                    ? "9px"
-                    : "0px",
-                background:
-                  "transparent",
+                borderRadius: "9px",
+                background: "transparent",
                 color:
                   "rgba(255,255,255,.65)",
                 fontFamily:
                   '"Space Grotesk", sans-serif',
-                fontSize:
-                  isMobile
-                    ? "8px"
-                    : "12px",
+                fontSize: "8px",
                 fontWeight: 500,
-                letterSpacing:
-                  isMobile
-                    ? ".13em"
-                    : ".15em",
-                cursor:
-                  "pointer",
-                textDecoration:
-                  "none",
-                transition:
-                  "all .25s ease",
-                whiteSpace:
-                  "nowrap",
+                letterSpacing: ".13em",
+                cursor: "pointer",
+                textDecoration: "none",
+                whiteSpace: "nowrap",
               }}
             >
               BAG
 
               <span
                 style={{
-                  minWidth:
-                    isMobile
-                      ? "17px"
-                      : "auto",
-                  height:
-                    isMobile
-                      ? "17px"
-                      : "auto",
-                  padding:
-                    isMobile
-                      ? "0 4px"
-                      : "0",
-                  borderRadius:
-                    isMobile
-                      ? "999px"
-                      : "0",
-                  display:
-                    "inline-flex",
-                  alignItems:
-                    "center",
-                  justifyContent:
-                    "center",
-                  fontSize:
-                    isMobile
-                      ? "6px"
-                      : "8px",
+                  minWidth: "17px",
+                  height: "17px",
+                  padding: "0 4px",
+                  borderRadius: "999px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "6px",
                   fontWeight: 600,
-                  letterSpacing:
-                    ".08em",
                   color: "#fff",
                   background:
-                    isMobile
-                      ? "rgba(169,21,37,.8)"
-                      : "transparent",
-                  boxShadow:
-                    isMobile
-                      ? "0 0 10px rgba(169,21,37,.22)"
-                      : "none",
+                    "rgba(169,21,37,.8)",
                 }}
               >
                 00
               </span>
             </Link>
+
+            <span
+              style={{
+                width: "1px",
+                height: "18px",
+                background:
+                  "rgba(255,255,255,.07)",
+              }}
+            />
+
+            <button
+              type="button"
+              onPointerUp={openMenu}
+              aria-label="Open menu"
+              style={{
+                minHeight: "40px",
+                padding: "0 9px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color:
+                  "rgba(255,255,255,.72)",
+                background:
+                  "rgba(255,255,255,.045)",
+                border: 0,
+                borderRadius: "9px",
+                fontFamily:
+                  '"Space Grotesk", sans-serif',
+                fontSize: "8px",
+                fontWeight: 600,
+                letterSpacing: ".13em",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                touchAction: "manipulation",
+              }}
+            >
+              MENU
+            </button>
           </div>
         </header>
 
-        {/* =================================================
+        {/* =====================================================
             DESKTOP
-        ================================================== */}
+            EXACT SHOP MASTER LAYOUT
+        ===================================================== */}
 
         {!isMobile && (
           <section
             style={{
-              height:
-                "calc(100vh - 92px)",
-              minHeight:
-                "650px",
+              height: "calc(100vh - 92px)",
+              minHeight: "650px",
               display: "grid",
               gridTemplateColumns:
                 "300px minmax(0, 1fr)",
               gap:
                 "clamp(45px, 6vw, 100px)",
               padding:
-                "20px 6vw 35px",
-              overflow:
-                "hidden",
+                "92px 6vw 35px",
+              overflow: "hidden",
+              boxSizing: "border-box",
             }}
           >
-            {/* FILTER */}
+            {/* =================================================
+                LEFT FILTER
+            ================================================= */}
 
             <aside
               style={{
-                position:
-                  "relative",
-                height:
-                  "100%",
+                position: "relative",
+                height: "100%",
                 padding:
                   "8px 0 8px 30px",
               }}
             >
               <div
                 style={{
-                  position:
-                    "absolute",
+                  position: "absolute",
                   left: 0,
                   top: 0,
                   width: "1px",
-                  height:
-                    "100%",
+                  height: "100%",
                   background:
                     "linear-gradient(to bottom, rgba(155,17,30,.95) 0%, rgba(155,17,30,.45) 35%, rgba(255,255,255,.14) 75%, rgba(255,255,255,.02) 100%)",
                   boxShadow:
@@ -936,15 +1005,11 @@ export default function CategoryShop() {
 
               <div
                 style={{
-                  position:
-                    "absolute",
-                  left:
-                    "-2px",
+                  position: "absolute",
+                  left: "-2px",
                   top: 0,
-                  width:
-                    "3px",
-                  height:
-                    "52px",
+                  width: "3px",
+                  height: "52px",
                   background:
                     "linear-gradient(to bottom, #a91525, rgba(169,21,37,0))",
                   boxShadow:
@@ -954,28 +1019,21 @@ export default function CategoryShop() {
 
               <div
                 style={{
-                  display:
-                    "flex",
-                  alignItems:
-                    "center",
+                  display: "flex",
+                  alignItems: "center",
                   justifyContent:
                     "space-between",
-                  gap:
-                    "12px",
-                  marginBottom:
-                    "48px",
+                  gap: "12px",
+                  marginBottom: "48px",
                 }}
               >
                 <span
                   style={{
                     fontFamily:
                       '"Space Grotesk", sans-serif',
-                    fontSize:
-                      "13px",
-                    fontWeight:
-                      600,
-                    letterSpacing:
-                      ".23em",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    letterSpacing: ".23em",
                     color:
                       "rgba(255,255,255,.9)",
                   }}
@@ -987,21 +1045,123 @@ export default function CategoryShop() {
                   style={{
                     fontFamily:
                       '"Space Grotesk", sans-serif',
-                    fontSize:
-                      "8px",
-                    fontWeight:
-                      500,
-                    letterSpacing:
-                      ".16em",
+                    fontSize: "8px",
+                    fontWeight: 500,
+                    letterSpacing: ".16em",
                     color:
                       "rgba(255,255,255,.38)",
-                    whiteSpace:
-                      "nowrap",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {selectedCategory ||
-                    "LOADING"}
+                    "CATEGORY"}
                 </span>
+              </div>
+
+              {/* PRICE RANGE */}
+
+              <div
+                style={{
+                  marginBottom: "45px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent:
+                      "space-between",
+                    alignItems: "center",
+                    marginBottom: "17px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily:
+                        '"Space Grotesk", sans-serif',
+                      fontSize: "9px",
+                      letterSpacing: ".2em",
+                      color:
+                        "rgba(255,255,255,.48)",
+                    }}
+                  >
+                    PRICE RANGE
+                  </span>
+
+                  <span
+                    style={{
+                      fontFamily:
+                        '"Space Grotesk", sans-serif',
+                      fontSize: "11px",
+                      color:
+                        "rgba(255,255,255,.78)",
+                    }}
+                  >
+                    ৳{" "}
+                    {categoryMinPrice.toLocaleString()}{" "}
+                    — ৳{" "}
+                    {maxPrice.toLocaleString()}
+                  </span>
+                </div>
+
+                <input
+                  type="range"
+                  min={categoryMinPrice}
+                  max={categoryMaxPrice}
+                  step="1"
+                  value={Math.min(
+                    Math.max(
+                      maxPrice,
+                      categoryMinPrice
+                    ),
+                    categoryMaxPrice
+                  )}
+                  onChange={(e) =>
+                    setMaxPrice(
+                      Number(
+                        e.target.value
+                      )
+                    )
+                  }
+                  disabled={
+                    categoryMinPrice ===
+                    categoryMaxPrice
+                  }
+                  style={{
+                    width: "100%",
+                    height: "3px",
+                    accentColor: "#a91525",
+                    cursor:
+                      categoryMinPrice ===
+                      categoryMaxPrice
+                        ? "default"
+                        : "pointer",
+                  }}
+                />
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent:
+                      "space-between",
+                    marginTop: "10px",
+                    fontFamily:
+                      '"Space Grotesk", sans-serif',
+                    fontSize: "7px",
+                    letterSpacing: ".14em",
+                    color:
+                      "rgba(255,255,255,.24)",
+                  }}
+                >
+                  <span>
+                    ৳{" "}
+                    {categoryMinPrice.toLocaleString()}
+                  </span>
+
+                  <span>
+                    ৳{" "}
+                    {categoryMaxPrice.toLocaleString()}
+                  </span>
+                </div>
               </div>
 
               {/* CATEGORIES */}
@@ -1009,18 +1169,15 @@ export default function CategoryShop() {
               <div>
                 <div
                   style={{
-                    marginBottom:
-                      "13px",
+                    marginBottom: "15px",
                   }}
                 >
                   <span
                     style={{
                       fontFamily:
                         '"Space Grotesk", sans-serif',
-                      fontSize:
-                        "9px",
-                      letterSpacing:
-                        ".2em",
+                      fontSize: "10px",
+                      letterSpacing: ".2em",
                       color:
                         "rgba(255,255,255,.48)",
                     }}
@@ -1031,8 +1188,7 @@ export default function CategoryShop() {
 
                 <div
                   style={{
-                    display:
-                      "flex",
+                    display: "flex",
                     flexDirection:
                       "column",
                   }}
@@ -1044,10 +1200,8 @@ export default function CategoryShop() {
                           "rgba(255,255,255,.25)",
                         fontFamily:
                           '"Space Grotesk", sans-serif',
-                        fontSize:
-                          "8px",
-                        letterSpacing:
-                          ".16em",
+                        fontSize: "9px",
+                        letterSpacing: ".16em",
                         padding:
                           "15px 0",
                       }}
@@ -1081,11 +1235,10 @@ export default function CategoryShop() {
                               width:
                                 "100%",
                               height:
-                                "42px",
+                                "46px",
                               padding:
-                                "0 0 0 17px",
-                              border:
-                                0,
+                                "0 0 0 18px",
+                              border: 0,
                               background:
                                 "transparent",
                               color:
@@ -1097,15 +1250,17 @@ export default function CategoryShop() {
                               fontFamily:
                                 '"Space Grotesk", sans-serif',
                               fontSize:
-                                "10px",
+                                "13px",
                               fontWeight:
                                 active
                                   ? 600
                                   : 500,
                               letterSpacing:
-                                ".16em",
+                                ".15em",
                               cursor:
                                 "pointer",
+                              transition:
+                                "color .25s ease, padding-left .25s ease",
                             }}
                           >
                             <span
@@ -1119,7 +1274,7 @@ export default function CategoryShop() {
                                   "translateY(-50%)",
                                 width:
                                   active
-                                    ? "6px"
+                                    ? "7px"
                                     : "0",
                                 height:
                                   "1px",
@@ -1129,6 +1284,8 @@ export default function CategoryShop() {
                                   active
                                     ? "0 0 10px rgba(176,24,41,.75)"
                                     : "none",
+                                transition:
+                                  "width .25s ease",
                               }}
                             />
 
@@ -1137,9 +1294,9 @@ export default function CategoryShop() {
                                 display:
                                   "inline-block",
                                 width:
-                                  "29px",
+                                  "31px",
                                 fontSize:
-                                  "7px",
+                                  "8px",
                                 color:
                                   active
                                     ? "rgba(255,255,255,.38)"
@@ -1147,18 +1304,14 @@ export default function CategoryShop() {
                               }}
                             >
                               {String(
-                                index +
-                                  1
+                                index + 1
                               ).padStart(
                                 2,
                                 "0"
                               )}
                             </span>
 
-                            {category.name ===
-                            "ALL COLLECTION"
-                              ? "ALL COLLECTION"
-                              : category.name}
+                            {category.name}
                           </button>
                         );
                       }
@@ -1168,163 +1321,123 @@ export default function CategoryShop() {
               </div>
             </aside>
 
-            {/* COLLECTION AREA */}
+            {/* =================================================
+                PRODUCT SECTION
+                EXACT SHOP SCROLL
+            ================================================= */}
 
             <div
+              className="stoked-product-scroll"
               style={{
                 minWidth: 0,
-                height:
-                  "100%",
-                overflowY:
-                  "auto",
-                overflowX:
-                  "hidden",
-                paddingRight:
-                  "8px",
-                scrollBehavior:
-                  "smooth",
-                WebkitOverflowScrolling:
-                  "touch",
-                overscrollBehaviorY:
-                  "contain",
-                scrollbarWidth:
-                  "thin",
+                height: "100%",
+                overflowY: "auto",
+                overflowX: "hidden",
+                paddingRight: "8px",
+                scrollbarWidth: "thin",
                 scrollbarColor:
-                  "rgba(169,21,37,.65) transparent",
+                  "#a91525 rgba(255,255,255,.04)",
               }}
             >
-              {/* COLLECTION HEADER */}
-
               <div
                 style={{
-                  position:
-                    "relative",
-                  zIndex: 15,
-                  paddingTop:
-                    "8px",
-                  paddingBottom:
-                    "38px",
+                  paddingTop: "8px",
+                  paddingBottom: "38px",
                 }}
               >
                 <div
                   style={{
+                    position:
+                      "relative",
                     display:
-                      "flex",
-                    alignItems:
-                      "flex-end",
-                    justifyContent:
-                      "space-between",
-                    gap:
-                      "30px",
+                      "inline-block",
+                    paddingBottom:
+                      "13px",
                   }}
                 >
-                  <div>
-                    <div
-                      style={{
-                        position:
-                          "relative",
-                        display:
-                          "inline-block",
-                        paddingBottom:
-                          "13px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontFamily:
-                            '"Space Grotesk", sans-serif',
-                          fontSize:
-                            "clamp(48px, 6vw, 86px)",
-                          fontWeight:
-                            500,
-                          lineHeight:
-                            ".82",
-                          letterSpacing:
-                            "-.07em",
-                          color:
-                            "rgba(255,255,255,.94)",
-                        }}
-                      >
-                        COLLECTION
-                      </span>
+                  <span
+                    style={{
+                      fontFamily:
+                        '"Space Grotesk", sans-serif',
+                      fontSize:
+                        "clamp(48px, 6vw, 86px)",
+                      fontWeight: 500,
+                      lineHeight: ".82",
+                      letterSpacing:
+                        "-.07em",
+                      color:
+                        "rgba(255,255,255,.94)",
+                    }}
+                  >
+                    COLLECTION
+                  </span>
 
-                      <span
-                        style={{
-                          position:
-                            "absolute",
-                          left: 0,
-                          bottom: 0,
-                          width:
-                            "48px",
-                          height:
-                            "1px",
-                          background:
-                            "#a91525",
-                          boxShadow:
-                            "0 0 10px rgba(169,21,37,.55)",
-                        }}
-                      />
-                    </div>
+                  <span
+                    style={{
+                      position:
+                        "absolute",
+                      left: 0,
+                      bottom: 0,
+                      width: "48px",
+                      height: "1px",
+                      background:
+                        "#a91525",
+                      boxShadow:
+                        "0 0 10px rgba(169,21,37,.55)",
+                    }}
+                  />
+                </div>
 
-                    <div
-                      style={{
-                        display:
-                          "flex",
-                        alignItems:
-                          "center",
-                        gap:
-                          "9px",
-                        marginTop:
-                          "14px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          width:
-                            "22px",
-                          height:
-                            "1px",
-                          background:
-                            "rgba(169,21,37,.8)",
-                          boxShadow:
-                            "0 0 8px rgba(169,21,37,.35)",
-                        }}
-                      />
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems:
+                      "center",
+                    gap: "9px",
+                    marginTop:
+                      "14px",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: "22px",
+                      height: "1px",
+                      background:
+                        "rgba(169,21,37,.8)",
+                    }}
+                  />
 
-                      <span
-                        style={{
-                          fontFamily:
-                            '"Space Grotesk", sans-serif',
-                          fontSize:
-                            "8px",
-                          fontWeight:
-                            600,
-                          letterSpacing:
-                            ".2em",
-                          color:
-                            "rgba(255,255,255,.48)",
-                        }}
-                      >
-                        {selectedCategory ||
-                          "LOADING"}
-                      </span>
-                    </div>
-                  </div>
+                  <span
+                    style={{
+                      fontFamily:
+                        '"Space Grotesk", sans-serif',
+                      fontSize: "8px",
+                      fontWeight: 600,
+                      letterSpacing:
+                        ".2em",
+                      color:
+                        "rgba(255,255,255,.48)",
+                    }}
+                  >
+                    {selectedCategory}
+                  </span>
                 </div>
               </div>
 
-              {/* PRODUCT GRID */}
+              {/* =================================================
+                  DESKTOP PRODUCTS
+                  EXACT SHOP PRODUCT GRID
+              ================================================= */}
 
               <div
                 style={{
-                  display:
-                    "grid",
+                  display: "grid",
                   gridTemplateColumns:
                     "repeat(2, minmax(0, 1fr))",
-                  gap:
-                    "55px 35px",
-                  paddingBottom:
-                    "45px",
+                  gap: "62px 48px",
+                  paddingLeft: "2.5%",
+                  paddingRight: "2.5%",
+                  paddingBottom: "45px",
                 }}
               >
                 {productsLoading ? (
@@ -1343,12 +1456,10 @@ export default function CategoryShop() {
                         margin: 0,
                         fontFamily:
                           '"Space Grotesk", sans-serif',
-                        fontSize:
-                          "10px",
+                        fontSize: "10px",
                         letterSpacing:
                           ".2em",
-                        opacity:
-                          0.4,
+                        opacity: 0.4,
                       }}
                     >
                       LOADING COLLECTION...
@@ -1381,11 +1492,14 @@ export default function CategoryShop() {
                                 "relative",
                               width:
                                 "100%",
+
+                              /* FIX:
+                                 ALL DESKTOP PRODUCT
+                                 CARDS NOW HAVE THE
+                                 SAME HEIGHT */
                               aspectRatio:
-                                index % 2 ===
-                                0
-                                  ? "4 / 5"
-                                  : "4 / 4.7",
+                                "4 / 4.7",
+
                               overflow:
                                 "hidden",
                               background:
@@ -1394,27 +1508,6 @@ export default function CategoryShop() {
                                 "1px solid rgba(255,255,255,.07)",
                             }}
                           >
-                            <div
-                              style={{
-                                position:
-                                  "absolute",
-                                width:
-                                  "65%",
-                                height:
-                                  "65%",
-                                left:
-                                  "18%",
-                                top:
-                                  "18%",
-                                borderRadius:
-                                  "50%",
-                                background:
-                                  "radial-gradient(circle, rgba(130,0,0,.24), transparent 68%)",
-                                filter:
-                                  "blur(25px)",
-                              }}
-                            />
-
                             {product.image ? (
                               <img
                                 src={
@@ -1432,8 +1525,7 @@ export default function CategoryShop() {
                                     "cover",
                                   position:
                                     "relative",
-                                  zIndex:
-                                    2,
+                                  zIndex: 2,
                                 }}
                               />
                             ) : (
@@ -1448,8 +1540,6 @@ export default function CategoryShop() {
                                     "center",
                                   justifyContent:
                                     "center",
-                                  zIndex:
-                                    2,
                                 }}
                               >
                                 <span
@@ -1462,8 +1552,6 @@ export default function CategoryShop() {
                                       "-.07em",
                                     opacity:
                                       0.12,
-                                    transform:
-                                      "rotate(-8deg)",
                                   }}
                                 >
                                   STOKED
@@ -1475,18 +1563,13 @@ export default function CategoryShop() {
                               style={{
                                 position:
                                   "absolute",
-                                top:
-                                  "18px",
-                                left:
-                                  "18px",
-                                zIndex:
-                                  4,
-                                fontSize:
-                                  "9px",
+                                top: "18px",
+                                left: "18px",
+                                zIndex: 4,
+                                fontSize: "9px",
                                 letterSpacing:
                                   ".15em",
-                                opacity:
-                                  0.5,
+                                opacity: 0.5,
                               }}
                             >
                               {String(
@@ -1503,18 +1586,13 @@ export default function CategoryShop() {
                               style={{
                                 position:
                                   "absolute",
-                                top:
-                                  "18px",
-                                right:
-                                  "18px",
-                                zIndex:
-                                  4,
-                                fontSize:
-                                  "8px",
+                                top: "18px",
+                                right: "18px",
+                                zIndex: 4,
+                                fontSize: "8px",
                                 letterSpacing:
                                   ".15em",
-                                opacity:
-                                  0.45,
+                                opacity: 0.45,
                               }}
                             >
                               AVAILABLE
@@ -1524,16 +1602,11 @@ export default function CategoryShop() {
                               style={{
                                 position:
                                   "absolute",
-                                bottom:
-                                  "18px",
-                                right:
-                                  "18px",
-                                zIndex:
-                                  4,
-                                width:
-                                  "45px",
-                                height:
-                                  "45px",
+                                bottom: "18px",
+                                right: "18px",
+                                zIndex: 4,
+                                width: "45px",
+                                height: "45px",
                                 borderRadius:
                                   "50%",
                                 border:
@@ -1548,8 +1621,6 @@ export default function CategoryShop() {
                                   "16px",
                                 background:
                                   "rgba(0,0,0,.18)",
-                                backdropFilter:
-                                  "blur(8px)",
                               }}
                             >
                               ↗
@@ -1559,22 +1630,19 @@ export default function CategoryShop() {
                           <div
                             style={{
                               paddingTop:
-                                "20px",
+                                "16px",
                               display:
                                 "flex",
                               justifyContent:
                                 "space-between",
                               gap:
                                 "20px",
-                              alignItems:
-                                "flex-start",
                             }}
                           >
                             <div>
                               <h2
                                 style={{
-                                  margin:
-                                    0,
+                                  margin: 0,
                                   fontSize:
                                     "clamp(13px, 1.4vw, 17px)",
                                   fontWeight:
@@ -1617,9 +1685,7 @@ export default function CategoryShop() {
                               }}
                             >
                               ৳{" "}
-                              {Number(
-                                product.price
-                              ).toLocaleString()}
+                              {product.price.toLocaleString()}
                             </span>
                           </div>
                         </Link>
@@ -1676,22 +1742,20 @@ export default function CategoryShop() {
           </section>
         )}
 
-        {/* =================================================
+        {/* =====================================================
             MOBILE
-        ================================================== */}
+            EXISTING MOBILE DESIGN PRESERVED
+        ===================================================== */}
 
         {isMobile && (
           <section
             style={{
               padding:
-                "24px 6vw 0",
+                "94px 6vw 0",
             }}
           >
             <div
               style={{
-                position:
-                  "relative",
-                zIndex: 20,
                 marginBottom:
                   "30px",
               }}
@@ -1714,14 +1778,11 @@ export default function CategoryShop() {
                       '"Space Grotesk", sans-serif',
                     fontSize:
                       "clamp(42px, 13vw, 64px)",
-                    fontWeight:
-                      500,
+                    fontWeight: 500,
                     lineHeight:
                       ".85",
                     letterSpacing:
                       "-.065em",
-                    color:
-                      "rgba(255,255,255,.94)",
                   }}
                 >
                   COLLECTION
@@ -1733,43 +1794,31 @@ export default function CategoryShop() {
                       "absolute",
                     left: 0,
                     bottom: 0,
-                    width:
-                      "42px",
-                    height:
-                      "1px",
+                    width: "42px",
+                    height: "1px",
                     background:
                       "#a91525",
-                    boxShadow:
-                      "0 0 10px rgba(169,21,37,.55)",
                   }}
                 />
               </div>
             </div>
 
-            {/* SELECTED PIECES */}
-
             <div
               style={{
-                paddingTop:
-                  "18px",
-                paddingBottom:
-                  "18px",
+                padding:
+                  "18px 0",
                 borderTop:
                   "1px solid rgba(255,255,255,.12)",
                 borderBottom:
                   "1px solid rgba(255,255,255,.09)",
-                display:
-                  "flex",
-                alignItems:
-                  "center",
+                display: "flex",
+                alignItems: "center",
                 justifyContent:
                   "space-between",
-                gap:
-                  "15px",
+                gap: "15px",
                 fontFamily:
                   '"Space Grotesk", sans-serif',
-                fontSize:
-                  "14px",
+                fontSize: "14px",
                 letterSpacing:
                   ".15em",
                 color:
@@ -1779,27 +1828,28 @@ export default function CategoryShop() {
               <span>
                 SELECTED PIECES
               </span>
-            </div>
 
-            {/* CATEGORY */}
+              <span>
+                ৳{" "}
+                {categoryMinPrice.toLocaleString()}
+                {" — "}
+                ৳{" "}
+                {maxPrice.toLocaleString()}
+              </span>
+            </div>
 
             <div
               style={{
-                marginTop:
-                  "18px",
-                position:
-                  "relative",
-                zIndex: 30,
+                marginTop: "18px",
+                position: "relative",
               }}
             >
               <div
                 style={{
-                  marginBottom:
-                    "9px",
+                  marginBottom: "9px",
                   fontFamily:
                     '"Space Grotesk", sans-serif',
-                  fontSize:
-                    "14px",
+                  fontSize: "14px",
                   letterSpacing:
                     ".18em",
                   color:
@@ -1813,24 +1863,16 @@ export default function CategoryShop() {
                 type="button"
                 onClick={() =>
                   setMobileCategoryOpen(
-                    (current) =>
-                      !current
+                    (value) =>
+                      !value
                   )
                 }
-                aria-expanded={
-                  mobileCategoryOpen
-                }
                 style={{
-                  width:
-                    "100%",
-                  minHeight:
-                    "52px",
-                  padding:
-                    "0 15px",
+                  width: "100%",
+                  minHeight: "52px",
+                  padding: "0 15px",
                   border:
-                    mobileCategoryOpen
-                      ? "1px solid rgba(169,21,37,.55)"
-                      : "1px solid rgba(255,255,255,.10)",
+                    "1px solid rgba(255,255,255,.10)",
                   background:
                     "linear-gradient(145deg, rgba(35,8,8,.72), rgba(7,3,3,.9))",
                   color:
@@ -1841,278 +1883,204 @@ export default function CategoryShop() {
                     "center",
                   justifyContent:
                     "space-between",
-                  gap:
-                    "15px",
                   fontFamily:
                     '"Space Grotesk", sans-serif',
-                  fontSize:
-                    "14px",
-                  fontWeight:
-                    500,
+                  fontSize: "14px",
                   letterSpacing:
                     ".14em",
                   textAlign:
                     "left",
                   cursor:
                     "pointer",
-                  boxShadow:
-                    mobileCategoryOpen
-                      ? "0 0 22px rgba(169,21,37,.10)"
-                      : "none",
-                  transition:
-                    "all .25s ease",
-                  touchAction:
-                    "manipulation",
                 }}
               >
-                <span
-                  style={{
-                    display:
-                      "flex",
-                    alignItems:
-                      "center",
-                    gap:
-                      "10px",
-                    minWidth:
-                      0,
-                  }}
-                >
-                  <span
-                    style={{
-                      width:
-                        "5px",
-                      height:
-                        "5px",
-                      flexShrink:
-                        0,
-                      borderRadius:
-                        "50%",
-                      background:
-                        "#a91525",
-                      boxShadow:
-                        "0 0 9px rgba(169,21,37,.65)",
-                    }}
-                  />
-
-                  <span
-                    style={{
-                      overflow:
-                        "hidden",
-                      textOverflow:
-                        "ellipsis",
-                      whiteSpace:
-                        "nowrap",
-                    }}
-                  >
-                    {selectedCategory ===
-                    "ALL COLLECTION"
-                      ? "ALL CATEGORY"
-                      : selectedCategory ||
-                        "LOADING"}
-                  </span>
+                <span>
+                  {selectedCategory ||
+                    "CATEGORY"}
                 </span>
 
-                <span
-                  style={{
-                    flexShrink:
-                      0,
-                    color:
-                      "rgba(255,255,255,.48)",
-                    fontSize:
-                      "13px",
-                    lineHeight:
-                      1,
-                    transform:
-                      mobileCategoryOpen
-                        ? "rotate(180deg)"
-                        : "rotate(0deg)",
-                    transition:
-                      "transform .25s ease",
-                  }}
-                >
-                  ↓
+                <span>
+                  {mobileCategoryOpen
+                    ? "↑"
+                    : "↓"}
                 </span>
               </button>
 
               {mobileCategoryOpen && (
                 <div
                   style={{
-                    marginTop:
-                      "5px",
-                    width:
-                      "100%",
+                    marginTop: "5px",
+                    width: "100%",
                     border:
                       "1px solid rgba(255,255,255,.09)",
                     background:
-                      "rgba(8,3,3,.96)",
-                    boxShadow:
-                      "0 18px 45px rgba(0,0,0,.42), 0 0 24px rgba(169,21,37,.06)",
-                    backdropFilter:
-                      "blur(14px)",
-                    WebkitBackdropFilter:
-                      "blur(14px)",
+                      "rgba(8,3,3,.97)",
                     overflow:
                       "hidden",
+                    position:
+                      "relative",
+                    zIndex: 50,
                   }}
                 >
-                  {categoriesLoading ? (
-                    <div
-                      style={{
-                        padding:
-                          "18px 15px",
-                        color:
-                          "rgba(255,255,255,.28)",
-                        fontFamily:
-                          '"Space Grotesk", sans-serif',
-                        fontSize:
-                          "14px",
-                        letterSpacing:
-                          ".16em",
-                      }}
-                    >
-                      LOADING...
-                    </div>
-                  ) : (
-                    categories.map(
-                      (
-                        category,
-                        index
-                      ) => {
-                        const active =
-                          selectedCategory ===
-                          category.name;
+                  {categories.map(
+                    (
+                      category,
+                      index
+                    ) => {
+                      const active =
+                        selectedCategory ===
+                        category.name;
 
-                        return (
-                          <button
-                            key={
-                              category.id
-                            }
-                            type="button"
-                            onClick={() =>
-                              selectCategory(
-                                category
-                              )
-                            }
+                      return (
+                        <button
+                          key={
+                            category.id
+                          }
+                          type="button"
+                          onClick={() =>
+                            selectCategory(
+                              category
+                            )
+                          }
+                          style={{
+                            width:
+                              "100%",
+                            minHeight:
+                              "46px",
+                            padding:
+                              "0 14px",
+                            border: 0,
+                            borderBottom:
+                              "1px solid rgba(255,255,255,.05)",
+                            background:
+                              active
+                                ? "rgba(169,21,37,.12)"
+                                : "transparent",
+                            color:
+                              active
+                                ? "#fff"
+                                : "rgba(255,255,255,.48)",
+                            display:
+                              "flex",
+                            alignItems:
+                              "center",
+                            gap: "10px",
+                            textAlign:
+                              "left",
+                            fontFamily:
+                              '"Space Grotesk", sans-serif',
+                            fontSize:
+                              "14px",
+                            letterSpacing:
+                              ".14em",
+                            cursor:
+                              "pointer",
+                          }}
+                        >
+                          <span
                             style={{
-                              position:
-                                "relative",
                               width:
-                                "100%",
-                              minHeight:
-                                "46px",
-                              padding:
-                                "0 14px",
-                              border:
-                                0,
-                              borderBottom:
-                                index ===
-                                categories.length -
-                                  1
-                                  ? "none"
-                                  : "1px solid rgba(255,255,255,.055)",
-                              background:
-                                active
-                                  ? "linear-gradient(90deg, rgba(169,21,37,.13), rgba(169,21,37,.025))"
-                                  : "transparent",
-                              color:
-                                active
-                                  ? "rgba(255,255,255,.95)"
-                                  : "rgba(255,255,255,.48)",
-                              display:
-                                "flex",
-                              alignItems:
-                                "center",
-                              gap:
-                                "10px",
-                              textAlign:
-                                "left",
-                              fontFamily:
-                                '"Space Grotesk", sans-serif',
+                                "24px",
                               fontSize:
-                                "14px",
-                              fontWeight:
-                                active
-                                  ? 600
-                                  : 500,
-                              letterSpacing:
-                                ".14em",
-                              cursor:
-                                "pointer",
-                              touchAction:
-                                "manipulation",
+                                "8px",
+                              opacity:
+                                0.5,
                             }}
                           >
-                            <span
-                              style={{
-                                width:
-                                  "24px",
-                                flexShrink:
-                                  0,
-                                fontSize:
-                                  "10px",
-                                color:
-                                  active
-                                    ? "rgba(255,255,255,.38)"
-                                    : "rgba(255,255,255,.18)",
-                              }}
-                            >
-                              {String(
-                                index +
-                                  1
-                              ).padStart(
-                                2,
-                                "0"
-                              )}
-                            </span>
-
-                            <span
-                              style={{
-                                flex: 1,
-                              }}
-                            >
-                              {category.name ===
-                              "ALL COLLECTION"
-                                ? "ALL CATEGORY"
-                                : category.name}
-                            </span>
-
-                            {active && (
-                              <span
-                                style={{
-                                  width:
-                                    "5px",
-                                  height:
-                                    "5px",
-                                  borderRadius:
-                                    "50%",
-                                  background:
-                                    "#a91525",
-                                  boxShadow:
-                                    "0 0 8px rgba(169,21,37,.65)",
-                                }}
-                              />
+                            {String(
+                              index + 1
+                            ).padStart(
+                              2,
+                              "0"
                             )}
-                          </button>
-                        );
-                      }
-                    )
+                          </span>
+
+                          <span>
+                            {category.name ===
+                            "ALL COLLECTION"
+                              ? "ALL CATEGORY"
+                              : category.name}
+                          </span>
+                        </button>
+                      );
+                    }
                   )}
                 </div>
               )}
             </div>
 
-            {/* MOBILE PRODUCT GRID */}
+            <div
+              style={{
+                padding:
+                  "18px 0 2px",
+              }}
+            >
+              <div
+                style={{
+                  display:
+                    "flex",
+                  justifyContent:
+                    "space-between",
+                  marginBottom:
+                    "11px",
+                  fontFamily:
+                    '"Space Grotesk", sans-serif',
+                  fontSize: "14px",
+                  letterSpacing:
+                    ".16em",
+                  color:
+                    "rgba(255,255,255,.42)",
+                }}
+              >
+                <span>
+                  PRICE RANGE
+                </span>
+
+                <span>
+                  ৳{" "}
+                  {maxPrice.toLocaleString()}
+                </span>
+              </div>
+
+              <input
+                type="range"
+                min={categoryMinPrice}
+                max={categoryMaxPrice}
+                step="1"
+                value={Math.min(
+                  Math.max(
+                    maxPrice,
+                    categoryMinPrice
+                  ),
+                  categoryMaxPrice
+                )}
+                onChange={(e) =>
+                  setMaxPrice(
+                    Number(
+                      e.target.value
+                    )
+                  )
+                }
+                disabled={
+                  categoryMinPrice ===
+                  categoryMaxPrice
+                }
+                style={{
+                  width: "100%",
+                  height: "3px",
+                  accentColor:
+                    "#a91525",
+                }}
+              />
+            </div>
 
             <div
               style={{
-                marginTop:
-                  "24px",
-                display:
-                  "grid",
+                marginTop: "24px",
+                display: "grid",
                 gridTemplateColumns:
                   "repeat(2, minmax(0, 1fr))",
-                gap:
-                  "38px 12px",
+                gap: "38px 12px",
                 paddingBottom:
                   "45px",
               }}
@@ -2128,43 +2096,25 @@ export default function CategoryShop() {
                       "center",
                   }}
                 >
-                  <p
-                    style={{
-                      margin: 0,
-                      fontFamily:
-                        '"Space Grotesk", sans-serif',
-                      fontSize:
-                        "12px",
-                      letterSpacing:
-                        ".2em",
-                      opacity:
-                        0.4,
-                    }}
-                  >
-                    LOADING COLLECTION...
-                  </p>
+                  LOADING COLLECTION...
                 </div>
               ) : (
                 <>
                   {paginatedProducts.map(
                     (
-                      product,
-                      index
+                      product
                     ) => (
                       <Link
-                        href={`/product/${product.id}`}
                         key={
                           product.id
                         }
+                        href={`/product/${product.id}`}
                         style={{
                           color:
                             "inherit",
                           textDecoration:
                             "none",
-                          display:
-                            "block",
-                          minWidth:
-                            0,
+                          minWidth: 0,
                         }}
                       >
                         <div
@@ -2183,27 +2133,6 @@ export default function CategoryShop() {
                               "1px solid rgba(255,255,255,.07)",
                           }}
                         >
-                          <div
-                            style={{
-                              position:
-                                "absolute",
-                              width:
-                                "70%",
-                              height:
-                                "70%",
-                              left:
-                                "15%",
-                              top:
-                                "15%",
-                              borderRadius:
-                                "50%",
-                              background:
-                                "radial-gradient(circle, rgba(130,0,0,.24), transparent 68%)",
-                              filter:
-                                "blur(22px)",
-                            }}
-                          />
-
                           {product.image ? (
                             <img
                               src={
@@ -2219,130 +2148,26 @@ export default function CategoryShop() {
                                   "100%",
                                 objectFit:
                                   "cover",
-                                position:
-                                  "relative",
-                                zIndex:
-                                  2,
                               }}
                             />
                           ) : (
                             <div
                               style={{
-                                position:
-                                  "absolute",
-                                inset: 0,
+                                width:
+                                  "100%",
+                                height:
+                                  "100%",
                                 display:
                                   "flex",
                                 alignItems:
                                   "center",
                                 justifyContent:
                                   "center",
-                                zIndex:
-                                  2,
                               }}
                             >
-                              <span
-                                style={{
-                                  fontSize:
-                                    "clamp(25px, 8vw, 45px)",
-                                  fontWeight:
-                                    600,
-                                  letterSpacing:
-                                    "-.07em",
-                                  opacity:
-                                    0.12,
-                                  transform:
-                                    "rotate(-8deg)",
-                                }}
-                              >
-                                STOKED
-                              </span>
+                              STOKED
                             </div>
                           )}
-
-                          <span
-                            style={{
-                              position:
-                                "absolute",
-                              top:
-                                "10px",
-                              left:
-                                "10px",
-                              zIndex:
-                                4,
-                              fontSize:
-                                "10px",
-                              letterSpacing:
-                                ".15em",
-                              opacity:
-                                0.5,
-                            }}
-                          >
-                            {String(
-                              startIndex +
-                                index +
-                                1
-                            ).padStart(
-                              2,
-                              "0"
-                            )}
-                          </span>
-
-                          <span
-                            style={{
-                              position:
-                                "absolute",
-                              top:
-                                "10px",
-                              right:
-                                "10px",
-                              zIndex:
-                                4,
-                              fontSize:
-                                "10px",
-                              letterSpacing:
-                                ".13em",
-                              opacity:
-                                0.45,
-                            }}
-                          >
-                            AVAILABLE
-                          </span>
-
-                          <div
-                            style={{
-                              position:
-                                "absolute",
-                              bottom:
-                                "10px",
-                              right:
-                                "10px",
-                              zIndex:
-                                4,
-                              width:
-                                "34px",
-                              height:
-                                "34px",
-                              borderRadius:
-                                "50%",
-                              border:
-                                "1px solid rgba(255,255,255,.18)",
-                              display:
-                                "flex",
-                              alignItems:
-                                "center",
-                              justifyContent:
-                                "center",
-                              fontSize:
-                                "13px",
-                              background:
-                                "rgba(0,0,0,.18)",
-                              backdropFilter:
-                                "blur(8px)",
-                            }}
-                          >
-                            ↗
-                          </div>
                         </div>
 
                         <div
@@ -2356,12 +2181,8 @@ export default function CategoryShop() {
                               margin: 0,
                               fontSize:
                                 "17px",
-                              lineHeight:
-                                1.15,
                               fontWeight:
                                 500,
-                              letterSpacing:
-                                "-.015em",
                             }}
                           >
                             {
@@ -2375,10 +2196,6 @@ export default function CategoryShop() {
                                 "6px 0 0",
                               fontSize:
                                 "12px",
-                              lineHeight:
-                                1.3,
-                              letterSpacing:
-                                ".1em",
                               opacity:
                                 0.4,
                             }}
@@ -2401,9 +2218,7 @@ export default function CategoryShop() {
                             }}
                           >
                             ৳{" "}
-                            {Number(
-                              product.price
-                            ).toLocaleString()}
+                            {product.price.toLocaleString()}
                           </span>
                         </div>
                       </Link>
@@ -2422,21 +2237,7 @@ export default function CategoryShop() {
                           "center",
                       }}
                     >
-                      <p
-                        style={{
-                          margin: 0,
-                          fontFamily:
-                            '"Space Grotesk", sans-serif',
-                          fontSize:
-                            "12px",
-                          letterSpacing:
-                            ".2em",
-                          opacity:
-                            0.4,
-                        }}
-                      >
-                        NO PIECES FOUND
-                      </p>
+                      NO PIECES FOUND
                     </div>
                   )}
                 </>
@@ -2460,24 +2261,21 @@ export default function CategoryShop() {
           </section>
         )}
 
-        {/* FOOTER */}
+        {/* =====================================================
+            FOOTER
+        ===================================================== */}
 
         <footer
           style={{
-            padding:
-              "35px 6vw",
-            display:
-              "flex",
-            alignItems:
-              "center",
+            padding: "35px 6vw",
+            display: "flex",
+            alignItems: "center",
             justifyContent:
               "space-between",
             fontFamily:
               '"Space Grotesk", sans-serif',
-            fontSize:
-              "12px",
-            letterSpacing:
-              ".15em",
+            fontSize: "8px",
+            letterSpacing: ".15em",
             color:
               "rgba(255,255,255,.35)",
           }}
@@ -2489,8 +2287,7 @@ export default function CategoryShop() {
           <Link
             href="/"
             style={{
-              color:
-                "inherit",
+              color: "inherit",
               textDecoration:
                 "none",
             }}
@@ -2504,267 +2301,356 @@ export default function CategoryShop() {
         </footer>
       </div>
 
-      {/* =================================================
-          MOBILE FILTER OVERLAY
-      ================================================== */}
+      {/* =====================================================
+          ABOUT
+      ===================================================== */}
 
-      {isMobile &&
-        filterOpen && (
+      {aboutOpen && (
+        <div
+          onClick={closeAbout}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 999999,
+            background:
+              "rgba(3,2,2,.88)",
+            backdropFilter:
+              "blur(22px)",
+            display: "flex",
+            alignItems:
+              "center",
+            justifyContent:
+              "center",
+            padding: "20px",
+          }}
+        >
           <div
-            onClick={() =>
-              setFilterOpen(false)
+            onClick={(e) =>
+              e.stopPropagation()
             }
             style={{
+              width:
+                "min(680px, 100%)",
+              padding:
+                isMobile
+                  ? "35px 24px"
+                  : "50px",
               position:
-                "fixed",
-              inset: 0,
-              zIndex: 100,
+                "relative",
+              border:
+                "1px solid rgba(255,255,255,.10)",
               background:
-                "rgba(0,0,0,.72)",
-              backdropFilter:
-                "blur(8px)",
-              WebkitBackdropFilter:
-                "blur(8px)",
+                "linear-gradient(145deg, rgba(35,5,5,.96), rgba(7,2,2,.98))",
             }}
           >
-            <aside
-              onClick={(e) =>
-                e.stopPropagation()
-              }
+            <button
+              type="button"
+              onClick={closeAbout}
               style={{
                 position:
                   "absolute",
-                left:
-                  "6vw",
-                right:
-                  "6vw",
-                top:
-                  "50%",
-                transform:
-                  "translateY(-50%)",
-                padding:
-                  "8px 0 8px 30px",
+                top: "20px",
+                right: "20px",
+                border: 0,
+                background:
+                  "transparent",
+                color:
+                  "rgba(255,255,255,.5)",
+                cursor:
+                  "pointer",
               }}
             >
-              <div
-                style={{
-                  position:
-                    "absolute",
-                  left: 0,
-                  top: 0,
-                  width:
-                    "1px",
-                  height:
-                    "100%",
-                  background:
-                    "linear-gradient(to bottom, rgba(155,17,30,.95), rgba(255,255,255,.05))",
-                  boxShadow:
-                    "0 0 16px rgba(155,17,30,.25)",
-                }}
-              />
+              CLOSE ×
+            </button>
+
+            <div
+              style={{
+                fontFamily:
+                  '"Space Grotesk", sans-serif',
+                fontSize:
+                  "clamp(42px, 8vw, 78px)",
+                lineHeight: ".85",
+                letterSpacing:
+                  "-.065em",
+                marginBottom:
+                  "30px",
+              }}
+            >
+              ABOUT
+            </div>
+
+            <div
+              style={{
+                width: "45px",
+                height: "1px",
+                background:
+                  "#a91525",
+                marginBottom:
+                  "30px",
+              }}
+            />
+
+            <p
+              style={{
+                margin: 0,
+                fontFamily:
+                  '"Space Grotesk", sans-serif',
+                fontSize: "17px",
+                lineHeight: 1.7,
+                color:
+                  "rgba(255,255,255,.58)",
+              }}
+            >
+              STOKED is a Bangladesh-based
+              fashion label built around
+              bold silhouettes, expressive
+              graphics and a darker visual
+              language.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================
+          CONTACT
+      ===================================================== */}
+
+      {contactOpen && (
+        <div
+          onClick={closeContact}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 999999,
+            background:
+              "rgba(3,2,2,.88)",
+            backdropFilter:
+              "blur(22px)",
+            display: "flex",
+            alignItems:
+              "center",
+            justifyContent:
+              "center",
+            padding: "20px",
+          }}
+        >
+          <div
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+            style={{
+              width:
+                "min(680px, 100%)",
+              padding:
+                isMobile
+                  ? "35px 24px"
+                  : "50px",
+              position:
+                "relative",
+              border:
+                "1px solid rgba(255,255,255,.10)",
+              background:
+                "linear-gradient(145deg, rgba(35,5,5,.96), rgba(7,2,2,.98))",
+            }}
+          >
+            <button
+              type="button"
+              onClick={closeContact}
+              style={{
+                position:
+                  "absolute",
+                top: "20px",
+                right: "20px",
+                border: 0,
+                background:
+                  "transparent",
+                color:
+                  "rgba(255,255,255,.5)",
+                cursor:
+                  "pointer",
+              }}
+            >
+              CLOSE ×
+            </button>
+
+            <div
+              style={{
+                fontFamily:
+                  '"Space Grotesk", sans-serif',
+                fontSize:
+                  "clamp(42px, 8vw, 78px)",
+                lineHeight: ".85",
+                letterSpacing:
+                  "-.065em",
+                marginBottom:
+                  "30px",
+              }}
+            >
+              CONTACT
+            </div>
+
+            <div
+              style={{
+                display:
+                  "flex",
+                flexDirection:
+                  "column",
+                gap: "10px",
+              }}
+            >
+              <button
+                type="button"
+                onClick={openInstagram}
+                style={
+                  socialButtonStyle
+                }
+              >
+                INSTAGRAM
+              </button>
 
               <button
                 type="button"
-                onClick={() =>
-                  setFilterOpen(false)
+                onClick={openFacebook}
+                style={
+                  socialButtonStyle
                 }
-                style={{
-                  position:
-                    "absolute",
-                  right: 0,
-                  top:
-                    "-45px",
-                  border: 0,
-                  background:
-                    "transparent",
-                  color:
-                    "rgba(255,255,255,.55)",
-                  fontFamily:
-                    '"Space Grotesk", sans-serif',
-                  fontSize:
-                    "12px",
-                  letterSpacing:
-                    ".16em",
-                  cursor:
-                    "pointer",
-                }}
               >
-                CLOSE ×
+                FACEBOOK
               </button>
 
-              <div
-                style={{
-                  display:
-                    "flex",
-                  alignItems:
-                    "center",
-                  justifyContent:
-                    "space-between",
-                  marginBottom:
-                    "38px",
-                  gap:
-                    "15px",
-                }}
+              <button
+                type="button"
+                onClick={openTikTok}
+                style={
+                  socialButtonStyle
+                }
               >
-                <span
-                  style={{
-                    fontFamily:
-                      '"Space Grotesk", sans-serif',
-                    fontSize:
-                      "16px",
-                    fontWeight:
-                      600,
-                    letterSpacing:
-                      ".23em",
-                  }}
-                >
-                  FILTER
-                </span>
-
-                <span
-                  style={{
-                    fontFamily:
-                      '"Space Grotesk", sans-serif',
-                    fontSize:
-                      "12px",
-                    letterSpacing:
-                      ".16em",
-                    color:
-                      "rgba(255,255,255,.38)",
-                  }}
-                >
-                  {selectedCategory ||
-                    "LOADING"}
-                </span>
-              </div>
-
-              {/* CATEGORIES */}
-
-              <div>
-                <span
-                  style={{
-                    fontSize:
-                      "14px",
-                    letterSpacing:
-                      ".2em",
-                    color:
-                      "rgba(255,255,255,.48)",
-                  }}
-                >
-                  CATEGORIES
-                </span>
-
-                <div
-                  style={{
-                    display:
-                      "flex",
-                    flexDirection:
-                      "column",
-                    marginTop:
-                      "12px",
-                  }}
-                >
-                  {categoriesLoading ? (
-                    <div
-                      style={{
-                        color:
-                          "rgba(255,255,255,.25)",
-                        fontSize:
-                          "12px",
-                        letterSpacing:
-                          ".16em",
-                        padding:
-                          "15px 0",
-                      }}
-                    >
-                      LOADING...
-                    </div>
-                  ) : (
-                    categories.map(
-                      (
-                        category,
-                        index
-                      ) => {
-                        const active =
-                          selectedCategory ===
-                          category.name;
-
-                        return (
-                          <button
-                            key={
-                              category.id
-                            }
-                            type="button"
-                            onClick={() =>
-                              selectCategory(
-                                category
-                              )
-                            }
-                            style={{
-                              height:
-                                "42px",
-                              padding:
-                                "0 0 0 17px",
-                              border:
-                                0,
-                              background:
-                                "transparent",
-                              color:
-                                active
-                                  ? "rgba(255,255,255,.95)"
-                                  : "rgba(255,255,255,.43)",
-                              textAlign:
-                                "left",
-                              fontFamily:
-                                '"Space Grotesk", sans-serif',
-                              fontSize:
-                                "14px",
-                              fontWeight:
-                                active
-                                  ? 600
-                                  : 500,
-                              letterSpacing:
-                                ".16em",
-                              cursor:
-                                "pointer",
-                              touchAction:
-                                "manipulation",
-                            }}
-                          >
-                            <span
-                              style={{
-                                display:
-                                  "inline-block",
-                                width:
-                                  "29px",
-                                fontSize:
-                                  "10px",
-                                color:
-                                  active
-                                    ? "rgba(255,255,255,.38)"
-                                    : "rgba(255,255,255,.17)",
-                              }}
-                            >
-                              {String(
-                                index +
-                                  1
-                              ).padStart(
-                                2,
-                                "0"
-                              )}
-                            </span>
-
-                            {category.name}
-                          </button>
-                        );
-                      }
-                    )
-                  )}
-                </div>
-              </div>
-            </aside>
+                TIKTOK
+              </button>
+            </div>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* =====================================================
+          MENU
+      ===================================================== */}
+
+      <div
+        className={`stoked-menu ${
+          menuOpen
+            ? "stoked-menu-visible"
+            : ""
+        }`}
+        aria-hidden={!menuOpen}
+      >
+        <button
+          type="button"
+          className="stoked-menu-backdrop"
+          onClick={closeMenu}
+          aria-label="Close menu"
+          tabIndex={
+            menuOpen ? 0 : -1
+          }
+        />
+
+        <aside
+          className="stoked-menu-panel"
+          onClick={(e) =>
+            e.stopPropagation()
+          }
+        >
+          <div className="stoked-menu-top">
+            <div className="stoked-menu-logo">
+              STOKED
+            </div>
+
+            <button
+              type="button"
+              className="stoked-menu-close"
+              onClick={closeMenu}
+            >
+              CLOSE <span>×</span>
+            </button>
+          </div>
+
+          <nav className="stoked-menu-links">
+            <button
+              type="button"
+              onClick={goHome}
+            >
+              HOME
+            </button>
+
+            <button
+              type="button"
+              onClick={goToShop}
+            >
+              SHOP
+            </button>
+
+            <button
+              type="button"
+              onClick={goToAccount}
+            >
+              MY ACCOUNT
+            </button>
+
+            <button
+              type="button"
+              onClick={openAbout}
+            >
+              ABOUT
+            </button>
+
+            <button
+              type="button"
+              onClick={openContact}
+            >
+              CONTACT
+            </button>
+          </nav>
+
+          <div className="stoked-menu-footer">
+            <span>
+              © 2026 STOKED BD
+            </span>
+
+            <span>
+              EST. 2026
+            </span>
+          </div>
+        </aside>
+      </div>
+
+      {/* =====================================================
+          DESKTOP PRODUCT SCROLLBAR
+      ===================================================== */}
+
+      <style jsx global>{`
+        .shop-page
+          .stoked-product-scroll::-webkit-scrollbar {
+          width: 5px;
+        }
+
+        .shop-page
+          .stoked-product-scroll::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.025);
+          border-radius: 999px;
+        }
+
+        .shop-page
+          .stoked-product-scroll::-webkit-scrollbar-thumb {
+          background: #a91525;
+          border-radius: 999px;
+          box-shadow: 0 0 8px rgba(169, 21, 37, 0.35);
+        }
+
+        .shop-page
+          .stoked-product-scroll::-webkit-scrollbar-thumb:hover {
+          background: #c51d32;
+        }
+      `}</style>
     </main>
   );
 }
@@ -2786,23 +2672,15 @@ function Pagination({
   ) => void;
   mobile?: boolean;
 }) {
-  const buttonSize = mobile
+  const pages = Array.from(
+    { length: totalPages },
+    (_, index) =>
+      index + 1
+  );
+
+  const size = mobile
     ? "32px"
     : "38px";
-
-  const gap = mobile
-    ? "5px"
-    : "7px";
-
-  const pages: number[] = [];
-
-  for (
-    let page = 1;
-    page <= totalPages;
-    page++
-  ) {
-    pages.push(page);
-  }
 
   return (
     <div
@@ -2812,37 +2690,30 @@ function Pagination({
           "center",
         alignItems:
           "center",
-        gap,
-        padding: mobile
-          ? "20px 0 75px"
-          : "30px 0 90px",
-        fontFamily:
-          '"Space Grotesk", sans-serif',
-        flexWrap: "wrap",
+        gap: mobile
+          ? "5px"
+          : "7px",
+        padding:
+          mobile
+            ? "20px 0 75px"
+            : "30px 0 90px",
+        flexWrap:
+          "wrap",
       }}
     >
       <button
         type="button"
+        disabled={
+          currentPage === 1
+        }
         onClick={() =>
           onPageChange(
             currentPage - 1
           )
         }
-        disabled={
-          currentPage === 1
-        }
-        aria-label="Previous page"
         style={{
-          width:
-            buttonSize,
-          height:
-            buttonSize,
-          display:
-            "flex",
-          alignItems:
-            "center",
-          justifyContent:
-            "center",
+          width: size,
+          height: size,
           border:
             "1px solid rgba(255,255,255,.09)",
           background:
@@ -2850,19 +2721,11 @@ function Pagination({
           color:
             currentPage === 1
               ? "rgba(255,255,255,.18)"
-              : "rgba(255,255,255,.65)",
-          fontSize:
-            mobile
-              ? "12px"
-              : "14px",
+              : "#fff",
           cursor:
             currentPage === 1
               ? "default"
               : "pointer",
-          transition:
-            "all .25s ease",
-          touchAction:
-            "manipulation",
         }}
       >
         ←
@@ -2883,49 +2746,23 @@ function Pagination({
                   page
                 )
               }
-              aria-current={
-                active
-                  ? "page"
-                  : undefined
-              }
               style={{
-                width:
-                  buttonSize,
-                height:
-                  buttonSize,
-                display:
-                  "flex",
-                alignItems:
-                  "center",
-                justifyContent:
-                  "center",
-                border: active
-                  ? "1px solid rgba(169,21,37,.9)"
-                  : "1px solid rgba(255,255,255,.08)",
+                width: size,
+                height: size,
+                border:
+                  active
+                    ? "1px solid rgba(169,21,37,.9)"
+                    : "1px solid rgba(255,255,255,.08)",
                 background:
                   active
                     ? "rgba(169,21,37,.16)"
                     : "rgba(0,0,0,.16)",
                 color:
                   active
-                    ? "rgba(255,255,255,.95)"
+                    ? "#fff"
                     : "rgba(255,255,255,.42)",
-                fontSize:
-                  mobile
-                    ? "10px"
-                    : "9px",
-                letterSpacing:
-                  ".08em",
                 cursor:
                   "pointer",
-                boxShadow:
-                  active
-                    ? "0 0 18px rgba(169,21,37,.18)"
-                    : "none",
-                transition:
-                  "all .25s ease",
-                touchAction:
-                  "manipulation",
               }}
             >
               {String(
@@ -2941,27 +2778,18 @@ function Pagination({
 
       <button
         type="button"
+        disabled={
+          currentPage ===
+          totalPages
+        }
         onClick={() =>
           onPageChange(
             currentPage + 1
           )
         }
-        disabled={
-          currentPage ===
-          totalPages
-        }
-        aria-label="Next page"
         style={{
-          width:
-            buttonSize,
-          height:
-            buttonSize,
-          display:
-            "flex",
-          alignItems:
-            "center",
-          justifyContent:
-            "center",
+          width: size,
+          height: size,
           border:
             "1px solid rgba(255,255,255,.09)",
           background:
@@ -2970,20 +2798,12 @@ function Pagination({
             currentPage ===
             totalPages
               ? "rgba(255,255,255,.18)"
-              : "rgba(255,255,255,.65)",
-          fontSize:
-            mobile
-              ? "12px"
-              : "14px",
+              : "#fff",
           cursor:
             currentPage ===
             totalPages
               ? "default"
               : "pointer",
-          transition:
-            "all .25s ease",
-          touchAction:
-            "manipulation",
         }}
       >
         →
@@ -2991,3 +2811,25 @@ function Pagination({
     </div>
   );
 }
+
+/* =========================================================
+   SOCIAL BUTTON
+========================================================= */
+
+const socialButtonStyle: React.CSSProperties = {
+  minHeight: "56px",
+  width: "100%",
+  border:
+    "1px solid rgba(255,255,255,.08)",
+  background:
+    "rgba(255,255,255,.025)",
+  color:
+    "rgba(255,255,255,.68)",
+  textAlign: "left",
+  padding: "0 18px",
+  fontFamily:
+    '"Space Grotesk", sans-serif',
+  fontSize: "12px",
+  letterSpacing: ".15em",
+  cursor: "pointer",
+};
