@@ -13,70 +13,114 @@ export default function Home() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
 
+  // =========================================
+  // MENU
+  // =========================================
+
   const openMenu = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
+
+    setAboutOpen(false);
+    setContactOpen(false);
     setMenuOpen(true);
   };
 
   const closeMenu = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
+
     setMenuOpen(false);
   };
+
+  // =========================================
+  // SHOP / ACCOUNT
+  // =========================================
 
   const goToShop = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
+
     setMenuOpen(false);
+    setAboutOpen(false);
+    setContactOpen(false);
+
     router.push("/shop");
   };
 
   const goToAccount = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
+
     setMenuOpen(false);
+    setAboutOpen(false);
+    setContactOpen(false);
+
     router.push("/account");
   };
+
+  // =========================================
+  // ABOUT
+  // =========================================
 
   const openAbout = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
 
     setMenuOpen(false);
-
-    setTimeout(() => {
-      setAboutOpen(true);
-    }, 160);
+    setContactOpen(false);
+    setAboutOpen(true);
   };
 
   const closeAbout = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
+
     setAboutOpen(false);
+    setMenuOpen(false);
   };
+
+  const backFromAbout = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    setAboutOpen(false);
+    setMenuOpen(false);
+  };
+
+  // =========================================
+  // CONTACT
+  // =========================================
 
   const openContact = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
 
     setMenuOpen(false);
-
-    setTimeout(() => {
-      setContactOpen(true);
-    }, 160);
+    setAboutOpen(false);
+    setContactOpen(true);
   };
 
   const closeContact = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
+
     setContactOpen(false);
+    setMenuOpen(false);
+  };
+
+  const backFromContact = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    setContactOpen(false);
+    setMenuOpen(false);
   };
 
   // =========================================
   // SOCIAL LINKS
   // PC = NEW TAB
-  // MOBILE = APP IF AVAILABLE / BROWSER FALLBACK
+  // MOBILE = BROWSER / APP HANDLING
   // =========================================
 
   const isMobileDevice = () => {
@@ -279,21 +323,21 @@ export default function Home() {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: "min(900px, 100%)",
-              minHeight: "min(620px, 86vh)",
+              width: "min(760px, 100%)",
+              maxHeight: "88vh",
               position: "relative",
               overflow: "hidden",
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
               padding:
-                "clamp(28px, 6vw, 70px)",
+                "clamp(28px, 5vw, 52px)",
               background:
-                "linear-gradient(135deg, rgba(18,7,8,.97), rgba(5,3,3,.98))",
+                "linear-gradient(135deg, rgba(18,7,8,.98), rgba(5,3,3,.99))",
               border:
                 "1px solid rgba(255,255,255,.11)",
               boxShadow:
-                "0 40px 120px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.06)",
+                "0 40px 120px rgba(0,0,0,.78), inset 0 1px 0 rgba(255,255,255,.06)",
               color: "#fff",
             }}
           >
@@ -301,13 +345,13 @@ export default function Home() {
             <div
               style={{
                 position: "absolute",
-                width: "420px",
-                height: "420px",
+                width: "360px",
+                height: "360px",
                 borderRadius: "50%",
-                right: "-180px",
-                top: "-180px",
+                right: "-170px",
+                top: "-170px",
                 background:
-                  "radial-gradient(circle, rgba(150,10,28,.20), transparent 68%)",
+                  "radial-gradient(circle, rgba(150,10,28,.22), transparent 68%)",
                 filter: "blur(12px)",
                 pointerEvents: "none",
               }}
@@ -319,8 +363,8 @@ export default function Home() {
                 position: "absolute",
                 right: "-100px",
                 bottom: "-140px",
-                width: "430px",
-                height: "430px",
+                width: "400px",
+                height: "400px",
                 borderRadius: "50%",
                 border:
                   "1px solid rgba(255,255,255,.035)",
@@ -330,29 +374,36 @@ export default function Home() {
               }}
             />
 
-            {/* Close */}
+            {/* BACK BUTTON */}
             <button
               type="button"
-              onClick={closeAbout}
+              onClick={backFromAbout}
               style={{
                 position: "absolute",
-                top: "22px",
-                right: "24px",
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
+                top: "20px",
+                right: "20px",
+                minWidth: "88px",
+                height: "38px",
+                padding: "0 15px",
                 border:
-                  "1px solid rgba(255,255,255,.10)",
+                  "1px solid rgba(169,21,37,.70)",
                 background:
-                  "rgba(255,255,255,.025)",
-                color:
-                  "rgba(255,255,255,.72)",
-                fontSize: "21px",
+                  "linear-gradient(135deg, rgba(169,21,37,.90), rgba(92,8,20,.92))",
+                color: "#fff",
+                fontFamily:
+                  '"Space Grotesk", sans-serif',
+                fontSize: "9px",
+                fontWeight: 700,
+                letterSpacing: ".20em",
                 cursor: "pointer",
                 zIndex: 5,
+                boxShadow:
+                  "0 8px 30px rgba(120,8,24,.28), inset 0 1px 0 rgba(255,255,255,.12)",
+                transition:
+                  "transform .25s ease, box-shadow .25s ease",
               }}
             >
-              ×
+              ← BACK
             </button>
 
             {/* Top label */}
@@ -360,6 +411,7 @@ export default function Home() {
               style={{
                 position: "relative",
                 zIndex: 2,
+                paddingRight: "100px",
               }}
             >
               <div
@@ -367,10 +419,10 @@ export default function Home() {
                   display: "flex",
                   alignItems: "center",
                   gap: "12px",
-                  marginBottom: "38px",
+                  marginBottom: "28px",
                   fontFamily:
                     '"Space Grotesk", sans-serif',
-                  fontSize: "9px",
+                  fontSize: "8px",
                   letterSpacing: ".34em",
                   color:
                     "rgba(255,255,255,.40)",
@@ -393,9 +445,9 @@ export default function Home() {
                   fontFamily:
                     '"Space Grotesk", sans-serif',
                   fontSize:
-                    "clamp(58px, 12vw, 150px)",
+                    "clamp(52px, 10vw, 112px)",
                   fontWeight: 700,
-                  lineHeight: ".78",
+                  lineHeight: ".80",
                   letterSpacing: "-.075em",
                   color: "#fff",
                   textShadow:
@@ -407,11 +459,11 @@ export default function Home() {
 
               <div
                 style={{
-                  marginTop: "20px",
+                  marginTop: "16px",
                   fontFamily:
                     '"Space Grotesk", sans-serif',
                   fontSize:
-                    "clamp(9px, 1.2vw, 12px)",
+                    "clamp(8px, 1.1vw, 11px)",
                   letterSpacing: ".30em",
                   color:
                     "rgba(169,21,37,.9)",
@@ -426,8 +478,8 @@ export default function Home() {
               style={{
                 position: "relative",
                 zIndex: 2,
-                maxWidth: "620px",
-                marginTop: "60px",
+                maxWidth: "560px",
+                marginTop: "42px",
               }}
             >
               <p
@@ -436,8 +488,8 @@ export default function Home() {
                   fontFamily:
                     '"Space Grotesk", sans-serif',
                   fontSize:
-                    "clamp(15px, 2vw, 20px)",
-                  lineHeight: 1.65,
+                    "clamp(14px, 1.7vw, 18px)",
+                  lineHeight: 1.62,
                   letterSpacing: "-.01em",
                   color:
                     "rgba(255,255,255,.68)",
@@ -451,12 +503,12 @@ export default function Home() {
 
               <p
                 style={{
-                  margin: "22px 0 0",
+                  margin: "18px 0 0",
                   fontFamily:
                     '"Space Grotesk", sans-serif',
                   fontSize:
-                    "clamp(12px, 1.4vw, 15px)",
-                  lineHeight: 1.8,
+                    "clamp(11px, 1.25vw, 14px)",
+                  lineHeight: 1.75,
                   color:
                     "rgba(255,255,255,.38)",
                 }}
@@ -478,8 +530,8 @@ export default function Home() {
                   "space-between",
                 alignItems: "flex-end",
                 gap: "20px",
-                marginTop: "70px",
-                paddingTop: "22px",
+                marginTop: "48px",
+                paddingTop: "18px",
                 borderTop:
                   "1px solid rgba(255,255,255,.07)",
                 fontFamily:
@@ -534,27 +586,37 @@ export default function Home() {
                 "0 40px 120px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.05)",
             }}
           >
+            {/* BACK BUTTON */}
             <button
               type="button"
-              onClick={closeContact}
+              onClick={backFromContact}
+              aria-label="Back from contact"
               style={{
                 position: "absolute",
-                top: "18px",
-                right: "20px",
-                width: "36px",
+                top: "16px",
+                right: "18px",
+                minWidth: "86px",
                 height: "36px",
-                borderRadius: "50%",
+                padding: "0 14px",
                 border:
-                  "1px solid rgba(255,255,255,.08)",
+                  "1px solid rgba(169,21,37,.75)",
                 background:
-                  "rgba(255,255,255,.025)",
-                color:
-                  "rgba(255,255,255,.65)",
-                fontSize: "20px",
+                  "linear-gradient(135deg, rgba(169,21,37,.95), rgba(82,7,18,.95))",
+                color: "#fff",
+                fontFamily:
+                  '"Space Grotesk", sans-serif',
+                fontSize: "8px",
+                fontWeight: 700,
+                letterSpacing: ".18em",
                 cursor: "pointer",
+                zIndex: 10,
+                boxShadow:
+                  "0 8px 24px rgba(120,8,24,.30), inset 0 1px 0 rgba(255,255,255,.14)",
+                transition:
+                  "transform .2s ease, box-shadow .2s ease, background .2s ease",
               }}
             >
-              ×
+              ← BACK
             </button>
 
             <div
@@ -566,6 +628,7 @@ export default function Home() {
                 color:
                   "rgba(255,255,255,.38)",
                 marginBottom: "18px",
+                paddingRight: "72px",
               }}
             >
               CONTACT
@@ -615,10 +678,10 @@ export default function Home() {
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "12px",
-               border:
-  "1px solid rgba(255,255,255,.10)",
-background:
-  "linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.018))",
+                border:
+                  "1px solid rgba(255,255,255,.10)",
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.018))",
                 color: "#fff",
                 fontFamily:
                   '"Space Grotesk", sans-serif',
@@ -629,7 +692,6 @@ background:
                 transition: "all .25s ease",
               }}
             >
-              {/* Instagram Logo */}
               <svg
                 width="19"
                 height="19"
@@ -693,7 +755,6 @@ background:
                 transition: "all .25s ease",
               }}
             >
-              {/* Facebook Logo */}
               <svg
                 width="19"
                 height="19"
@@ -735,7 +796,6 @@ background:
                 transition: "all .25s ease",
               }}
             >
-              {/* TikTok Logo */}
               <svg
                 width="19"
                 height="19"
