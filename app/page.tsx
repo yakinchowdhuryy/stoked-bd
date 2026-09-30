@@ -73,21 +73,75 @@ export default function Home() {
     setContactOpen(false);
   };
 
+  // =========================================
+  // SOCIAL LINKS
+  // PC = NEW TAB
+  // MOBILE = APP IF AVAILABLE / BROWSER FALLBACK
+  // =========================================
+
+  const isMobileDevice = () => {
+    if (typeof window === "undefined") return false;
+
+    return /Android|iPhone|iPad|iPod/i.test(
+      navigator.userAgent
+    );
+  };
+
   const openInstagram = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
 
-    const instagramUrl = "https://www.instagram.com/stoked.bd/";
+    const instagramUrl =
+      "https://www.instagram.com/stoked.bd/";
 
-    if (
-      typeof window !== "undefined" &&
-      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-    ) {
+    if (isMobileDevice()) {
       window.location.href = instagramUrl;
       return;
     }
 
-    window.open(instagramUrl, "_blank", "noopener,noreferrer");
+    window.open(
+      instagramUrl,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
+
+  const openFacebook = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    const facebookUrl =
+      "https://www.facebook.com/share/1ba7vRfxAB/?mibextid=wwXIfr";
+
+    if (isMobileDevice()) {
+      window.location.href = facebookUrl;
+      return;
+    }
+
+    window.open(
+      facebookUrl,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
+
+  const openTikTok = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    const tiktokUrl =
+      "https://www.tiktok.com/@stoked.bd";
+
+    if (isMobileDevice()) {
+      window.location.href = tiktokUrl;
+      return;
+    }
+
+    window.open(
+      tiktokUrl,
+      "_blank",
+      "noopener,noreferrer"
+    );
   };
 
   return (
@@ -113,29 +167,51 @@ export default function Home() {
       {/* Floating Spider Logos */}
       <div className="spider-field">
         <div className="spider spider-1">
-          <img src={spiderImage} alt="" draggable={false} />
+          <img
+            src={spiderImage}
+            alt=""
+            draggable={false}
+          />
         </div>
 
         <div className="spider spider-2">
-          <img src={spiderImage} alt="" draggable={false} />
+          <img
+            src={spiderImage}
+            alt=""
+            draggable={false}
+          />
         </div>
 
         <div className="spider spider-3">
-          <img src={spiderImage} alt="" draggable={false} />
+          <img
+            src={spiderImage}
+            alt=""
+            draggable={false}
+          />
         </div>
 
         <div className="spider spider-4">
-          <img src={spiderImage} alt="" draggable={false} />
+          <img
+            src={spiderImage}
+            alt=""
+            draggable={false}
+          />
         </div>
 
         <div className="spider spider-5">
-          <img src={spiderImage} alt="" draggable={false} />
+          <img
+            src={spiderImage}
+            alt=""
+            draggable={false}
+          />
         </div>
       </div>
 
       {/* Header */}
       <header className="header">
-        <div className="mini-logo">STOKED</div>
+        <div className="mini-logo">
+          STOKED
+        </div>
 
         <button
           type="button"
@@ -149,7 +225,9 @@ export default function Home() {
 
       {/* Center Hero */}
       <section className="hero">
-        <div className="brand-mark">STOKED</div>
+        <div className="brand-mark">
+          STOKED
+        </div>
 
         <div className="campaign-title">
           MATHANOSHTOJEANZ
@@ -208,10 +286,12 @@ export default function Home() {
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
-              padding: "clamp(28px, 6vw, 70px)",
+              padding:
+                "clamp(28px, 6vw, 70px)",
               background:
                 "linear-gradient(135deg, rgba(18,7,8,.97), rgba(5,3,3,.98))",
-              border: "1px solid rgba(255,255,255,.11)",
+              border:
+                "1px solid rgba(255,255,255,.11)",
               boxShadow:
                 "0 40px 120px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.06)",
               color: "#fff",
@@ -242,7 +322,8 @@ export default function Home() {
                 width: "430px",
                 height: "430px",
                 borderRadius: "50%",
-                border: "1px solid rgba(255,255,255,.035)",
+                border:
+                  "1px solid rgba(255,255,255,.035)",
                 boxShadow:
                   "0 0 0 55px rgba(255,255,255,.012), 0 0 0 110px rgba(255,255,255,.008)",
                 pointerEvents: "none",
@@ -260,9 +341,12 @@ export default function Home() {
                 width: "40px",
                 height: "40px",
                 borderRadius: "50%",
-                border: "1px solid rgba(255,255,255,.10)",
-                background: "rgba(255,255,255,.025)",
-                color: "rgba(255,255,255,.72)",
+                border:
+                  "1px solid rgba(255,255,255,.10)",
+                background:
+                  "rgba(255,255,255,.025)",
+                color:
+                  "rgba(255,255,255,.72)",
                 fontSize: "21px",
                 cursor: "pointer",
                 zIndex: 5,
@@ -284,17 +368,20 @@ export default function Home() {
                   alignItems: "center",
                   gap: "12px",
                   marginBottom: "38px",
-                  fontFamily: '"Space Grotesk", sans-serif',
+                  fontFamily:
+                    '"Space Grotesk", sans-serif',
                   fontSize: "9px",
                   letterSpacing: ".34em",
-                  color: "rgba(255,255,255,.40)",
+                  color:
+                    "rgba(255,255,255,.40)",
                 }}
               >
                 <span
                   style={{
                     width: "28px",
                     height: "1px",
-                    background: "rgba(169,21,37,.75)",
+                    background:
+                      "rgba(169,21,37,.75)",
                   }}
                 />
                 ABOUT STOKED
@@ -303,13 +390,16 @@ export default function Home() {
               {/* Main title */}
               <div
                 style={{
-                  fontFamily: '"Space Grotesk", sans-serif',
-                  fontSize: "clamp(58px, 12vw, 150px)",
+                  fontFamily:
+                    '"Space Grotesk", sans-serif',
+                  fontSize:
+                    "clamp(58px, 12vw, 150px)",
                   fontWeight: 700,
                   lineHeight: ".78",
                   letterSpacing: "-.075em",
                   color: "#fff",
-                  textShadow: "0 0 45px rgba(150,10,28,.10)",
+                  textShadow:
+                    "0 0 45px rgba(150,10,28,.10)",
                 }}
               >
                 STOKED
@@ -318,10 +408,13 @@ export default function Home() {
               <div
                 style={{
                   marginTop: "20px",
-                  fontFamily: '"Space Grotesk", sans-serif',
-                  fontSize: "clamp(9px, 1.2vw, 12px)",
+                  fontFamily:
+                    '"Space Grotesk", sans-serif',
+                  fontSize:
+                    "clamp(9px, 1.2vw, 12px)",
                   letterSpacing: ".30em",
-                  color: "rgba(169,21,37,.9)",
+                  color:
+                    "rgba(169,21,37,.9)",
                 }}
               >
                 BUILT DIFFERENT
@@ -340,29 +433,38 @@ export default function Home() {
               <p
                 style={{
                   margin: 0,
-                  fontFamily: '"Space Grotesk", sans-serif',
-                  fontSize: "clamp(15px, 2vw, 20px)",
+                  fontFamily:
+                    '"Space Grotesk", sans-serif',
+                  fontSize:
+                    "clamp(15px, 2vw, 20px)",
                   lineHeight: 1.65,
                   letterSpacing: "-.01em",
-                  color: "rgba(255,255,255,.68)",
+                  color:
+                    "rgba(255,255,255,.68)",
                 }}
               >
-                STOKED BD is a space built around individuality,
-                attitude and pieces that refuse to blend in.
+                STOKED BD is a space built
+                around individuality, attitude
+                and pieces that refuse to blend
+                in.
               </p>
 
               <p
                 style={{
                   margin: "22px 0 0",
-                  fontFamily: '"Space Grotesk", sans-serif',
-                  fontSize: "clamp(12px, 1.4vw, 15px)",
+                  fontFamily:
+                    '"Space Grotesk", sans-serif',
+                  fontSize:
+                    "clamp(12px, 1.4vw, 15px)",
                   lineHeight: 1.8,
-                  color: "rgba(255,255,255,.38)",
+                  color:
+                    "rgba(255,255,255,.38)",
                 }}
               >
-                We create and curate pieces for people who want
-                their style to feel personal — raw, expressive and
-                unmistakably theirs.
+                We create and curate pieces for
+                people who want their style to
+                feel personal — raw, expressive
+                and unmistakably theirs.
               </p>
             </div>
 
@@ -372,16 +474,20 @@ export default function Home() {
                 position: "relative",
                 zIndex: 2,
                 display: "flex",
-                justifyContent: "space-between",
+                justifyContent:
+                  "space-between",
                 alignItems: "flex-end",
                 gap: "20px",
                 marginTop: "70px",
                 paddingTop: "22px",
-                borderTop: "1px solid rgba(255,255,255,.07)",
-                fontFamily: '"Space Grotesk", sans-serif',
+                borderTop:
+                  "1px solid rgba(255,255,255,.07)",
+                fontFamily:
+                  '"Space Grotesk", sans-serif',
                 fontSize: "8px",
                 letterSpacing: ".2em",
-                color: "rgba(255,255,255,.28)",
+                color:
+                  "rgba(255,255,255,.28)",
               }}
             >
               <span>EST. 2026</span>
@@ -417,11 +523,13 @@ export default function Home() {
             style={{
               width: "min(520px, 100%)",
               position: "relative",
-              padding: "clamp(35px, 7vw, 65px)",
+              padding:
+                "clamp(35px, 7vw, 65px)",
               textAlign: "center",
               background:
                 "linear-gradient(145deg, rgba(18,7,8,.97), rgba(5,3,3,.98))",
-              border: "1px solid rgba(255,255,255,.10)",
+              border:
+                "1px solid rgba(255,255,255,.10)",
               boxShadow:
                 "0 40px 120px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.05)",
             }}
@@ -436,9 +544,12 @@ export default function Home() {
                 width: "36px",
                 height: "36px",
                 borderRadius: "50%",
-                border: "1px solid rgba(255,255,255,.08)",
-                background: "rgba(255,255,255,.025)",
-                color: "rgba(255,255,255,.65)",
+                border:
+                  "1px solid rgba(255,255,255,.08)",
+                background:
+                  "rgba(255,255,255,.025)",
+                color:
+                  "rgba(255,255,255,.65)",
                 fontSize: "20px",
                 cursor: "pointer",
               }}
@@ -448,10 +559,12 @@ export default function Home() {
 
             <div
               style={{
-                fontFamily: '"Space Grotesk", sans-serif',
+                fontFamily:
+                  '"Space Grotesk", sans-serif',
                 fontSize: "9px",
                 letterSpacing: ".35em",
-                color: "rgba(255,255,255,.38)",
+                color:
+                  "rgba(255,255,255,.38)",
                 marginBottom: "18px",
               }}
             >
@@ -460,8 +573,10 @@ export default function Home() {
 
             <div
               style={{
-                fontFamily: '"Space Grotesk", sans-serif',
-                fontSize: "clamp(38px, 8vw, 64px)",
+                fontFamily:
+                  '"Space Grotesk", sans-serif',
+                fontSize:
+                  "clamp(38px, 8vw, 64px)",
                 fontWeight: 700,
                 letterSpacing: "-.06em",
                 lineHeight: 1,
@@ -475,27 +590,38 @@ export default function Home() {
               style={{
                 margin: "0 auto 34px",
                 maxWidth: "340px",
-                fontFamily: '"Space Grotesk", sans-serif',
+                fontFamily:
+                  '"Space Grotesk", sans-serif',
                 fontSize: "13px",
                 lineHeight: 1.7,
-                color: "rgba(255,255,255,.40)",
+                color:
+                  "rgba(255,255,255,.40)",
               }}
             >
-              Follow STOKED BD on Instagram for new drops,
+              Follow STOKED BD on Instagram,
+              Facebook and TikTok for new drops,
               updates and everything coming next.
             </p>
 
+            {/* INSTAGRAM */}
             <button
               type="button"
               onClick={openInstagram}
               style={{
                 width: "100%",
                 minHeight: "58px",
-                border: "1px solid rgba(169,21,37,.35)",
-                background:
-                  "linear-gradient(180deg, rgba(169,21,37,.14), rgba(169,21,37,.04))",
+                marginBottom: "10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "12px",
+               border:
+  "1px solid rgba(255,255,255,.10)",
+background:
+  "linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.018))",
                 color: "#fff",
-                fontFamily: '"Space Grotesk", sans-serif',
+                fontFamily:
+                  '"Space Grotesk", sans-serif',
                 fontSize: "11px",
                 fontWeight: 600,
                 letterSpacing: ".18em",
@@ -503,7 +629,127 @@ export default function Home() {
                 transition: "all .25s ease",
               }}
             >
-              INSTAGRAM&nbsp;&nbsp; @STOKED.BD ↗
+              {/* Instagram Logo */}
+              <svg
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <rect
+                  x="3"
+                  y="3"
+                  width="18"
+                  height="18"
+                  rx="5"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                />
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="4.2"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                />
+                <circle
+                  cx="17.5"
+                  cy="6.7"
+                  r="1"
+                  fill="currentColor"
+                />
+              </svg>
+
+              <span>
+                INSTAGRAM&nbsp;&nbsp; @STOKED.BD ↗
+              </span>
+            </button>
+
+            {/* FACEBOOK */}
+            <button
+              type="button"
+              onClick={openFacebook}
+              style={{
+                width: "100%",
+                minHeight: "58px",
+                marginBottom: "10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "12px",
+                border:
+                  "1px solid rgba(255,255,255,.10)",
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.018))",
+                color: "#fff",
+                fontFamily:
+                  '"Space Grotesk", sans-serif',
+                fontSize: "11px",
+                fontWeight: 600,
+                letterSpacing: ".18em",
+                cursor: "pointer",
+                transition: "all .25s ease",
+              }}
+            >
+              {/* Facebook Logo */}
+              <svg
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path d="M14 8h3V4.5c-.5-.1-1.8-.2-3.4-.2-3.4 0-5.7 2.1-5.7 5.9V13H5v4h2.9v7h4.3v-7h3.6l.6-4h-4.2v-2.5c0-1.2.3-2 1.8-2Z" />
+              </svg>
+
+              <span>
+                FACEBOOK&nbsp;&nbsp; STOKED BD ↗
+              </span>
+            </button>
+
+            {/* TIKTOK */}
+            <button
+              type="button"
+              onClick={openTikTok}
+              style={{
+                width: "100%",
+                minHeight: "58px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "12px",
+                border:
+                  "1px solid rgba(255,255,255,.10)",
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.018))",
+                color: "#fff",
+                fontFamily:
+                  '"Space Grotesk", sans-serif',
+                fontSize: "11px",
+                fontWeight: 600,
+                letterSpacing: ".18em",
+                cursor: "pointer",
+                transition: "all .25s ease",
+              }}
+            >
+              {/* TikTok Logo */}
+              <svg
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path d="M15.2 3c.3 1.9 1.4 3.5 3.1 4.4.8.4 1.7.7 2.7.7v3.7c-1.2 0-2.4-.3-3.5-.8v5.8c0 3.5-2.8 6.2-6.3 6.2-3.4 0-6.2-2.7-6.2-6.1 0-3.4 2.8-6.1 6.2-6.1.4 0 .9 0 1.3.1v3.8c-.4-.1-.8-.2-1.3-.2-1.4 0-2.5 1.1-2.5 2.4 0 1.4 1.1 2.5 2.5 2.5s2.6-1.1 2.6-2.5V3h1.4Z" />
+              </svg>
+
+              <span>
+                TIKTOK&nbsp;&nbsp; @STOKED.BD ↗
+              </span>
             </button>
           </div>
         </div>
@@ -515,7 +761,9 @@ export default function Home() {
 
       <div
         className={`stoked-menu ${
-          menuOpen ? "stoked-menu-visible" : ""
+          menuOpen
+            ? "stoked-menu-visible"
+            : ""
         }`}
         aria-hidden={!menuOpen}
       >
