@@ -161,10 +161,6 @@ export default function Home() {
           className="shop-button"
           onClick={goToShop}
         >
-          <span className="blood blood-one" />
-          <span className="blood blood-two" />
-          <span className="blood blood-three" />
-
           <span className="shop-text">
             SHOP NOW
           </span>

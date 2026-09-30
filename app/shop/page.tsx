@@ -2096,7 +2096,7 @@ export default function Shop() {
                 fontFamily:
                   '"Space Grotesk", sans-serif',
                 fontSize:
-                  "8px",
+                  "14px",
                 letterSpacing:
                   ".15em",
                 color:
@@ -2141,7 +2141,7 @@ export default function Shop() {
                   fontFamily:
                     '"Space Grotesk", sans-serif',
                   fontSize:
-                    "7px",
+                    "14px",
                   letterSpacing:
                     ".18em",
                   color:
@@ -2188,7 +2188,7 @@ export default function Shop() {
                   fontFamily:
                     '"Space Grotesk", sans-serif',
                   fontSize:
-                    "9px",
+                    "14px",
                   fontWeight:
                     500,
                   letterSpacing:
@@ -2370,7 +2370,7 @@ export default function Shop() {
                               fontFamily:
                                 '"Space Grotesk", sans-serif',
                               fontSize:
-                                "8px",
+                                "14px",
                               fontWeight:
                                 active
                                   ? 600
@@ -2390,7 +2390,7 @@ export default function Shop() {
                                 flexShrink:
                                   0,
                                 fontSize:
-                                  "6px",
+                                  "8px",
                                 color:
                                   active
                                     ? "rgba(255,255,255,.38)"
@@ -2463,7 +2463,7 @@ export default function Shop() {
                   fontFamily:
                     '"Space Grotesk", sans-serif',
                   fontSize:
-                    "8px",
+                    "14px",
                   letterSpacing:
                     ".16em",
                   color:
@@ -2540,7 +2540,7 @@ export default function Shop() {
                   fontFamily:
                     '"Space Grotesk", sans-serif',
                   fontSize:
-                    "6px",
+                    "8px",
                   letterSpacing:
                     ".12em",
                   color:
@@ -2729,7 +2729,7 @@ export default function Shop() {
                               zIndex:
                                 4,
                               fontSize:
-                                "7px",
+                                "10px",
                               letterSpacing:
                                 ".15em",
                               opacity:
@@ -2757,7 +2757,7 @@ export default function Shop() {
                               zIndex:
                                 4,
                               fontSize:
-                                "6px",
+                                "10px",
                               letterSpacing:
                                 ".13em",
                               opacity:
@@ -2813,7 +2813,7 @@ export default function Shop() {
                             style={{
                               margin: 0,
                               fontSize:
-                                "10px",
+                                "17px",
                               lineHeight:
                                 1.15,
                               fontWeight:
@@ -2832,7 +2832,7 @@ export default function Shop() {
                               margin:
                                 "6px 0 0",
                               fontSize:
-                                "6px",
+                                "12px",
                               lineHeight:
                                 1.3,
                               letterSpacing:
@@ -2853,7 +2853,7 @@ export default function Shop() {
                               marginTop:
                                 "8px",
                               fontSize:
-                                "8px",
+                                "15px",
                               opacity:
                                 0.7,
                             }}

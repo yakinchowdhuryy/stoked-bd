@@ -4626,3 +4626,78 @@ body:has(.product-page) {
   height: auto !important;
   min-height: 100% !important;
 }
+@media (max-width: 768px) {
+  /* Main collection heading */
+  .shop-intro h1 {
+    font-size: clamp(38px, 11vw, 54px) !important;
+    line-height: 0.95 !important;
+  }
+
+  /* Intro / selected category */
+  .shop-intro-meta {
+    font-size: 13px !important;
+  }
+
+  .shop-intro-bottom p {
+    font-size: 14px !important;
+  }
+
+  /* Collection bar */
+  .collection-bar {
+    font-size: 14px !important;
+  }
+
+  /* Selected pieces / price range */
+  .shop-intro-bottom {
+    font-size: 14px !important;
+  }
+
+  /* Product name */
+  .product-title h2 {
+    font-size: 17px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Product category */
+  .product-title p {
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Product price */
+  .product-cost {
+    font-size: 15px !important;
+  }
+
+  /* Available */
+  .visual-status {
+    font-size: 10px !important;
+    letter-spacing: 0.1em !important;
+  }
+
+  /* Product number */
+  .product-index {
+    font-size: 10px !important;
+  }
+
+  /* Pagination */
+  .shop-bottom,
+  .shop-bottom button,
+  .shop-bottom a {
+    font-size: 12px !important;
+  }
+
+  /* Mobile category/filter text */
+  .mobile-category-select,
+  .mobile-category-select button {
+    font-size: 14px !important;
+  }
+
+  /* Filter panel */
+  .filter-panel,
+  .filter-panel button,
+  .filter-panel span,
+  .filter-panel p {
+    font-size: 14px !important;
+  }
+}
