@@ -1085,102 +1085,81 @@ export default function ProductPage() {
             <div className="image-frame frame-bottom-left" />
             <div className="image-frame frame-bottom-right" />
 
-            {images.length > 1 && (
-              <>
-                <button
-                  className="gallery-arrow gallery-arrow-left"
-                  onClick={() =>
-                    changeImage("prev")
-                  }
-                  aria-label="Previous image"
-                >
-                  ←
-                </button>
-
-                <button
-                  className="gallery-arrow gallery-arrow-right"
-                  onClick={() =>
-                    changeImage("next")
-                  }
-                  aria-label="Next image"
-                >
-                  →
-                </button>
-
-                <div className="image-counter">
-
-                  <span>
-                    {String(
-                      currentImageIndex + 1
-                    ).padStart(2, "0")}
-                  </span>
-
-                  <i />
-
-                  <span>
-                    {String(
-                      images.length
-                    ).padStart(2, "0")}
-                  </span>
-
-                </div>
-              </>
-            )}
-
-          </div>
-
-          {/* THUMBNAILS */}
-
           {images.length > 1 && (
-            <div className="thumbnail-scroll">
+  <>
+    {/* LEFT ARROW — first image এ থাকবে না */}
+    {currentImageIndex > 0 && (
+      <button
+        className="gallery-arrow gallery-arrow-left"
+        onClick={() => changeImage("prev")}
+        aria-label="Previous image"
+      >
+        ←
+      </button>
+    )}
 
-              <div className="thumbnail-track">
+    {/* RIGHT ARROW — last image এ থাকবে না */}
+    {currentImageIndex < images.length - 1 && (
+      <button
+        className="gallery-arrow gallery-arrow-right"
+        onClick={() => changeImage("next")}
+        aria-label="Next image"
+      >
+        →
+      </button>
+    )}
 
-                {images.map(
-                  (image, index) => {
-                    const active =
-                      selectedImage ===
-                      image.image_url;
+    <div className="image-counter">
+      <span>
+        {String(currentImageIndex + 1).padStart(2, "0")}
+      </span>
 
-                    return (
-                      <button
-                        key={image.id}
-                        onClick={() =>
-                          setSelectedImage(
-                            image.image_url
-                          )
-                        }
-                        className={`thumbnail ${
-                          active
-                            ? "thumbnail-active"
-                            : ""
-                        }`}
-                      >
+      <i />
 
-                        <img
-                          src={image.image_url}
-                          alt={`${product.name} ${
-                            index + 1
-                          }`}
-                        />
+      <span>
+        {String(images.length).padStart(2, "0")}
+      </span>
+    </div>
+  </>
+)}
 
-                        <div className="thumbnail-overlay" />
+</div>
 
-                        <span className="thumbnail-number">
-                          {String(
-                            index + 1
-                          ).padStart(2, "0")}
-                        </span>
+{/* THUMBNAILS */}
 
-                      </button>
-                    );
-                  }
-                )}
+{images.length > 1 && (
+  <div className="thumbnail-scroll">
+    <div className="thumbnail-track">
+      {images.map((image, index) => {
+        const active =
+          selectedImage === image.image_url;
 
-              </div>
+        return (
+          <button
+            key={image.id}
+            onClick={() =>
+              setSelectedImage(image.image_url)
+            }
+            className={`thumbnail ${
+              active ? "thumbnail-active" : ""
+            }`}
+          >
+            <img
+              src={image.image_url}
+              alt={`${product.name} ${index + 1}`}
+            />
 
-            </div>
-          )}
+            <div className="thumbnail-overlay" />
+
+            <span className="thumbnail-number">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  </div>
+)}
 
           <div className="gallery-meta">
 
