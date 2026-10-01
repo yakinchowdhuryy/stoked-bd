@@ -4701,3 +4701,243 @@ body:has(.product-page) {
     font-size: 14px !important;
   }
 }
+/* =====================================================
+   PREMIUM LANDING → SHOP TRANSITION
+   ===================================================== */
+
+.shop-transition {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 2147483646;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    radial-gradient(
+      circle at 50% 48%,
+      rgba(120, 0, 0, 0.18) 0%,
+      rgba(30, 0, 0, 0.08) 35%,
+      rgba(3, 2, 2, 0.98) 75%
+    ),
+    #030202;
+
+  animation: shopTransitionIn 0.7s
+    cubic-bezier(0.76, 0, 0.24, 1)
+    forwards;
+
+  pointer-events: all;
+  overflow: hidden;
+}
+
+.shop-transition::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.025) 50%,
+      transparent 100%
+    );
+
+  transform: translateX(-100%);
+
+  animation: shopTransitionSweep 0.7s
+    cubic-bezier(0.76, 0, 0.24, 1)
+    forwards;
+}
+
+.shop-transition-glow {
+  position: absolute;
+
+  width: 320px;
+  height: 320px;
+
+  left: 50%;
+  top: 50%;
+
+  transform: translate(-50%, -50%);
+
+  background: rgba(130, 0, 0, 0.16);
+
+  filter: blur(90px);
+
+  border-radius: 50%;
+
+  animation: shopGlowPulse 0.7s ease-out
+    forwards;
+}
+
+.shop-transition-content {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  z-index: 2;
+
+  animation: shopContentIn 0.7s
+    cubic-bezier(0.76, 0, 0.24, 1)
+    forwards;
+}
+
+.shop-transition-logo {
+  font-family: "Space Grotesk", sans-serif;
+
+  font-size: clamp(15px, 1.4vw, 19px);
+
+  font-weight: 700;
+
+  letter-spacing: 0.27em;
+
+  color: rgba(255, 255, 255, 0.92);
+
+  text-shadow:
+    0 0 20px rgba(255, 255, 255, 0.08),
+    0 0 45px rgba(150, 0, 0, 0.18);
+
+  margin-left: 0.27em;
+}
+
+.shop-transition-line {
+  position: relative;
+
+  width: 90px;
+  height: 1px;
+
+  margin-top: 19px;
+
+  overflow: hidden;
+
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.shop-transition-line span {
+  position: absolute;
+
+  left: 0;
+  top: 0;
+
+  width: 35%;
+  height: 100%;
+
+  background: rgba(180, 0, 0, 0.9);
+
+  box-shadow:
+    0 0 10px rgba(180, 0, 0, 0.7),
+    0 0 22px rgba(180, 0, 0, 0.25);
+
+  animation: shopLoadingLine 0.65s
+    cubic-bezier(0.76, 0, 0.24, 1)
+    forwards;
+}
+
+.shop-transition-text {
+  margin-top: 12px;
+
+  font-family: "Inter", sans-serif;
+
+  font-size: 6px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.25em;
+
+  color: rgba(255, 255, 255, 0.25);
+
+  margin-left: 0.25em;
+}
+
+@keyframes shopTransitionIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes shopTransitionSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes shopGlowPulse {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.7);
+  }
+
+  45% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  100% {
+    opacity: 0.45;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+@keyframes shopContentIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  35% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shopLoadingLine {
+  0% {
+    width: 0%;
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    width: 100%;
+    opacity: 1;
+  }
+}
+
+@media (max-width: 700px) {
+  .shop-transition-logo {
+    font-size: 13px;
+    letter-spacing: 0.25em;
+  }
+
+  .shop-transition-line {
+    width: 75px;
+    margin-top: 17px;
+  }
+
+  .shop-transition-text {
+    font-size: 5px;
+    margin-top: 10px;
+  }
+}

@@ -12,6 +12,7 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  const [shopLoading, setShopLoading] = useState(false);
 
   // =========================================
   // MENU
@@ -45,7 +46,11 @@ export default function Home() {
     setAboutOpen(false);
     setContactOpen(false);
 
-    router.push("/shop");
+    setShopLoading(true);
+
+    setTimeout(() => {
+      router.push("/shop");
+    }, 700);
   };
 
   const goToAccount = (e?: React.MouseEvent) => {
@@ -190,6 +195,30 @@ export default function Home() {
 
   return (
     <main className="landing">
+      {/* =========================================
+          PREMIUM SHOP TRANSITION
+      ========================================== */}
+
+      {shopLoading && (
+        <div className="shop-transition">
+          <div className="shop-transition-glow" />
+
+          <div className="shop-transition-content">
+            <div className="shop-transition-logo">
+              STOKED
+            </div>
+
+            <div className="shop-transition-line">
+              <span />
+            </div>
+
+            <div className="shop-transition-text">
+              ENTERING COLLECTION
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Grain */}
       <div className="grain" />
 

@@ -10,6 +10,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { isSaleName } from "@/lib/sale";
 
 type Category = {
   id: string;
@@ -29,7 +30,9 @@ type Product = {
   name: string;
   slug: string;
   category_id: string;
+  category_ids: string[] | null;
   price: number;
+  sale_price: number | null;
   description: string | null;
   status: string;
   created_at: string;
@@ -49,29 +52,133 @@ type ExistingSize = {
 };
 
 const DEFAULT_SIZES: ProductSize[] = [
-  {
-    size: "S",
-    stock: 0,
-    selected: false,
-  },
-  {
-    size: "M",
-    stock: 0,
-    selected: false,
-  },
-  {
-    size: "L",
-    stock: 0,
-    selected: false,
-  },
-  {
-    size: "XL",
-    stock: 0,
-    selected: false,
-  },
+  { size: "S", stock: 0, selected: false },
+  { size: "M", stock: 0, selected: false },
+  { size: "L", stock: 0, selected: false },
+  { size: "XL", stock: 0, selected: false },
 ];
 
-const CART_KEY = "stoked-cart";
+const STORAGE_MARKER = "/storage/v1/object/public/product-images/";
+
+/* Get the storage path from a public image URL */
+function getStoragePath(imageUrl: string): string | null {
+  try {
+    const url = new URL(imageUrl);
+    const index = url.pathname.indexOf(STORAGE_MARKER);
+
+    if (index === -1) return null;
+
+    return decodeURIComponent(
+      url.pathname.substring(index + STORAGE_MARKER.length)
+    );
+  } catch {
+    return null;
+  }
+}
+
+/* Validate the optional discount price. */
+function validateSalePrice(priceValue: string, salePriceValue: string) {
+  if (salePriceValue.trim() === "") return "";
+
+  const sale = Number(salePriceValue);
+  const regular = Number(priceValue);
+
+  if (Number.isNaN(sale) || sale <= 0) {
+    return "PLEASE ENTER A VALID DISCOUNT PRICE.";
+  }
+
+  if (sale >= regular) {
+    return "DISCOUNT PRICE MUST BE LOWER THAN THE ACTUAL PRICE.";
+  }
+
+  return "";
+}
+
+/* All category ids of a product (falls back to the old single category) */
+function getProductCategoryIds(product: Product): string[] {
+  if (Array.isArray(product.category_ids) && product.category_ids.length > 0) {
+    return product.category_ids;
+  }
+
+  return product.category_id ? [product.category_id] : [];
+}
+
+/* Multi category chooser */
+function CategoryPicker({
+  categories,
+  selectedIds,
+  onToggle,
+}: {
+  categories: Category[];
+  selectedIds: string[];
+  onToggle: (id: string) => void;
+}) {
+  if (categories.length === 0) {
+    return (
+      <div
+        style={{
+          marginTop: "12px",
+          fontSize: "9px",
+          letterSpacing: "0.16em",
+          color: "rgba(255,255,255,0.4)",
+        }}
+      >
+        NO COLLECTIONS FOUND.
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))",
+        gap: "10px",
+        marginTop: "12px",
+      }}
+    >
+      {categories.map((item) => {
+        const selected = selectedIds.includes(item.id);
+
+        return (
+          <label
+            key={item.id}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: "14px 16px",
+              cursor: "pointer",
+              margin: 0,
+              border: selected
+                ? "1px solid rgba(255,45,45,0.75)"
+                : "1px solid rgba(255,255,255,0.10)",
+              background: selected
+                ? "linear-gradient(145deg, rgba(90,0,0,0.55), rgba(20,5,5,0.9))"
+                : "linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015))",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={() => onToggle(item.id)}
+            />
+
+            <span
+              style={{
+                fontSize: "11px",
+                letterSpacing: "0.12em",
+                fontWeight: 600,
+              }}
+            >
+              {item.name}
+            </span>
+          </label>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -83,99 +190,65 @@ export default function ProductsPage() {
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [categoryId, setCategoryId] = useState("");
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [price, setPrice] = useState("");
+  const [salePrice, setSalePrice] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("AVAILABLE");
 
-  const [mainImage, setMainImage] =
-    useState<File | null>(null);
+  const [mainImage, setMainImage] = useState<File | null>(null);
+  const [moreImages, setMoreImages] = useState<File[]>([]);
+  const [mainPreview, setMainPreview] = useState("");
+  const [morePreviews, setMorePreviews] = useState<string[]>([]);
 
-  const [moreImages, setMoreImages] =
-    useState<File[]>([]);
+  const [sizes, setSizes] = useState<ProductSize[]>(DEFAULT_SIZES);
 
-  const [mainPreview, setMainPreview] =
-    useState("");
-
-  const [morePreviews, setMorePreviews] =
-    useState<string[]>([]);
-
-  const [sizes, setSizes] =
-    useState<ProductSize[]>(
-      DEFAULT_SIZES
-    );
-
-  const [sizeChartImage, setSizeChartImage] =
-    useState<File | null>(null);
-
-  const [sizeChartPreview, setSizeChartPreview] =
-    useState("");
+  const [sizeChartImage, setSizeChartImage] = useState<File | null>(null);
+  const [sizeChartPreview, setSizeChartPreview] = useState("");
 
   /*
    * GENERAL STATES
    */
 
-  const [loading, setLoading] =
-    useState(true);
-
-  const [adding, setAdding] =
-    useState(false);
-
-  const [message, setMessage] =
-    useState("");
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+  const [message, setMessage] = useState("");
 
   /*
    * EDIT PRODUCT
    */
 
-  const [editingProduct, setEditingProduct] =
-    useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  const [editName, setEditName] =
-    useState("");
+  const [editName, setEditName] = useState("");
+  const [editSlug, setEditSlug] = useState("");
+  const [editCategoryIds, setEditCategoryIds] = useState<string[]>([]);
+  const [editPrice, setEditPrice] = useState("");
+  const [editSalePrice, setEditSalePrice] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editStatus, setEditStatus] = useState("AVAILABLE");
 
-  const [editSlug, setEditSlug] =
-    useState("");
+  const [editSizes, setEditSizes] = useState<ProductSize[]>(
+    DEFAULT_SIZES.map((item) => ({ ...item }))
+  );
 
-  const [editCategoryId, setEditCategoryId] =
-    useState("");
+  const [editMainImage, setEditMainImage] = useState<File | null>(null);
+  const [editMainPreview, setEditMainPreview] = useState("");
 
-  const [editPrice, setEditPrice] =
-    useState("");
-
-  const [editDescription, setEditDescription] =
-    useState("");
-
-  const [editStatus, setEditStatus] =
-    useState("AVAILABLE");
-
-  const [editSizes, setEditSizes] =
-    useState<ProductSize[]>(
-      DEFAULT_SIZES.map((item) => ({
-        ...item,
-      }))
-    );
-
-  const [editMainImage, setEditMainImage] =
-    useState<File | null>(null);
-
-  const [editMainPreview, setEditMainPreview] =
-    useState("");
-
-  const [editMoreImages, setEditMoreImages] =
-    useState<File[]>([]);
-
-  const [editMorePreviews, setEditMorePreviews] =
-    useState<string[]>([]);
+  const [editMoreImages, setEditMoreImages] = useState<File[]>([]);
+  const [editMorePreviews, setEditMorePreviews] = useState<string[]>([]);
 
   const [editSizeChartImage, setEditSizeChartImage] =
     useState<File | null>(null);
 
-  const [editSizeChartPreview, setEditSizeChartPreview] =
-    useState("");
+  const [editSizeChartPreview, setEditSizeChartPreview] = useState("");
 
-  const [editSaving, setEditSaving] =
-    useState(false);
+  const [editSaving, setEditSaving] = useState(false);
+
+  /* SALE is automatic, so it is not selectable here */
+  const selectableCategories = categories.filter(
+    (item) => !isSaleName(item.name)
+  );
 
   /*
    * LOAD
@@ -196,7 +269,9 @@ export default function ProductsPage() {
         name,
         slug,
         category_id,
+        category_ids,
         price,
+        sale_price,
         description,
         status,
         created_at,
@@ -212,76 +287,61 @@ export default function ProductsPage() {
           sort_order
         )
       `)
-      .order("created_at", {
-        ascending: false,
-      });
+      .order("created_at", { ascending: false });
 
     if (error) {
-      console.error(
-        "PRODUCT LOAD ERROR:",
-        error
-      );
-
-      setMessage(
-        "FAILED TO LOAD PRODUCTS."
-      );
-
+      console.error("PRODUCT LOAD ERROR:", error);
+      setMessage("FAILED TO LOAD PRODUCTS.");
       setLoading(false);
       return;
     }
 
-    const formattedProducts =
-      (data || []).map(
-        (product: any) => ({
-          ...product,
+    const formattedProducts = (data || []).map((product: any) => ({
+      ...product,
 
-          category:
-            Array.isArray(
-              product.categories
-            )
-              ? product.categories[0] ||
-                null
-              : product.categories ||
-                null,
+      sale_price:
+        product.sale_price === null || product.sale_price === undefined
+          ? null
+          : Number(product.sale_price),
 
-          product_images:
-            product.product_images ||
-            [],
-        })
-      );
+      category: Array.isArray(product.categories)
+        ? product.categories[0] || null
+        : product.categories || null,
 
-    setProducts(
-      formattedProducts
-    );
+      product_images: product.product_images || [],
+    }));
 
+    setProducts(formattedProducts);
     setLoading(false);
   }
 
   async function loadCategories() {
-    const { data, error } =
-      await supabase
-        .from("categories")
-        .select(
-          "id, name, slug"
-        )
-        .order(
-          "created_at",
-          {
-            ascending: true,
-          }
-        );
+    const { data, error } = await supabase
+      .from("categories")
+      .select("id, name, slug")
+      .order("created_at", { ascending: true });
 
     if (error) {
-      console.error(
-        "CATEGORY LOAD ERROR:",
-        error
-      );
-
+      console.error("CATEGORY LOAD ERROR:", error);
       return;
     }
 
-    setCategories(
-      data || []
+    setCategories(data || []);
+  }
+
+  /*
+   * CATEGORY TOGGLE
+   */
+
+  function toggleCategory(id: string) {
+    setCategoryIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  }
+
+  function toggleEditCategory(id: string) {
+    setEditCategoryIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   }
 
@@ -289,39 +349,20 @@ export default function ProductsPage() {
    * SLUG
    */
 
-  function generateSlug(
-    value: string
-  ) {
+  function generateSlug(value: string) {
     return value
       .toLowerCase()
       .trim()
-      .replace(
-        /[^a-z0-9\s-]/g,
-        ""
-      )
-      .replace(
-        /\s+/g,
-        "-"
-      )
-      .replace(
-        /-+/g,
-        "-"
-      );
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
   }
 
-  function handleNameChange(
-    value: string
-  ) {
+  function handleNameChange(value: string) {
     setName(value);
 
-    if (
-      !slug ||
-      slug ===
-        generateSlug(name)
-    ) {
-      setSlug(
-        generateSlug(value)
-      );
+    if (!slug || slug === generateSlug(name)) {
+      setSlug(generateSlug(value));
     }
   }
 
@@ -329,36 +370,18 @@ export default function ProductsPage() {
    * MAIN IMAGE
    */
 
-  function handleMainImage(
-    e: ChangeEvent<HTMLInputElement>
-  ) {
-    const file =
-      e.target.files?.[0];
+  function handleMainImage(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
 
     if (!file) return;
 
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-      setMessage(
-        "MAIN IMAGE MUST BE AN IMAGE FILE."
-      );
-
+    if (!file.type.startsWith("image/")) {
+      setMessage("MAIN IMAGE MUST BE AN IMAGE FILE.");
       return;
     }
 
     setMainImage(file);
-
-    const previewUrl =
-      URL.createObjectURL(
-        file
-      );
-
-    setMainPreview(
-      previewUrl
-    );
+    setMainPreview(URL.createObjectURL(file));
   }
 
   function removeMainImage() {
@@ -370,108 +393,45 @@ export default function ProductsPage() {
    * MORE IMAGES
    */
 
-  function handleMoreImages(
-    e: ChangeEvent<HTMLInputElement>
-  ) {
-    const files =
-      Array.from(
-        e.target.files || []
-      );
+  function handleMoreImages(e: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
 
-    if (
-      files.length === 0
-    )
-      return;
+    if (files.length === 0) return;
 
-    const invalidFile =
-      files.find(
-        (file) =>
-          !file.type.startsWith(
-            "image/"
-          )
-      );
+    const invalidFile = files.find((file) => !file.type.startsWith("image/"));
 
     if (invalidFile) {
-      setMessage(
-        "ALL ADDITIONAL FILES MUST BE IMAGES."
-      );
-
+      setMessage("ALL ADDITIONAL FILES MUST BE IMAGES.");
       return;
     }
 
-    setMoreImages(
-      (prev) => [
-        ...prev,
-        ...files,
-      ]
-    );
+    setMoreImages((prev) => [...prev, ...files]);
 
-    const newPreviews =
-      files.map(
-        (file) =>
-          URL.createObjectURL(
-            file
-          )
-      );
-
-    setMorePreviews(
-      (prev) => [
-        ...prev,
-        ...newPreviews,
-      ]
-    );
+    setMorePreviews((prev) => [
+      ...prev,
+      ...files.map((file) => URL.createObjectURL(file)),
+    ]);
   }
 
   /*
    * SIZE SELECTION
    */
 
-  function toggleSize(
-    index: number
-  ) {
-    setSizes(
-      (prev) =>
-        prev.map(
-          (
-            item,
-            itemIndex
-          ) =>
-            itemIndex ===
-            index
-              ? {
-                  ...item,
-                  selected:
-                    !item.selected,
-                }
-              : item
-        )
+  function toggleSize(index: number) {
+    setSizes((prev) =>
+      prev.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, selected: !item.selected } : item
+      )
     );
   }
 
-  function updateSizeStock(
-    index: number,
-    value: string
-  ) {
-    const stock =
-      Number(value) >= 0
-        ? Number(value)
-        : 0;
+  function updateSizeStock(index: number, value: string) {
+    const stock = Number(value) >= 0 ? Number(value) : 0;
 
-    setSizes(
-      (prev) =>
-        prev.map(
-          (
-            item,
-            itemIndex
-          ) =>
-            itemIndex ===
-            index
-              ? {
-                  ...item,
-                  stock,
-                }
-              : item
-        )
+    setSizes((prev) =>
+      prev.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, stock } : item
+      )
     );
   }
 
@@ -479,38 +439,18 @@ export default function ProductsPage() {
    * SIZE CHART
    */
 
-  function handleSizeChartImage(
-    e: ChangeEvent<HTMLInputElement>
-  ) {
-    const file =
-      e.target.files?.[0];
+  function handleSizeChartImage(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
 
     if (!file) return;
 
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-      setMessage(
-        "SIZE CHART MUST BE AN IMAGE FILE."
-      );
-
+    if (!file.type.startsWith("image/")) {
+      setMessage("SIZE CHART MUST BE AN IMAGE FILE.");
       return;
     }
 
-    setSizeChartImage(
-      file
-    );
-
-    const previewUrl =
-      URL.createObjectURL(
-        file
-      );
-
-    setSizeChartPreview(
-      previewUrl
-    );
+    setSizeChartImage(file);
+    setSizeChartPreview(URL.createObjectURL(file));
   }
 
   function removeSizeChart() {
@@ -522,91 +462,41 @@ export default function ProductsPage() {
    * UPLOAD IMAGE
    */
 
-  async function uploadImage(
-    file: File,
-    productId: string,
-    sortOrder: number
-  ) {
-    const extension =
-      file.name.split(".").pop() ||
-      "jpg";
+  async function uploadImage(file: File, productId: string, sortOrder: number) {
+    const extension = file.name.split(".").pop() || "jpg";
 
-    const safeName =
-      file.name
-        .replace(
-          /[^a-zA-Z0-9.-]/g,
-          "-"
-        )
-        .toLowerCase();
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "-").toLowerCase();
 
-    const filePath =
-      `${productId}/${sortOrder}-${Date.now()}-${safeName}`;
+    const filePath = `${productId}/${sortOrder}-${Date.now()}-${safeName}`;
 
-    const {
-      error: uploadError,
-    } =
-      await supabase.storage
-        .from(
-          "product-images"
-        )
-        .upload(
-          filePath,
-          file,
-          {
-            cacheControl:
-              "3600",
-            upsert:
-              false,
-            contentType:
-              file.type ||
-              `image/${extension}`,
-          }
-        );
+    const { error: uploadError } = await supabase.storage
+      .from("product-images")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || `image/${extension}`,
+      });
 
     if (uploadError) {
       throw uploadError;
     }
 
-    const {
-      data:
-        publicUrlData,
-    } =
-      supabase.storage
-        .from(
-          "product-images"
-        )
-        .getPublicUrl(
-          filePath
-        );
+    const { data: publicUrlData } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(filePath);
 
-    const imageUrl =
-      publicUrlData.publicUrl;
+    const imageUrl = publicUrlData.publicUrl;
 
-    const {
-      error:
-        imageDbError,
-    } =
-      await supabase
-        .from(
-          "product_images"
-        )
-        .insert({
-          product_id:
-            productId,
-          image_url:
-            imageUrl,
-          sort_order:
-            sortOrder,
-        });
+    const { error: imageDbError } = await supabase
+      .from("product_images")
+      .insert({
+        product_id: productId,
+        image_url: imageUrl,
+        sort_order: sortOrder,
+      });
 
     if (imageDbError) {
-      await supabase.storage
-        .from(
-          "product-images"
-        )
-        .remove([
-          filePath,
-        ]);
+      await supabase.storage.from("product-images").remove([filePath]);
 
       throw imageDbError;
     }
@@ -618,90 +508,40 @@ export default function ProductsPage() {
    * UPLOAD SIZE CHART
    */
 
-  async function uploadSizeChart(
-    file: File,
-    productId: string
-  ) {
-    const extension =
-      file.name.split(".").pop() ||
-      "jpg";
+  async function uploadSizeChart(file: File, productId: string) {
+    const extension = file.name.split(".").pop() || "jpg";
 
-    const safeName =
-      file.name
-        .replace(
-          /[^a-zA-Z0-9.-]/g,
-          "-"
-        )
-        .toLowerCase();
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "-").toLowerCase();
 
-    const filePath =
-      `${productId}/size-chart-${Date.now()}-${safeName}`;
+    const filePath = `${productId}/size-chart-${Date.now()}-${safeName}`;
 
-    const {
-      error: uploadError,
-    } =
-      await supabase.storage
-        .from(
-          "product-images"
-        )
-        .upload(
-          filePath,
-          file,
-          {
-            cacheControl:
-              "3600",
-            upsert:
-              false,
-            contentType:
-              file.type ||
-              `image/${extension}`,
-          }
-        );
+    const { error: uploadError } = await supabase.storage
+      .from("product-images")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || `image/${extension}`,
+      });
 
     if (uploadError) {
       throw uploadError;
     }
 
-    const {
-      data:
-        publicUrlData,
-    } =
-      supabase.storage
-        .from(
-          "product-images"
-        )
-        .getPublicUrl(
-          filePath
-        );
+    const { data: publicUrlData } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(filePath);
 
-    const imageUrl =
-      publicUrlData.publicUrl;
+    const imageUrl = publicUrlData.publicUrl;
 
-    const {
-      error:
-        chartDbError,
-    } =
-      await supabase
-        .from(
-          "size_charts"
-        )
-        .insert({
-          product_id:
-            productId,
-          size: "IMAGE",
-          chest: "",
-          image_url:
-            imageUrl,
-        });
+    const { error: chartDbError } = await supabase.from("size_charts").insert({
+      product_id: productId,
+      size: "IMAGE",
+      chest: "",
+      image_url: imageUrl,
+    });
 
     if (chartDbError) {
-      await supabase.storage
-        .from(
-          "product-images"
-        )
-        .remove([
-          filePath,
-        ]);
+      await supabase.storage.from("product-images").remove([filePath]);
 
       throw chartDbError;
     }
@@ -713,9 +553,7 @@ export default function ProductsPage() {
    * ADD PRODUCT
    */
 
-  async function addProduct(
-    e: FormEvent<HTMLFormElement>
-  ) {
+  async function addProduct(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (adding) return;
@@ -723,62 +561,41 @@ export default function ProductsPage() {
     setMessage("");
 
     if (!name.trim()) {
-      setMessage(
-        "PRODUCT NAME IS REQUIRED."
-      );
-
+      setMessage("PRODUCT NAME IS REQUIRED.");
       return;
     }
 
     if (!slug.trim()) {
-      setMessage(
-        "PRODUCT SLUG IS REQUIRED."
-      );
-
+      setMessage("PRODUCT SLUG IS REQUIRED.");
       return;
     }
 
-    if (!categoryId) {
-      setMessage(
-        "PLEASE SELECT A COLLECTION."
-      );
-
+    if (categoryIds.length === 0) {
+      setMessage("PLEASE SELECT AT LEAST ONE COLLECTION.");
       return;
     }
 
-    if (
-      !price ||
-      Number(price) <= 0
-    ) {
-      setMessage(
-        "PLEASE ENTER A VALID PRICE."
-      );
+    if (!price || Number(price) <= 0) {
+      setMessage("PLEASE ENTER A VALID PRICE.");
+      return;
+    }
 
+    const salePriceError = validateSalePrice(price, salePrice);
+
+    if (salePriceError) {
+      setMessage(salePriceError);
       return;
     }
 
     if (!mainImage) {
-      setMessage(
-        "MAIN IMAGE IS REQUIRED."
-      );
-
+      setMessage("MAIN IMAGE IS REQUIRED.");
       return;
     }
 
-    const selectedSizes =
-      sizes.filter(
-        (item) =>
-          item.selected
-      );
+    const selectedSizes = sizes.filter((item) => item.selected);
 
-    if (
-      selectedSizes.length ===
-      0
-    ) {
-      setMessage(
-        "PLEASE SELECT AT LEAST ONE SIZE."
-      );
-
+    if (selectedSizes.length === 0) {
+      setMessage("PLEASE SELECT AT LEAST ONE SIZE.");
       return;
     }
 
@@ -789,29 +606,20 @@ export default function ProductsPage() {
        * CREATE PRODUCT
        */
 
-      const {
-        data: product,
-        error:
-          productError,
-      } =
-        await supabase
-          .from("products")
-          .insert({
-            name:
-              name.trim(),
-            slug:
-              slug.trim(),
-            category_id:
-              categoryId,
-            price:
-              Number(price),
-            description:
-              description.trim() ||
-              null,
-            status,
-          })
-          .select()
-          .single();
+      const { data: product, error: productError } = await supabase
+        .from("products")
+        .insert({
+          name: name.trim(),
+          slug: slug.trim(),
+          category_id: categoryIds[0],
+          category_ids: categoryIds,
+          price: Number(price),
+          sale_price: salePrice.trim() === "" ? null : Number(salePrice),
+          description: description.trim() || null,
+          status,
+        })
+        .select()
+        .single();
 
       if (productError) {
         throw productError;
@@ -821,56 +629,29 @@ export default function ProductsPage() {
        * MAIN IMAGE
        */
 
-      await uploadImage(
-        mainImage,
-        product.id,
-        0
-      );
+      await uploadImage(mainImage, product.id, 0);
 
       /*
        * MORE IMAGES
        */
 
-      for (
-        let i = 0;
-        i <
-        moreImages.length;
-        i++
-      ) {
-        await uploadImage(
-          moreImages[i],
-          product.id,
-          i + 1
-        );
+      for (let i = 0; i < moreImages.length; i++) {
+        await uploadImage(moreImages[i], product.id, i + 1);
       }
 
       /*
        * SIZES
        */
 
-      const sizeRows =
-        selectedSizes.map(
-          (item) => ({
-            product_id:
-              product.id,
-            size:
-              item.size,
-            stock:
-              item.stock,
-          })
-        );
+      const sizeRows = selectedSizes.map((item) => ({
+        product_id: product.id,
+        size: item.size,
+        stock: item.stock,
+      }));
 
-      const {
-        error:
-          sizeError,
-      } =
-        await supabase
-          .from(
-            "product_sizes"
-          )
-          .insert(
-            sizeRows
-          );
+      const { error: sizeError } = await supabase
+        .from("product_sizes")
+        .insert(sizeRows);
 
       if (sizeError) {
         throw sizeError;
@@ -882,15 +663,9 @@ export default function ProductsPage() {
 
       if (sizeChartImage) {
         try {
-          await uploadSizeChart(
-            sizeChartImage,
-            product.id
-          );
+          await uploadSizeChart(sizeChartImage, product.id);
         } catch (error) {
-          console.error(
-            "SIZE CHART ERROR:",
-            error
-          );
+          console.error("SIZE CHART ERROR:", error);
         }
       }
 
@@ -902,12 +677,11 @@ export default function ProductsPage() {
 
       setName("");
       setSlug("");
-      setCategoryId("");
+      setCategoryIds([]);
       setPrice("");
+      setSalePrice("");
       setDescription("");
-      setStatus(
-        "AVAILABLE"
-      );
+      setStatus("AVAILABLE");
 
       setMainImage(null);
       setMoreImages([]);
@@ -915,37 +689,16 @@ export default function ProductsPage() {
       setMainPreview("");
       setMorePreviews([]);
 
-      setSizes(
-        DEFAULT_SIZES.map(
-          (item) => ({
-            ...item,
-          })
-        )
-      );
+      setSizes(DEFAULT_SIZES.map((item) => ({ ...item })));
 
-      setSizeChartImage(
-        null
-      );
+      setSizeChartImage(null);
+      setSizeChartPreview("");
 
-      setSizeChartPreview(
-        ""
-      );
-
-      setMessage(
-        "PRODUCT ADDED SUCCESSFULLY."
-      );
+      setMessage("PRODUCT ADDED SUCCESSFULLY.");
     } catch (error: any) {
-      console.error(
-        "PRODUCT ADD ERROR:",
-        error
-      );
+      console.error("PRODUCT ADD ERROR:", error);
 
-      setMessage(
-        (
-          error?.message ||
-          "SOMETHING WENT WRONG."
-        ).toUpperCase()
-      );
+      setMessage((error?.message || "SOMETHING WENT WRONG.").toUpperCase());
     }
 
     setAdding(false);
@@ -955,179 +708,102 @@ export default function ProductsPage() {
    * OPEN EDIT
    */
 
-  async function openEditProduct(
-    product: Product
-  ) {
+  async function openEditProduct(product: Product) {
     setMessage("");
 
-    setEditingProduct(
-      product
+    setEditingProduct(product);
+
+    setEditName(product.name);
+    setEditSlug(product.slug);
+
+    /* hide SALE from the selected ids so it never gets saved as a collection */
+    setEditCategoryIds(
+      getProductCategoryIds(product).filter((id) => {
+        const found = categories.find((item) => item.id === id);
+        return found ? !isSaleName(found.name) : true;
+      })
     );
 
-    setEditName(
-      product.name
+    setEditPrice(String(product.price));
+    setEditSalePrice(
+      product.sale_price === null || product.sale_price === undefined
+        ? ""
+        : String(product.sale_price)
     );
+    setEditDescription(product.description || "");
+    setEditStatus(product.status);
 
-    setEditSlug(
-      product.slug
-    );
-
-    setEditCategoryId(
-      product.category_id
-    );
-
-    setEditPrice(
-      String(product.price)
-    );
-
-    setEditDescription(
-      product.description ||
-        ""
-    );
-
-    setEditStatus(
-      product.status
-    );
-
-    setEditMainImage(
-      null
-    );
-
-    setEditMoreImages(
-      []
-    );
-
-    setEditMorePreviews(
-      []
-    );
-
-    setEditSizeChartImage(
-      null
-    );
+    setEditMainImage(null);
+    setEditMoreImages([]);
+    setEditMorePreviews([]);
+    setEditSizeChartImage(null);
 
     /*
      * MAIN IMAGE
      */
 
-    const productImages =
-      product.product_images ||
-      [];
+    const productImages = product.product_images || [];
 
-    const sortedImages =
-      [...productImages].sort(
-        (a, b) =>
-          a.sort_order -
-          b.sort_order
-      );
-
-    setEditMainPreview(
-      sortedImages[0]
-        ?.image_url || ""
+    const sortedImages = [...productImages].sort(
+      (a, b) => a.sort_order - b.sort_order
     );
+
+    setEditMainPreview(sortedImages[0]?.image_url || "");
 
     /*
      * LOAD SIZES
      */
 
-    const {
-      data: sizeData,
-      error: sizeError,
-    } =
-      await supabase
-        .from(
-          "product_sizes"
-        )
-        .select(
-          "size, stock"
-        )
-        .eq(
-          "product_id",
-          product.id
-        );
+    const { data: sizeData, error: sizeError } = await supabase
+      .from("product_sizes")
+      .select("size, stock")
+      .eq("product_id", product.id);
 
     if (sizeError) {
-      console.error(
-        "EDIT SIZE LOAD ERROR:",
-        sizeError
-      );
+      console.error("EDIT SIZE LOAD ERROR:", sizeError);
     }
 
-    const existingSizes =
-      (sizeData ||
-        []) as ExistingSize[];
+    const existingSizes = (sizeData || []) as ExistingSize[];
 
     setEditSizes(
-      DEFAULT_SIZES.map(
-        (defaultSize) => {
-          const found =
-            existingSizes.find(
-              (item) =>
-                item.size ===
-                defaultSize.size
-            );
+      DEFAULT_SIZES.map((defaultSize) => {
+        const found = existingSizes.find(
+          (item) => item.size === defaultSize.size
+        );
 
-          return {
-            size:
-              defaultSize.size,
-            stock:
-              found?.stock ||
-              0,
-            selected:
-              Boolean(found),
-          };
-        }
-      )
+        return {
+          size: defaultSize.size,
+          stock: found?.stock || 0,
+          selected: Boolean(found),
+        };
+      })
     );
 
     /*
      * LOAD SIZE CHART
      */
 
-    const {
-      data:
-        sizeChartData,
-      error:
-        sizeChartError,
-    } =
-      await supabase
-        .from(
-          "size_charts"
-        )
-        .select(
-          "image_url"
-        )
-        .eq(
-          "product_id",
-          product.id
-        )
-        .limit(1);
+    const { data: sizeChartData, error: sizeChartError } = await supabase
+      .from("size_charts")
+      .select("image_url")
+      .eq("product_id", product.id)
+      .limit(1);
 
     if (sizeChartError) {
-      console.error(
-        "EDIT SIZE CHART LOAD ERROR:",
-        sizeChartError
-      );
+      console.error("EDIT SIZE CHART LOAD ERROR:", sizeChartError);
     }
 
-    setEditSizeChartPreview(
-      sizeChartData?.[0]
-        ?.image_url || ""
-    );
+    setEditSizeChartPreview(sizeChartData?.[0]?.image_url || "");
 
     /*
      * SCROLL TO EDITOR
      */
 
     setTimeout(() => {
-      document
-        .getElementById(
-          "edit-product-section"
-        )
-        ?.scrollIntoView({
-          behavior:
-            "smooth",
-          block: "start",
-        });
+      document.getElementById("edit-product-section")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }, 100);
   }
 
@@ -1135,149 +811,71 @@ export default function ProductsPage() {
    * EDIT MAIN IMAGE
    */
 
-  function handleEditMainImage(
-    e: ChangeEvent<HTMLInputElement>
-  ) {
-    const file =
-      e.target.files?.[0];
+  function handleEditMainImage(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
 
     if (!file) return;
 
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-      setMessage(
-        "MAIN IMAGE MUST BE AN IMAGE FILE."
-      );
-
+    if (!file.type.startsWith("image/")) {
+      setMessage("MAIN IMAGE MUST BE AN IMAGE FILE.");
       return;
     }
 
-    setEditMainImage(
-      file
-    );
-
-    setEditMainPreview(
-      URL.createObjectURL(
-        file
-      )
-    );
+    setEditMainImage(file);
+    setEditMainPreview(URL.createObjectURL(file));
   }
 
   /*
    * EDIT MORE IMAGES
    */
 
-  function handleEditMoreImages(
-    e: ChangeEvent<HTMLInputElement>
-  ) {
-    const files =
-      Array.from(
-        e.target.files || []
-      );
+  function handleEditMoreImages(e: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
 
-    if (
-      files.length ===
-      0
-    )
-      return;
+    if (files.length === 0) return;
 
-    const invalid =
-      files.find(
-        (file) =>
-          !file.type.startsWith(
-            "image/"
-          )
-      );
+    const invalid = files.find((file) => !file.type.startsWith("image/"));
 
     if (invalid) {
-      setMessage(
-        "ALL ADDITIONAL FILES MUST BE IMAGES."
-      );
-
+      setMessage("ALL ADDITIONAL FILES MUST BE IMAGES.");
       return;
     }
 
-    setEditMoreImages(
-      (prev) => [
-        ...prev,
-        ...files,
-      ]
-    );
+    setEditMoreImages((prev) => [...prev, ...files]);
 
-    setEditMorePreviews(
-      (prev) => [
-        ...prev,
-        ...files.map(
-          (file) =>
-            URL.createObjectURL(
-              file
-            )
-        ),
-      ]
-    );
+    setEditMorePreviews((prev) => [
+      ...prev,
+      ...files.map((file) => URL.createObjectURL(file)),
+    ]);
   }
 
   /*
    * EDIT SIZE CHART
    */
 
-  function handleEditSizeChart(
-    e: ChangeEvent<HTMLInputElement>
-  ) {
-    const file =
-      e.target.files?.[0];
+  function handleEditSizeChart(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
 
     if (!file) return;
 
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-      setMessage(
-        "SIZE CHART MUST BE AN IMAGE FILE."
-      );
-
+    if (!file.type.startsWith("image/")) {
+      setMessage("SIZE CHART MUST BE AN IMAGE FILE.");
       return;
     }
 
-    setEditSizeChartImage(
-      file
-    );
-
-    setEditSizeChartPreview(
-      URL.createObjectURL(
-        file
-      )
-    );
+    setEditSizeChartImage(file);
+    setEditSizeChartPreview(URL.createObjectURL(file));
   }
 
   /*
    * EDIT SIZE TOGGLE
    */
 
-  function toggleEditSize(
-    index: number
-  ) {
-    setEditSizes(
-      (prev) =>
-        prev.map(
-          (
-            item,
-            itemIndex
-          ) =>
-            itemIndex ===
-            index
-              ? {
-                  ...item,
-                  selected:
-                    !item.selected,
-                }
-              : item
-        )
+  function toggleEditSize(index: number) {
+    setEditSizes((prev) =>
+      prev.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, selected: !item.selected } : item
+      )
     );
   }
 
@@ -1285,30 +883,13 @@ export default function ProductsPage() {
    * EDIT STOCK
    */
 
-  function updateEditSizeStock(
-    index: number,
-    value: string
-  ) {
-    const stock =
-      Number(value) >= 0
-        ? Number(value)
-        : 0;
+  function updateEditSizeStock(index: number, value: string) {
+    const stock = Number(value) >= 0 ? Number(value) : 0;
 
-    setEditSizes(
-      (prev) =>
-        prev.map(
-          (
-            item,
-            itemIndex
-          ) =>
-            itemIndex ===
-            index
-              ? {
-                  ...item,
-                  stock,
-                }
-              : item
-        )
+    setEditSizes((prev) =>
+      prev.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, stock } : item
+      )
     );
   }
 
@@ -1316,68 +897,44 @@ export default function ProductsPage() {
    * SAVE EDIT
    */
 
-  async function saveProductEdit(
-    e: FormEvent<HTMLFormElement>
-  ) {
+  async function saveProductEdit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (
-      !editingProduct ||
-      editSaving
-    )
-      return;
+    if (!editingProduct || editSaving) return;
 
     setMessage("");
 
     if (!editName.trim()) {
-      setMessage(
-        "PRODUCT NAME IS REQUIRED."
-      );
-
+      setMessage("PRODUCT NAME IS REQUIRED.");
       return;
     }
 
     if (!editSlug.trim()) {
-      setMessage(
-        "PRODUCT SLUG IS REQUIRED."
-      );
-
+      setMessage("PRODUCT SLUG IS REQUIRED.");
       return;
     }
 
-    if (!editCategoryId) {
-      setMessage(
-        "PLEASE SELECT A COLLECTION."
-      );
-
+    if (editCategoryIds.length === 0) {
+      setMessage("PLEASE SELECT AT LEAST ONE COLLECTION.");
       return;
     }
 
-    if (
-      !editPrice ||
-      Number(editPrice) <= 0
-    ) {
-      setMessage(
-        "PLEASE ENTER A VALID PRICE."
-      );
-
+    if (!editPrice || Number(editPrice) <= 0) {
+      setMessage("PLEASE ENTER A VALID PRICE.");
       return;
     }
 
-    const selectedEditSizes =
-      editSizes.filter(
-        (item) =>
-          item.selected
-      );
+    const editSalePriceError = validateSalePrice(editPrice, editSalePrice);
 
-    if (
-      selectedEditSizes.length ===
-      0
-    ) {
-      setMessage(
-        "PLEASE SELECT AT LEAST ONE SIZE."
-      );
+    if (editSalePriceError) {
+      setMessage(editSalePriceError);
+      return;
+    }
 
+    const selectedEditSizes = editSizes.filter((item) => item.selected);
+
+    if (selectedEditSizes.length === 0) {
+      setMessage("PLEASE SELECT AT LEAST ONE SIZE.");
       return;
     }
 
@@ -1388,37 +945,22 @@ export default function ProductsPage() {
        * UPDATE PRODUCT
        */
 
-      const {
-        error:
-          productUpdateError,
-      } =
-        await supabase
-          .from("products")
-          .update({
-            name:
-              editName.trim(),
-            slug:
-              editSlug.trim(),
-            category_id:
-              editCategoryId,
-            price:
-              Number(
-                editPrice
-              ),
-            description:
-              editDescription.trim() ||
-              null,
-            status:
-              editStatus,
-          })
-          .eq(
-            "id",
-            editingProduct.id
-          );
+      const { error: productUpdateError } = await supabase
+        .from("products")
+        .update({
+          name: editName.trim(),
+          slug: editSlug.trim(),
+          category_id: editCategoryIds[0],
+          category_ids: editCategoryIds,
+          price: Number(editPrice),
+          sale_price:
+            editSalePrice.trim() === "" ? null : Number(editSalePrice),
+          description: editDescription.trim() || null,
+          status: editStatus,
+        })
+        .eq("id", editingProduct.id);
 
-      if (
-        productUpdateError
-      ) {
+      if (productUpdateError) {
         throw productUpdateError;
       }
 
@@ -1427,100 +969,36 @@ export default function ProductsPage() {
        */
 
       if (editMainImage) {
-        const currentImages =
-          editingProduct.product_images ||
-          [];
+        const currentImages = editingProduct.product_images || [];
 
-        const oldMain =
-          [...currentImages]
-            .sort(
-              (a, b) =>
-                a.sort_order -
-                b.sort_order
-            )[0];
+        const oldMain = [...currentImages].sort(
+          (a, b) => a.sort_order - b.sort_order
+        )[0];
 
         if (oldMain) {
-          try {
-            const url =
-              new URL(
-                oldMain.image_url
-              );
+          const oldPath = getStoragePath(oldMain.image_url);
 
-            const marker =
-              "/storage/v1/object/public/product-images/";
-
-            const index =
-              url.pathname.indexOf(
-                marker
-              );
-
-            if (
-              index !==
-              -1
-            ) {
-              const oldPath =
-                decodeURIComponent(
-                  url.pathname.substring(
-                    index +
-                      marker.length
-                  )
-                );
-
-              await supabase.storage
-                .from(
-                  "product-images"
-                )
-                .remove([
-                  oldPath,
-                ]);
-            }
-          } catch {
-            console.log(
-              "OLD MAIN IMAGE REMOVE SKIPPED"
-            );
+          if (oldPath) {
+            await supabase.storage.from("product-images").remove([oldPath]);
           }
 
-          await supabase
-            .from(
-              "product_images"
-            )
-            .delete()
-            .eq(
-              "id",
-              oldMain.id
-            );
+          await supabase.from("product_images").delete().eq("id", oldMain.id);
         }
 
-        await uploadImage(
-          editMainImage,
-          editingProduct.id,
-          0
-        );
+        await uploadImage(editMainImage, editingProduct.id, 0);
       }
 
       /*
        * ADD NEW MORE IMAGES
        */
 
-      const currentImages =
-        editingProduct.product_images ||
-        [];
+      const currentImages = editingProduct.product_images || [];
 
-      let nextSortOrder =
-        currentImages.length;
+      let nextSortOrder = currentImages.length;
 
       if (editMoreImages.length) {
-        for (
-          let i = 0;
-          i <
-          editMoreImages.length;
-          i++
-        ) {
-          await uploadImage(
-            editMoreImages[i],
-            editingProduct.id,
-            nextSortOrder
-          );
+        for (let i = 0; i < editMoreImages.length; i++) {
+          await uploadImage(editMoreImages[i], editingProduct.id, nextSortOrder);
 
           nextSortOrder++;
         }
@@ -1531,38 +1009,19 @@ export default function ProductsPage() {
        */
 
       await supabase
-        .from(
-          "product_sizes"
-        )
+        .from("product_sizes")
         .delete()
-        .eq(
-          "product_id",
-          editingProduct.id
-        );
+        .eq("product_id", editingProduct.id);
 
-      const editSizeRows =
-        selectedEditSizes.map(
-          (item) => ({
-            product_id:
-              editingProduct.id,
-            size:
-              item.size,
-            stock:
-              item.stock,
-          })
-        );
+      const editSizeRows = selectedEditSizes.map((item) => ({
+        product_id: editingProduct.id,
+        size: item.size,
+        stock: item.stock,
+      }));
 
-      const {
-        error:
-          editSizeError,
-      } =
-        await supabase
-          .from(
-            "product_sizes"
-          )
-          .insert(
-            editSizeRows
-          );
+      const { error: editSizeError } = await supabase
+        .from("product_sizes")
+        .insert(editSizeRows);
 
       if (editSizeError) {
         throw editSizeError;
@@ -1572,100 +1031,28 @@ export default function ProductsPage() {
        * REPLACE SIZE CHART
        */
 
-      if (
-        editSizeChartImage
-      ) {
-        const {
-          data:
-            oldChartData,
-        } =
-          await supabase
-            .from(
-              "size_charts"
-            )
-            .select(
-              "id, image_url"
-            )
-            .eq(
-              "product_id",
-              editingProduct.id
-            );
+      if (editSizeChartImage) {
+        const { data: oldChartData } = await supabase
+          .from("size_charts")
+          .select("id, image_url")
+          .eq("product_id", editingProduct.id);
 
-        if (
-          oldChartData &&
-          oldChartData.length >
-            0
-        ) {
-          const oldPaths =
-            oldChartData
-              .map(
-                (chart) => {
-                  try {
-                    const url =
-                      new URL(
-                        chart.image_url
-                      );
+        if (oldChartData && oldChartData.length > 0) {
+          const oldPaths = oldChartData
+            .map((chart) => getStoragePath(chart.image_url))
+            .filter((path): path is string => Boolean(path));
 
-                    const marker =
-                      "/storage/v1/object/public/product-images/";
-
-                    const index =
-                      url.pathname.indexOf(
-                        marker
-                      );
-
-                    if (
-                      index ===
-                      -1
-                    ) {
-                      return null;
-                    }
-
-                    return decodeURIComponent(
-                      url.pathname.substring(
-                        index +
-                          marker.length
-                      )
-                    );
-                  } catch {
-                    return null;
-                  }
-                }
-              )
-              .filter(
-                (
-                  path
-                ): path is string =>
-                  Boolean(path)
-              );
-
-          if (
-            oldPaths.length
-          ) {
-            await supabase.storage
-              .from(
-                "product-images"
-              )
-              .remove(
-                oldPaths
-              );
+          if (oldPaths.length) {
+            await supabase.storage.from("product-images").remove(oldPaths);
           }
 
           await supabase
-            .from(
-              "size_charts"
-            )
+            .from("size_charts")
             .delete()
-            .eq(
-              "product_id",
-              editingProduct.id
-            );
+            .eq("product_id", editingProduct.id);
         }
 
-        await uploadSizeChart(
-          editSizeChartImage,
-          editingProduct.id
-        );
+        await uploadSizeChart(editSizeChartImage, editingProduct.id);
       }
 
       /*
@@ -1678,48 +1065,20 @@ export default function ProductsPage() {
        * CLOSE EDITOR
        */
 
-      setEditingProduct(
-        null
-      );
+      setEditingProduct(null);
+      setEditMainImage(null);
+      setEditMainPreview("");
+      setEditMoreImages([]);
+      setEditMorePreviews([]);
+      setEditSizeChartImage(null);
+      setEditSizeChartPreview("");
 
-      setEditMainImage(
-        null
-      );
-
-      setEditMainPreview(
-        ""
-      );
-
-      setEditMoreImages(
-        []
-      );
-
-      setEditMorePreviews(
-        []
-      );
-
-      setEditSizeChartImage(
-        null
-      );
-
-      setEditSizeChartPreview(
-        ""
-      );
-
-      setMessage(
-        "PRODUCT UPDATED SUCCESSFULLY."
-      );
+      setMessage("PRODUCT UPDATED SUCCESSFULLY.");
     } catch (error: any) {
-      console.error(
-        "PRODUCT UPDATE ERROR:",
-        error
-      );
+      console.error("PRODUCT UPDATE ERROR:", error);
 
       setMessage(
-        (
-          error?.message ||
-          "FAILED TO UPDATE PRODUCT."
-        ).toUpperCase()
+        (error?.message || "FAILED TO UPDATE PRODUCT.").toUpperCase()
       );
     }
 
@@ -1730,186 +1089,70 @@ export default function ProductsPage() {
    * DELETE PRODUCT
    */
 
-  async function deleteProduct(
-    product: Product
-  ) {
-    const confirmed =
-      window.confirm(
-        "DELETE THIS PRODUCT?"
-      );
+  async function deleteProduct(product: Product) {
+    const confirmed = window.confirm("DELETE THIS PRODUCT?");
 
-    if (!confirmed)
-      return;
+    if (!confirmed) return;
 
     setMessage("");
 
     try {
-      const images =
-        product.product_images ||
-        [];
+      const images = product.product_images || [];
 
-      if (
-        images.length >
-        0
-      ) {
-        const filePaths =
-          images
-            .map(
-              (image) => {
-                try {
-                  const url =
-                    new URL(
-                      image.image_url
-                    );
+      if (images.length > 0) {
+        const filePaths = images
+          .map((image) => getStoragePath(image.image_url))
+          .filter((path): path is string => Boolean(path));
 
-                  const marker =
-                    "/storage/v1/object/public/product-images/";
-
-                  const index =
-                    url.pathname.indexOf(
-                      marker
-                    );
-
-                  if (
-                    index ===
-                    -1
-                  ) {
-                    return null;
-                  }
-
-                  return decodeURIComponent(
-                    url.pathname.substring(
-                      index +
-                        marker.length
-                    )
-                  );
-                } catch {
-                  return null;
-                }
-              }
-            )
-            .filter(
-              (
-                path
-              ): path is string =>
-                Boolean(path)
-            );
-
-        if (
-          filePaths.length >
-          0
-        ) {
-          await supabase.storage
-            .from(
-              "product-images"
-            )
-            .remove(
-              filePaths
-            );
+        if (filePaths.length > 0) {
+          await supabase.storage.from("product-images").remove(filePaths);
         }
       }
 
-      const {
-        error:
-          sizeDeleteError,
-      } =
-        await supabase
-          .from(
-            "product_sizes"
-          )
-          .delete()
-          .eq(
-            "product_id",
-            product.id
-          );
+      const { error: sizeDeleteError } = await supabase
+        .from("product_sizes")
+        .delete()
+        .eq("product_id", product.id);
 
-      if (
-        sizeDeleteError
-      ) {
+      if (sizeDeleteError) {
         throw sizeDeleteError;
       }
 
-      const {
-        error:
-          chartDeleteError,
-      } =
-        await supabase
-          .from(
-            "size_charts"
-          )
-          .delete()
-          .eq(
-            "product_id",
-            product.id
-          );
+      const { error: chartDeleteError } = await supabase
+        .from("size_charts")
+        .delete()
+        .eq("product_id", product.id);
 
-      if (
-        chartDeleteError
-      ) {
+      if (chartDeleteError) {
         throw chartDeleteError;
       }
 
-      const {
-        error:
-          imageDeleteError,
-      } =
-        await supabase
-          .from(
-            "product_images"
-          )
-          .delete()
-          .eq(
-            "product_id",
-            product.id
-          );
+      const { error: imageDeleteError } = await supabase
+        .from("product_images")
+        .delete()
+        .eq("product_id", product.id);
 
-      if (
-        imageDeleteError
-      ) {
+      if (imageDeleteError) {
         throw imageDeleteError;
       }
 
-      const {
-        error:
-          productDeleteError,
-      } =
-        await supabase
-          .from("products")
-          .delete()
-          .eq(
-            "id",
-            product.id
-          );
+      const { error: productDeleteError } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", product.id);
 
-      if (
-        productDeleteError
-      ) {
+      if (productDeleteError) {
         throw productDeleteError;
       }
 
-      setProducts(
-        (prev) =>
-          prev.filter(
-            (item) =>
-              item.id !==
-              product.id
-          )
-      );
+      setProducts((prev) => prev.filter((item) => item.id !== product.id));
 
-      setMessage(
-        "PRODUCT DELETED."
-      );
+      setMessage("PRODUCT DELETED.");
     } catch (error: any) {
-      console.error(
-        "PRODUCT DELETE ERROR:",
-        error
-      );
+      console.error("PRODUCT DELETE ERROR:", error);
 
       setMessage(
-        (
-          error?.message ||
-          "FAILED TO DELETE PRODUCT."
-        ).toUpperCase()
+        (error?.message || "FAILED TO DELETE PRODUCT.").toUpperCase()
       );
     }
   }
@@ -1918,31 +1161,32 @@ export default function ProductsPage() {
    * GET PRODUCT IMAGE
    */
 
-  function getProductImage(
-    product: Product
-  ) {
-    const images =
-      product.product_images ||
-      [];
+  function getProductImage(product: Product) {
+    const images = product.product_images || [];
 
-    if (
-      images.length ===
-      0
-    ) {
+    if (images.length === 0) {
       return "";
     }
 
-    const sortedImages =
-      [...images].sort(
-        (a, b) =>
-          a.sort_order -
-          b.sort_order
-      );
-
-    return (
-      sortedImages[0]
-        ?.image_url || ""
+    const sortedImages = [...images].sort(
+      (a, b) => a.sort_order - b.sort_order
     );
+
+    return sortedImages[0]?.image_url || "";
+  }
+
+  /*
+   * GET CATEGORY NAMES (all selected collections)
+   */
+
+  function getCategoryNames(product: Product) {
+    const names = getProductCategoryIds(product)
+      .map((id) => categories.find((item) => item.id === id)?.name)
+      .filter((value): value is string => Boolean(value));
+
+    if (names.length > 0) return names.join(" / ");
+
+    return product.category?.name || "NO COLLECTION";
   }
 
   /*
@@ -1950,38 +1194,17 @@ export default function ProductsPage() {
    */
 
   function cancelEdit() {
-    setEditingProduct(
-      null
-    );
-
-    setEditMainImage(
-      null
-    );
-
-    setEditMainPreview(
-      ""
-    );
-
-    setEditMoreImages(
-      []
-    );
-
-    setEditMorePreviews(
-      []
-    );
-
-    setEditSizeChartImage(
-      null
-    );
-
-    setEditSizeChartPreview(
-      ""
-    );
+    setEditingProduct(null);
+    setEditMainImage(null);
+    setEditMainPreview("");
+    setEditMoreImages([]);
+    setEditMorePreviews([]);
+    setEditSizeChartImage(null);
+    setEditSizeChartPreview("");
   }
 
   return (
     <main className="products-page">
-
       <div className="products-grid-bg" />
 
       <div className="products-red-orb" />
@@ -1989,126 +1212,76 @@ export default function ProductsPage() {
       {/* SIDEBAR */}
 
       <aside className="products-sidebar">
-
         <div>
-
-          <Link
-            href="/admin"
-            className="products-brand"
-          >
-            STOKED{" "}
-            <span>BD</span>
+          <Link href="/admin" className="products-brand">
+            STOKED <span>BD</span>
           </Link>
 
-          <div className="products-sidebar-label">
-            CONTROL PANEL
-          </div>
+          <div className="products-sidebar-label">CONTROL PANEL</div>
 
           <nav className="products-nav">
-
-            <Link
-              href="/admin"
-              className="products-nav-item"
-            >
+            <Link href="/admin" className="products-nav-item">
               <span>01</span>
               DASHBOARD
             </Link>
 
-            <Link
-              href="/admin/categories"
-              className="products-nav-item"
-            >
+            <Link href="/admin/categories" className="products-nav-item">
               <span>02</span>
               CATEGORIES
             </Link>
 
-            <Link
-              href="/admin/products"
-              className="products-nav-item active"
-            >
+            <Link href="/admin/products" className="products-nav-item active">
               <span>03</span>
               PRODUCTS
             </Link>
 
-            <Link
-              href="/admin/orders"
-              className="products-nav-item"
-            >
+            <Link href="/admin/orders" className="products-nav-item">
               <span>04</span>
               ORDERS
             </Link>
-
           </nav>
-
         </div>
 
         <div className="products-sidebar-bottom">
-
           <div className="products-system-status">
             <span />
             SYSTEM ONLINE
           </div>
 
-          <Link
-            href="/admin/login"
-            className="products-logout"
-          >
+          <Link href="/admin/login" className="products-logout">
             EXIT PANEL
           </Link>
-
         </div>
-
       </aside>
 
       {/* MOBILE HEADER */}
 
       <header className="products-mobile-header">
-
-        <Link
-          href="/admin"
-          className="products-mobile-brand"
-        >
-          STOKED{" "}
-          <span>BD</span>
+        <Link href="/admin" className="products-mobile-brand">
+          STOKED <span>BD</span>
         </Link>
 
-        <Link
-          href="/admin/login"
-          className="products-mobile-exit"
-        >
+        <Link href="/admin/login" className="products-mobile-exit">
           EXIT
         </Link>
-
       </header>
 
       {/* MAIN */}
 
       <section className="products-main">
-
         <div className="products-wrapper">
-
           <div className="products-topline">
+            <span>STOKED BD / ADMIN</span>
 
-            <span>
-              STOKED BD / ADMIN
-            </span>
-
-            <span>
-              CONTROL // 003
-            </span>
-
+            <span>CONTROL // 003</span>
           </div>
 
           {/* HERO */}
 
           <section className="products-hero">
-
-            <div className="products-kicker">
-              INVENTORY MANAGEMENT
-            </div>
+            <div className="products-kicker">INVENTORY MANAGEMENT</div>
 
             <div className="products-hero-bottom">
-
               <h1>
                 PRO
                 <br />
@@ -2116,7 +1289,6 @@ export default function ProductsPage() {
               </h1>
 
               <div className="products-hero-meta">
-
                 <div className="products-red-line" />
 
                 <span>
@@ -2124,569 +1296,354 @@ export default function ProductsPage() {
                   <br />
                   STORE PRODUCTS
                 </span>
-
               </div>
-
             </div>
-
           </section>
 
           {/* ADD PRODUCT */}
 
           <section className="product-manager">
-
             <div className="product-section-heading">
               <span>01</span>
               ADD PRODUCT
             </div>
 
-            <form
-              className="product-add-form"
-              onSubmit={
-                addProduct
-              }
-            >
-
+            <form className="product-add-form" onSubmit={addProduct}>
               <div className="product-form-grid">
-
                 {/* NAME */}
 
                 <div className="product-field">
-
-                  <label>
-                    PRODUCT NAME
-                  </label>
+                  <label>PRODUCT NAME</label>
 
                   <input
                     value={name}
-                    onChange={(e) =>
-                      handleNameChange(
-                        e.target.value
-                      )
-                    }
+                    onChange={(e) => handleNameChange(e.target.value)}
                     placeholder="ENTER PRODUCT NAME"
                   />
-
                 </div>
 
                 {/* SLUG */}
 
                 <div className="product-field">
-
-                  <label>
-                    PRODUCT SLUG
-                  </label>
+                  <label>PRODUCT SLUG</label>
 
                   <input
                     value={slug}
-                    onChange={(e) =>
-                      setSlug(
-                        generateSlug(
-                          e.target.value
-                        )
-                      )
-                    }
+                    onChange={(e) => setSlug(generateSlug(e.target.value))}
                     placeholder="PRODUCT-SLUG"
                   />
-
-                </div>
-
-                {/* COLLECTION */}
-
-                <div className="product-field">
-
-                  <label>
-                    COLLECTION
-                  </label>
-
-                  <select
-                    value={categoryId}
-                    onChange={(e) =>
-                      setCategoryId(
-                        e.target.value
-                      )
-                    }
-                  >
-
-                    <option value="">
-                      SELECT COLLECTION
-                    </option>
-
-                    {categories.map(
-                      (item) => (
-                        <option
-                          key={
-                            item.id
-                          }
-                          value={
-                            item.id
-                          }
-                        >
-                          {item.name}
-                        </option>
-                      )
-                    )}
-
-                  </select>
-
-                </div>
-
-                {/* PRICE */}
-
-                <div className="product-field">
-
-                  <label>
-                    PRICE / BDT
-                  </label>
-
-                  <input
-                    type="number"
-                    min="0"
-                    value={price}
-                    onChange={(e) =>
-                      setPrice(
-                        e.target.value
-                      )
-                    }
-                    placeholder="1490"
-                  />
-
                 </div>
 
                 {/* STATUS */}
 
                 <div className="product-field">
-
-                  <label>
-                    STATUS
-                  </label>
+                  <label>STATUS</label>
 
                   <select
                     value={status}
-                    onChange={(e) =>
-                      setStatus(
-                        e.target.value
-                      )
-                    }
+                    onChange={(e) => setStatus(e.target.value)}
                   >
+                    <option value="AVAILABLE">AVAILABLE</option>
 
-                    <option value="AVAILABLE">
-                      AVAILABLE
-                    </option>
-
-                    <option value="UNAVAILABLE">
-                      UNAVAILABLE
-                    </option>
-
+                    <option value="UNAVAILABLE">UNAVAILABLE</option>
                   </select>
+                </div>
 
+                {/* PRICE */}
+
+                <div className="product-field">
+                  <label>ACTUAL PRICE / BDT</label>
+
+                  <input
+                    type="number"
+                    min="0"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="500"
+                  />
+                </div>
+
+                {/* DISCOUNT PRICE */}
+
+                <div className="product-field">
+                  <label>DISCOUNT PRICE / BDT (OPTIONAL)</label>
+
+                  <input
+                    type="number"
+                    min="0"
+                    value={salePrice}
+                    onChange={(e) => setSalePrice(e.target.value)}
+                    placeholder="300 / LEAVE EMPTY FOR NO SALE"
+                  />
+                </div>
+
+                {/* COLLECTIONS (MULTIPLE) */}
+
+                <div
+                  className="product-field"
+                  style={{ gridColumn: "1 / -1" }}
+                >
+                  <label>
+                    COLLECTIONS (SELECT ONE OR MORE)
+                    {categoryIds.length > 0 && ` / ${categoryIds.length} SELECTED`}
+                  </label>
+
+                  <CategoryPicker
+                    categories={selectableCategories}
+                    selectedIds={categoryIds}
+                    onToggle={toggleCategory}
+                  />
+
+                  <div
+                    style={{
+                      marginTop: "10px",
+                      fontSize: "8px",
+                      letterSpacing: "0.14em",
+                      color: "rgba(255,255,255,0.35)",
+                    }}
+                  >
+                    SALE COLLECTION IS AUTOMATIC. ADD A DISCOUNT PRICE AND THE
+                    PRODUCT APPEARS IN SALE.
+                  </div>
                 </div>
 
                 {/* DESCRIPTION */}
 
-                <div className="product-field">
-
-                  <label>
-                    DESCRIPTION
-                  </label>
+                <div
+                  className="product-field"
+                  style={{ gridColumn: "1 / -1" }}
+                >
+                  <label>DESCRIPTION</label>
 
                   <textarea
-                    value={
-                      description
-                    }
-                    onChange={(e) =>
-                      setDescription(
-                        e.target.value
-                      )
-                    }
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     placeholder="ENTER PRODUCT DESCRIPTION"
                     rows={4}
                   />
-
                 </div>
 
                 {/* MAIN IMAGE */}
 
                 <div className="product-field image-upload-field">
-
-                  <label>
-                    MAIN IMAGE / THUMBNAIL
-                  </label>
+                  <label>MAIN IMAGE / THUMBNAIL</label>
 
                   <label className="product-upload-box">
-
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={
-                        handleMainImage
-                      }
+                      onChange={handleMainImage}
                     />
 
                     {mainPreview ? (
                       <div className="product-upload-preview">
+                        <img src={mainPreview} alt="Main preview" />
 
-                        <img
-                          src={
-                            mainPreview
-                          }
-                          alt="Main preview"
-                        />
-
-                        <span>
-                          MAIN IMAGE
-                        </span>
-
+                        <span>MAIN IMAGE</span>
                       </div>
                     ) : (
                       <div className="product-upload-placeholder">
+                        <strong>+ UPLOAD MAIN IMAGE</strong>
 
-                        <strong>
-                          + UPLOAD MAIN IMAGE
-                        </strong>
-
-                        <span>
-                          JPG / PNG / WEBP
-                        </span>
-
+                        <span>JPG / PNG / WEBP</span>
                       </div>
                     )}
-
                   </label>
 
                   {mainImage && (
                     <button
                       type="button"
                       className="remove-image-button"
-                      onClick={
-                        removeMainImage
-                      }
+                      onClick={removeMainImage}
                     >
                       REMOVE MAIN IMAGE
                     </button>
                   )}
-
                 </div>
 
                 {/* MORE IMAGES */}
 
                 <div className="product-field image-upload-field">
-
-                  <label>
-                    UPLOAD MORE IMAGES
-                  </label>
+                  <label>UPLOAD MORE IMAGES</label>
 
                   <label className="product-upload-box more-images-box">
-
                     <input
                       type="file"
                       accept="image/*"
                       multiple
-                      onChange={
-                        handleMoreImages
-                      }
+                      onChange={handleMoreImages}
                     />
 
-                    {morePreviews.length >
-                    0 ? (
+                    {morePreviews.length > 0 ? (
                       <div className="more-images-preview-grid">
+                        {morePreviews.map((preview, index) => (
+                          <div
+                            className="more-image-preview"
+                            key={`${preview}-${index}`}
+                          >
+                            <img
+                              src={preview}
+                              alt={`Additional ${index + 1}`}
+                            />
 
-                        {morePreviews.map(
-                          (
-                            preview,
-                            index
-                          ) => (
-                            <div
-                              className="more-image-preview"
-                              key={`${preview}-${index}`}
-                            >
-
-                              <img
-                                src={
-                                  preview
-                                }
-                                alt={`Additional ${
-                                  index +
-                                  1
-                                }`}
-                              />
-
-                              <span>
-                                {index +
-                                  1}
-                              </span>
-
-                            </div>
-                          )
-                        )}
-
+                            <span>{index + 1}</span>
+                          </div>
+                        ))}
                       </div>
                     ) : (
                       <div className="product-upload-placeholder">
+                        <strong>+ UPLOAD MORE IMAGES</strong>
 
-                        <strong>
-                          + UPLOAD MORE IMAGES
-                        </strong>
-
-                        <span>
-                          SELECT MULTIPLE IMAGES
-                        </span>
-
+                        <span>SELECT MULTIPLE IMAGES</span>
                       </div>
                     )}
-
                   </label>
 
-                  {moreImages.length >
-                    0 && (
+                  {moreImages.length > 0 && (
                     <button
                       type="button"
                       className="remove-image-button"
                       onClick={() => {
-                        setMoreImages(
-                          []
-                        );
-
-                        setMorePreviews(
-                          []
-                        );
+                        setMoreImages([]);
+                        setMorePreviews([]);
                       }}
                     >
                       CLEAR ADDITIONAL IMAGES
                     </button>
                   )}
-
                 </div>
 
                 {/* AVAILABLE SIZES */}
 
                 <div
                   className="product-field"
-                  style={{
-                    gridColumn:
-                      "1 / -1",
-                  }}
+                  style={{ gridColumn: "1 / -1" }}
                 >
-
-                  <label>
-                    AVAILABLE SIZES
-                  </label>
+                  <label>AVAILABLE SIZES</label>
 
                   <div
                     style={{
-                      display:
-                        "grid",
-                      gridTemplateColumns:
-                        "repeat(4, minmax(0, 1fr))",
+                      display: "grid",
+                      gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
                       gap: "12px",
-                      marginTop:
-                        "12px",
+                      marginTop: "12px",
                     }}
                   >
-
-                    {sizes.map(
-                      (
-                        item,
-                        index
-                      ) => (
+                    {sizes.map((item, index) => (
+                      <div
+                        key={item.size}
+                        style={{
+                          position: "relative",
+                          overflow: "hidden",
+                          border: item.selected
+                            ? "1px solid rgba(255,45,45,0.75)"
+                            : "1px solid rgba(255,255,255,0.10)",
+                          background: item.selected
+                            ? "linear-gradient(145deg, rgba(90,0,0,0.55), rgba(20,5,5,0.9))"
+                            : "linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015))",
+                          padding: "16px",
+                        }}
+                      >
                         <div
-                          key={
-                            item.size
-                          }
                           style={{
-                            position:
-                              "relative",
-                            overflow:
-                              "hidden",
-                            border:
-                              item.selected
-                                ? "1px solid rgba(255,45,45,0.75)"
-                                : "1px solid rgba(255,255,255,0.10)",
-                            background:
-                              item.selected
-                                ? "linear-gradient(145deg, rgba(90,0,0,0.55), rgba(20,5,5,0.9))"
-                                : "linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015))",
-                            padding:
-                              "16px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            marginBottom: "14px",
                           }}
                         >
-
-                          <div
+                          <label
                             style={{
-                              display:
-                                "flex",
-                              alignItems:
-                                "center",
-                              justifyContent:
-                                "space-between",
-                              marginBottom:
-                                "14px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "10px",
+                              cursor: "pointer",
+                              margin: 0,
                             }}
                           >
+                            <input
+                              type="checkbox"
+                              checked={item.selected}
+                              onChange={() => toggleSize(index)}
+                            />
 
-                            <label
+                            <span
                               style={{
-                                display:
-                                  "flex",
-                                alignItems:
-                                  "center",
-                                gap: "10px",
-                                cursor:
-                                  "pointer",
-                                margin:
-                                  0,
+                                fontSize: "18px",
+                                fontWeight: 700,
+                                letterSpacing: "0.12em",
                               }}
                             >
-
-                              <input
-                                type="checkbox"
-                                checked={
-                                  item.selected
-                                }
-                                onChange={() =>
-                                  toggleSize(
-                                    index
-                                  )
-                                }
-                              />
-
-                              <span
-                                style={{
-                                  fontSize:
-                                    "18px",
-                                  fontWeight:
-                                    700,
-                                  letterSpacing:
-                                    "0.12em",
-                                }}
-                              >
-                                {
-                                  item.size
-                                }
-                              </span>
-
-                            </label>
-
-                            <span>
-                              {item.selected
-                                ? "ACTIVE"
-                                : "OFF"}
+                              {item.size}
                             </span>
+                          </label>
 
-                          </div>
-
-                          <input
-                            type="number"
-                            min="0"
-                            value={
-                              item.stock
-                            }
-                            disabled={
-                              !item.selected
-                            }
-                            onChange={(
-                              e
-                            ) =>
-                              updateSizeStock(
-                                index,
-                                e.target
-                                  .value
-                              )
-                            }
-                            placeholder="STOCK"
-                            style={{
-                              width:
-                                "100%",
-                              height:
-                                "42px",
-                              padding:
-                                "0 12px",
-                              border:
-                                "1px solid rgba(255,255,255,0.09)",
-                              background:
-                                "rgba(0,0,0,0.35)",
-                              color:
-                                "#fff",
-                            }}
-                          />
-
+                          <span>{item.selected ? "ACTIVE" : "OFF"}</span>
                         </div>
-                      )
-                    )}
 
+                        <input
+                          type="number"
+                          min="0"
+                          value={item.stock}
+                          disabled={!item.selected}
+                          onChange={(e) =>
+                            updateSizeStock(index, e.target.value)
+                          }
+                          placeholder="STOCK"
+                          style={{
+                            width: "100%",
+                            height: "42px",
+                            padding: "0 12px",
+                            border: "1px solid rgba(255,255,255,0.09)",
+                            background: "rgba(0,0,0,0.35)",
+                            color: "#fff",
+                          }}
+                        />
+                      </div>
+                    ))}
                   </div>
-
                 </div>
 
                 {/* SIZE CHART */}
 
                 <div
                   className="product-field image-upload-field"
-                  style={{
-                    gridColumn:
-                      "1 / -1",
-                  }}
+                  style={{ gridColumn: "1 / -1" }}
                 >
-
-                  <label>
-                    SIZE CHART IMAGE
-                  </label>
+                  <label>SIZE CHART IMAGE</label>
 
                   <label className="product-upload-box">
-
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={
-                        handleSizeChartImage
-                      }
+                      onChange={handleSizeChartImage}
                     />
 
                     {sizeChartPreview ? (
                       <div className="product-upload-preview">
+                        <img src={sizeChartPreview} alt="Size chart" />
 
-                        <img
-                          src={
-                            sizeChartPreview
-                          }
-                          alt="Size chart"
-                        />
-
-                        <span>
-                          SIZE CHART
-                        </span>
-
+                        <span>SIZE CHART</span>
                       </div>
                     ) : (
                       <div className="product-upload-placeholder">
+                        <strong>+ UPLOAD SIZE CHART</strong>
 
-                        <strong>
-                          + UPLOAD SIZE CHART
-                        </strong>
-
-                        <span>
-                          JPG / PNG / WEBP
-                        </span>
-
+                        <span>JPG / PNG / WEBP</span>
                       </div>
                     )}
-
                   </label>
 
                   {sizeChartImage && (
                     <button
                       type="button"
                       className="remove-image-button"
-                      onClick={
-                        removeSizeChart
-                      }
+                      onClick={removeSizeChart}
                     >
                       REMOVE SIZE CHART
                     </button>
                   )}
-
                 </div>
-
               </div>
 
               <button
@@ -2694,19 +1651,11 @@ export default function ProductsPage() {
                 disabled={adding}
                 className="product-add-button"
               >
+                {adding ? "UPLOADING PRODUCT..." : "ADD PRODUCT"}
 
-                {adding
-                  ? "UPLOADING PRODUCT..."
-                  : "ADD PRODUCT"}
-
-                <span>
-                  ↗
-                </span>
-
+                <span>↗</span>
               </button>
-
             </form>
-
           </section>
 
           {/* EDIT PRODUCT */}
@@ -2716,614 +1665,347 @@ export default function ProductsPage() {
               id="edit-product-section"
               className="product-manager"
               style={{
-                marginTop:
-                  "70px",
-                border:
-                  "1px solid rgba(255,45,45,0.25)",
-                background:
-                  "rgba(30,0,0,0.22)",
+                marginTop: "70px",
+                border: "1px solid rgba(255,45,45,0.25)",
+                background: "rgba(30,0,0,0.22)",
               }}
             >
-
               <div className="product-section-heading">
-
-                <span>
-                  EDIT
-                </span>
+                <span>EDIT</span>
 
                 EDIT PRODUCT
-
               </div>
 
-              <form
-                className="product-add-form"
-                onSubmit={
-                  saveProductEdit
-                }
-              >
-
+              <form className="product-add-form" onSubmit={saveProductEdit}>
                 <div
                   style={{
-                    marginBottom:
-                      "25px",
-                    padding:
-                      "14px 16px",
-                    border:
-                      "1px solid rgba(255,255,255,0.08)",
-                    background:
-                      "rgba(255,255,255,0.025)",
-                    color:
-                      "rgba(255,255,255,0.55)",
-                    fontSize:
-                      "9px",
-                    letterSpacing:
-                      "0.16em",
+                    marginBottom: "25px",
+                    padding: "14px 16px",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.025)",
+                    color: "rgba(255,255,255,0.55)",
+                    fontSize: "9px",
+                    letterSpacing: "0.16em",
                   }}
                 >
                   EDITING /{" "}
-                  <strong
-                    style={{
-                      color:
-                        "#fff",
-                    }}
-                  >
-                    {
-                      editingProduct.name
-                    }
+                  <strong style={{ color: "#fff" }}>
+                    {editingProduct.name}
                   </strong>
                 </div>
 
                 <div className="product-form-grid">
-
                   {/* NAME */}
 
                   <div className="product-field">
-
-                    <label>
-                      PRODUCT NAME
-                    </label>
+                    <label>PRODUCT NAME</label>
 
                     <input
-                      value={
-                        editName
-                      }
-                      onChange={(e) =>
-                        setEditName(
-                          e.target
-                            .value
-                        )
-                      }
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
                     />
-
                   </div>
 
                   {/* SLUG */}
 
                   <div className="product-field">
-
-                    <label>
-                      PRODUCT SLUG
-                    </label>
+                    <label>PRODUCT SLUG</label>
 
                     <input
-                      value={
-                        editSlug
-                      }
+                      value={editSlug}
                       onChange={(e) =>
-                        setEditSlug(
-                          generateSlug(
-                            e.target
-                              .value
-                          )
-                        )
+                        setEditSlug(generateSlug(e.target.value))
                       }
                     />
-
-                  </div>
-
-                  {/* CATEGORY */}
-
-                  <div className="product-field">
-
-                    <label>
-                      COLLECTION
-                    </label>
-
-                    <select
-                      value={
-                        editCategoryId
-                      }
-                      onChange={(e) =>
-                        setEditCategoryId(
-                          e.target
-                            .value
-                        )
-                      }
-                    >
-
-                      <option value="">
-                        SELECT COLLECTION
-                      </option>
-
-                      {categories.map(
-                        (item) => (
-                          <option
-                            key={
-                              item.id
-                            }
-                            value={
-                              item.id
-                            }
-                          >
-                            {
-                              item.name
-                            }
-                          </option>
-                        )
-                      )}
-
-                    </select>
-
-                  </div>
-
-                  {/* PRICE */}
-
-                  <div className="product-field">
-
-                    <label>
-                      PRICE / BDT
-                    </label>
-
-                    <input
-                      type="number"
-                      min="0"
-                      value={
-                        editPrice
-                      }
-                      onChange={(e) =>
-                        setEditPrice(
-                          e.target
-                            .value
-                        )
-                      }
-                    />
-
                   </div>
 
                   {/* STATUS */}
 
                   <div className="product-field">
-
-                    <label>
-                      STATUS
-                    </label>
+                    <label>STATUS</label>
 
                     <select
-                      value={
-                        editStatus
-                      }
-                      onChange={(e) =>
-                        setEditStatus(
-                          e.target
-                            .value
-                        )
-                      }
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value)}
                     >
+                      <option value="AVAILABLE">AVAILABLE</option>
 
-                      <option value="AVAILABLE">
-                        AVAILABLE
-                      </option>
-
-                      <option value="UNAVAILABLE">
-                        UNAVAILABLE
-                      </option>
-
+                      <option value="UNAVAILABLE">UNAVAILABLE</option>
                     </select>
+                  </div>
 
+                  {/* PRICE */}
+
+                  <div className="product-field">
+                    <label>ACTUAL PRICE / BDT</label>
+
+                    <input
+                      type="number"
+                      min="0"
+                      value={editPrice}
+                      onChange={(e) => setEditPrice(e.target.value)}
+                    />
+                  </div>
+
+                  {/* DISCOUNT PRICE */}
+
+                  <div className="product-field">
+                    <label>DISCOUNT PRICE / BDT (OPTIONAL)</label>
+
+                    <input
+                      type="number"
+                      min="0"
+                      value={editSalePrice}
+                      onChange={(e) => setEditSalePrice(e.target.value)}
+                      placeholder="LEAVE EMPTY TO REMOVE SALE"
+                    />
+                  </div>
+
+                  {/* COLLECTIONS (MULTIPLE) */}
+
+                  <div
+                    className="product-field"
+                    style={{ gridColumn: "1 / -1" }}
+                  >
+                    <label>
+                      COLLECTIONS (SELECT ONE OR MORE)
+                      {editCategoryIds.length > 0 &&
+                        ` / ${editCategoryIds.length} SELECTED`}
+                    </label>
+
+                    <CategoryPicker
+                      categories={selectableCategories}
+                      selectedIds={editCategoryIds}
+                      onToggle={toggleEditCategory}
+                    />
                   </div>
 
                   {/* DESCRIPTION */}
 
-                  <div className="product-field">
-
-                    <label>
-                      DESCRIPTION
-                    </label>
+                  <div
+                    className="product-field"
+                    style={{ gridColumn: "1 / -1" }}
+                  >
+                    <label>DESCRIPTION</label>
 
                     <textarea
-                      value={
-                        editDescription
-                      }
-                      onChange={(e) =>
-                        setEditDescription(
-                          e.target
-                            .value
-                        )
-                      }
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
                       rows={4}
                     />
-
                   </div>
 
                   {/* MAIN IMAGE */}
 
                   <div className="product-field image-upload-field">
-
-                    <label>
-                      MAIN IMAGE
-                    </label>
+                    <label>MAIN IMAGE</label>
 
                     <label className="product-upload-box">
-
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={
-                          handleEditMainImage
-                        }
+                        onChange={handleEditMainImage}
                       />
 
                       {editMainPreview ? (
                         <div className="product-upload-preview">
+                          <img src={editMainPreview} alt="Edit main" />
 
-                          <img
-                            src={
-                              editMainPreview
-                            }
-                            alt="Edit main"
-                          />
-
-                          <span>
-                            MAIN IMAGE
-                          </span>
-
+                          <span>MAIN IMAGE</span>
                         </div>
                       ) : (
                         <div className="product-upload-placeholder">
+                          <strong>+ REPLACE MAIN IMAGE</strong>
 
-                          <strong>
-                            + REPLACE MAIN IMAGE
-                          </strong>
-
-                          <span>
-                            KEEP CURRENT IF EMPTY
-                          </span>
-
+                          <span>KEEP CURRENT IF EMPTY</span>
                         </div>
                       )}
-
                     </label>
-
                   </div>
 
                   {/* MORE IMAGES */}
 
                   <div className="product-field image-upload-field">
-
-                    <label>
-                      ADD MORE IMAGES
-                    </label>
+                    <label>ADD MORE IMAGES</label>
 
                     <label className="product-upload-box">
-
                       <input
                         type="file"
                         accept="image/*"
                         multiple
-                        onChange={
-                          handleEditMoreImages
-                        }
+                        onChange={handleEditMoreImages}
                       />
 
-                      {editMorePreviews.length >
-                      0 ? (
+                      {editMorePreviews.length > 0 ? (
                         <div className="more-images-preview-grid">
+                          {editMorePreviews.map((preview, index) => (
+                            <div
+                              className="more-image-preview"
+                              key={`${preview}-${index}`}
+                            >
+                              <img src={preview} alt={`New ${index}`} />
 
-                          {editMorePreviews.map(
-                            (
-                              preview,
-                              index
-                            ) => (
-                              <div
-                                className="more-image-preview"
-                                key={`${preview}-${index}`}
-                              >
-
-                                <img
-                                  src={
-                                    preview
-                                  }
-                                  alt={`New ${index}`}
-                                />
-
-                                <span>
-                                  NEW
-                                </span>
-
-                              </div>
-                            )
-                          )}
-
+                              <span>NEW</span>
+                            </div>
+                          ))}
                         </div>
                       ) : (
                         <div className="product-upload-placeholder">
+                          <strong>+ ADD MORE IMAGES</strong>
 
-                          <strong>
-                            + ADD MORE IMAGES
-                          </strong>
-
-                          <span>
-                            CURRENT IMAGES WILL STAY
-                          </span>
-
+                          <span>CURRENT IMAGES WILL STAY</span>
                         </div>
                       )}
-
                     </label>
-
                   </div>
 
                   {/* EDIT SIZES */}
 
                   <div
                     className="product-field"
-                    style={{
-                      gridColumn:
-                        "1 / -1",
-                    }}
+                    style={{ gridColumn: "1 / -1" }}
                   >
-
-                    <label>
-                      AVAILABLE SIZES / STOCK
-                    </label>
+                    <label>AVAILABLE SIZES / STOCK</label>
 
                     <div
                       style={{
-                        display:
-                          "grid",
-                        gridTemplateColumns:
-                          "repeat(4, minmax(0, 1fr))",
+                        display: "grid",
+                        gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
                         gap: "12px",
-                        marginTop:
-                          "12px",
+                        marginTop: "12px",
                       }}
                     >
-
-                      {editSizes.map(
-                        (
-                          item,
-                          index
-                        ) => (
-                          <div
-                            key={
-                              item.size
-                            }
+                      {editSizes.map((item, index) => (
+                        <div
+                          key={item.size}
+                          style={{
+                            border: item.selected
+                              ? "1px solid rgba(255,45,45,0.75)"
+                              : "1px solid rgba(255,255,255,0.10)",
+                            background: item.selected
+                              ? "rgba(80,0,0,0.35)"
+                              : "rgba(255,255,255,0.025)",
+                            padding: "16px",
+                          }}
+                        >
+                          <label
                             style={{
-                              border:
-                                item.selected
-                                  ? "1px solid rgba(255,45,45,0.75)"
-                                  : "1px solid rgba(255,255,255,0.10)",
-                              background:
-                                item.selected
-                                  ? "rgba(80,0,0,0.35)"
-                                  : "rgba(255,255,255,0.025)",
-                              padding:
-                                "16px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "10px",
+                              cursor: "pointer",
                             }}
                           >
-
-                            <label
-                              style={{
-                                display:
-                                  "flex",
-                                alignItems:
-                                  "center",
-                                gap:
-                                  "10px",
-                                cursor:
-                                  "pointer",
-                              }}
-                            >
-
-                              <input
-                                type="checkbox"
-                                checked={
-                                  item.selected
-                                }
-                                onChange={() =>
-                                  toggleEditSize(
-                                    index
-                                  )
-                                }
-                              />
-
-                              <strong>
-                                {
-                                  item.size
-                                }
-                              </strong>
-
-                            </label>
-
                             <input
-                              type="number"
-                              min="0"
-                              disabled={
-                                !item.selected
-                              }
-                              value={
-                                item.stock
-                              }
-                              onChange={(
-                                e
-                              ) =>
-                                updateEditSizeStock(
-                                  index,
-                                  e.target
-                                    .value
-                                )
-                              }
-                              style={{
-                                width:
-                                  "100%",
-                                height:
-                                  "42px",
-                                marginTop:
-                                  "12px",
-                                padding:
-                                  "0 12px",
-                                border:
-                                  "1px solid rgba(255,255,255,0.09)",
-                                background:
-                                  "rgba(0,0,0,0.35)",
-                                color:
-                                  "#fff",
-                              }}
+                              type="checkbox"
+                              checked={item.selected}
+                              onChange={() => toggleEditSize(index)}
                             />
 
-                          </div>
-                        )
-                      )}
+                            <strong>{item.size}</strong>
+                          </label>
 
+                          <input
+                            type="number"
+                            min="0"
+                            disabled={!item.selected}
+                            value={item.stock}
+                            onChange={(e) =>
+                              updateEditSizeStock(index, e.target.value)
+                            }
+                            style={{
+                              width: "100%",
+                              height: "42px",
+                              marginTop: "12px",
+                              padding: "0 12px",
+                              border: "1px solid rgba(255,255,255,0.09)",
+                              background: "rgba(0,0,0,0.35)",
+                              color: "#fff",
+                            }}
+                          />
+                        </div>
+                      ))}
                     </div>
-
                   </div>
 
                   {/* SIZE CHART */}
 
                   <div
                     className="product-field image-upload-field"
-                    style={{
-                      gridColumn:
-                        "1 / -1",
-                    }}
+                    style={{ gridColumn: "1 / -1" }}
                   >
-
-                    <label>
-                      SIZE CHART
-                    </label>
+                    <label>SIZE CHART</label>
 
                     <label className="product-upload-box">
-
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={
-                          handleEditSizeChart
-                        }
+                        onChange={handleEditSizeChart}
                       />
 
                       {editSizeChartPreview ? (
                         <div className="product-upload-preview">
-
                           <img
-                            src={
-                              editSizeChartPreview
-                            }
+                            src={editSizeChartPreview}
                             alt="Edit size chart"
                           />
 
-                          <span>
-                            SIZE CHART
-                          </span>
-
+                          <span>SIZE CHART</span>
                         </div>
                       ) : (
                         <div className="product-upload-placeholder">
+                          <strong>+ REPLACE SIZE CHART</strong>
 
-                          <strong>
-                            + REPLACE SIZE CHART
-                          </strong>
-
-                          <span>
-                            KEEP CURRENT IF EMPTY
-                          </span>
-
+                          <span>KEEP CURRENT IF EMPTY</span>
                         </div>
                       )}
-
                     </label>
-
                   </div>
-
                 </div>
 
                 <div
                   style={{
-                    display:
-                      "flex",
+                    display: "flex",
                     gap: "12px",
-                    marginTop:
-                      "20px",
+                    marginTop: "20px",
                   }}
                 >
-
                   <button
                     type="submit"
-                    disabled={
-                      editSaving
-                    }
+                    disabled={editSaving}
                     className="product-add-button"
-                    style={{
-                      flex: 1,
-                    }}
+                    style={{ flex: 1 }}
                   >
+                    {editSaving ? "SAVING CHANGES..." : "SAVE CHANGES"}
 
-                    {editSaving
-                      ? "SAVING CHANGES..."
-                      : "SAVE CHANGES"}
-
-                    <span>
-                      ↗
-                    </span>
-
+                    <span>↗</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={
-                      cancelEdit
-                    }
-                    disabled={
-                      editSaving
-                    }
+                    onClick={cancelEdit}
+                    disabled={editSaving}
                     style={{
-                      width:
-                        "180px",
-                      border:
-                        "1px solid rgba(255,255,255,0.12)",
-                      background:
-                        "rgba(255,255,255,0.03)",
-                      color:
-                        "rgba(255,255,255,0.65)",
-                      cursor:
-                        "pointer",
-                      letterSpacing:
-                        "0.14em",
-                      fontSize:
-                        "8px",
+                      width: "180px",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      background: "rgba(255,255,255,0.03)",
+                      color: "rgba(255,255,255,0.65)",
+                      cursor: "pointer",
+                      letterSpacing: "0.14em",
+                      fontSize: "8px",
                     }}
                   >
                     CANCEL
                   </button>
-
                 </div>
-
               </form>
-
             </section>
           )}
 
           {/* MESSAGE */}
 
           {message && (
-            <div
-              className="product-message"
-              style={{
-                marginTop:
-                  "25px",
-              }}
-            >
+            <div className="product-message" style={{ marginTop: "25px" }}>
               {message}
             </div>
           )}
@@ -3331,203 +2013,133 @@ export default function ProductsPage() {
           {/* INVENTORY */}
 
           <section className="inventory-section">
-
             <div className="product-section-heading">
-
-              <span>
-                02
-              </span>
+              <span>02</span>
 
               PRODUCT INVENTORY
-
             </div>
 
             <div className="inventory-list">
-
               {loading ? (
-
-                <div className="inventory-empty">
-                  LOADING PRODUCTS...
-                </div>
-
-              ) : products.length ===
-                0 ? (
-
-                <div className="inventory-empty">
-                  NO PRODUCTS FOUND.
-                </div>
-
+                <div className="inventory-empty">LOADING PRODUCTS...</div>
+              ) : products.length === 0 ? (
+                <div className="inventory-empty">NO PRODUCTS FOUND.</div>
               ) : (
+                products.map((product, index) => {
+                  const image = getProductImage(product);
 
-                products.map(
-                  (
-                    product,
-                    index
-                  ) => {
+                  const onSale =
+                    product.sale_price !== null &&
+                    product.sale_price !== undefined &&
+                    Number(product.sale_price) > 0 &&
+                    Number(product.sale_price) < Number(product.price);
 
-                    const image =
-                      getProductImage(
-                        product
-                      );
+                  return (
+                    <div className="inventory-row" key={product.id}>
+                      <div className="inventory-number">
+                        {String(index + 1).padStart(2, "0")}
+                      </div>
 
-                    return (
-                      <div
-                        className="inventory-row"
-                        key={
-                          product.id
-                        }
-                      >
+                      <div className="inventory-image">
+                        {image ? (
+                          <img src={image} alt={product.name} />
+                        ) : (
+                          <span>STOKED</span>
+                        )}
+                      </div>
 
-                        <div className="inventory-number">
+                      <div className="inventory-info">
+                        <strong>{product.name}</strong>
 
-                          {String(
-                            index +
-                              1
-                          ).padStart(
-                            2,
-                            "0"
-                          )}
+                        <span>{getCategoryNames(product)}</span>
+                      </div>
 
-                        </div>
+                      <div className="inventory-type">{product.status}</div>
 
-                        <div className="inventory-image">
-
-                          {image ? (
-                            <img
-                              src={
-                                image
-                              }
-                              alt={
-                                product.name
-                              }
-                            />
-                          ) : (
-                            <span>
-                              STOKED
+                      <div className="inventory-price">
+                        {onSale ? (
+                          <>
+                            <span
+                              style={{
+                                display: "block",
+                                textDecoration: "line-through",
+                                opacity: 0.4,
+                                fontSize: "0.85em",
+                              }}
+                            >
+                              ৳ {product.price}
                             </span>
-                          )}
 
-                        </div>
+                            <span style={{ color: "#ff4a4a" }}>
+                              ৳ {product.sale_price}
+                            </span>
 
-                        <div className="inventory-info">
+                            <span
+                              style={{
+                                display: "block",
+                                marginTop: "4px",
+                                fontSize: "7px",
+                                letterSpacing: "0.16em",
+                                color: "rgba(255,74,74,0.8)",
+                              }}
+                            >
+                              ON SALE
+                            </span>
+                          </>
+                        ) : (
+                          <>৳ {product.price}</>
+                        )}
+                      </div>
 
-                          <strong>
-                            {
-                              product.name
-                            }
-                          </strong>
-
-                          <span>
-                            {product
-                              .category
-                              ?.name ||
-                              "NO COLLECTION"}
-                          </span>
-
-                        </div>
-
-                        <div className="inventory-type">
-
-                          {
-                            product.status
-                          }
-
-                        </div>
-
-                        <div className="inventory-price">
-
-                          ৳{" "}
-                          {
-                            product.price
-                          }
-
-                        </div>
-
-                        <div
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "8px",
+                          alignItems: "center",
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => openEditProduct(product)}
                           style={{
-                            display:
-                              "flex",
-                            gap:
-                              "8px",
-                            alignItems:
-                              "center",
+                            border: "1px solid rgba(255,255,255,0.18)",
+                            background: "rgba(255,255,255,0.035)",
+                            color: "#fff",
+                            padding: "10px 14px",
+                            cursor: "pointer",
+                            fontSize: "7px",
+                            letterSpacing: "0.14em",
                           }}
                         >
+                          EDIT
+                        </button>
 
-                          <button
-                            type="button"
-                            onClick={() =>
-                              openEditProduct(
-                                product
-                              )
-                            }
-                            style={{
-                              border:
-                                "1px solid rgba(255,255,255,0.18)",
-                              background:
-                                "rgba(255,255,255,0.035)",
-                              color:
-                                "#fff",
-                              padding:
-                                "10px 14px",
-                              cursor:
-                                "pointer",
-                              fontSize:
-                                "7px",
-                              letterSpacing:
-                                "0.14em",
-                            }}
-                          >
-                            EDIT
-                          </button>
-
-                          <button
-                            type="button"
-                            className="inventory-delete"
-                            onClick={() =>
-                              deleteProduct(
-                                product
-                              )
-                            }
-                          >
-                            DELETE
-                          </button>
-
-                        </div>
-
+                        <button
+                          type="button"
+                          className="inventory-delete"
+                          onClick={() => deleteProduct(product)}
+                        >
+                          DELETE
+                        </button>
                       </div>
-                    );
-                  }
-                )
-
+                    </div>
+                  );
+                })
               )}
-
             </div>
-
           </section>
 
           {/* FOOTER */}
 
           <footer className="products-footer">
+            <span>© 2026 STOKED BD</span>
 
-            <span>
-              © 2026 STOKED BD
-            </span>
+            <span>PRODUCT MANAGEMENT SYSTEM</span>
 
-            <span>
-              PRODUCT MANAGEMENT SYSTEM
-            </span>
-
-            <span>
-              EST. 2026
-            </span>
-
+            <span>EST. 2026</span>
           </footer>
-
         </div>
-
       </section>
-
     </main>
   );
 }
