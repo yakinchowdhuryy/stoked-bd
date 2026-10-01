@@ -412,7 +412,6 @@ export default function ShopView() {
   );
 
   const categoryLabel = selectedCategory === ALL ? "ALL CATEGORY" : selectedCategory;
-  const alternateHeights = selectedCategory === ALL;
 
   /* ================= ACTIONS ================= */
 
@@ -1016,18 +1015,16 @@ export default function ShopView() {
                         style={{
                           color: "inherit",
                           textDecoration: "none",
-                          display: "block",
+                          display: "flex",
+                          flexDirection: "column",
+                          minWidth: 0,
                         }}
                       >
                         <div
                           style={{
                             position: "relative",
                             width: "100%",
-                            aspectRatio: alternateHeights
-                              ? index % 2 === 0
-                                ? "4 / 4.85"
-                                : "4 / 4.6"
-                              : "4 / 4.7",
+                            aspectRatio: "4 / 5",
                             overflow: "hidden",
                             background: CARD_BG,
                             border: "1px solid rgba(255,255,255,.07)",
@@ -1167,16 +1164,23 @@ export default function ShopView() {
                             paddingTop: "16px",
                             display: "flex",
                             justifyContent: "space-between",
+                            alignItems: "flex-start",
                             gap: "20px",
                           }}
                         >
-                          <div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
                             <h2
                               style={{
                                 margin: 0,
                                 fontSize: "clamp(13px, 1.4vw, 17px)",
                                 fontWeight: 500,
                                 letterSpacing: "-.02em",
+                                overflow: "hidden",
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                lineHeight: 1.3,
+                                minHeight: "2.6em",
                               }}
                             >
                               {product.name}
@@ -1552,6 +1556,12 @@ export default function ShopView() {
                             margin: 0,
                             fontSize: "17px",
                             fontWeight: 500,
+                            overflow: "hidden",
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                lineHeight: 1.3,
+                                minHeight: "2.6em",
                           }}
                         >
                           {product.name}

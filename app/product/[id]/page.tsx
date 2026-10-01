@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { getPricing } from "@/lib/sale";
+import SpiderLoader from "@/app/components/SpiderLoader";
 
 type Product = {
   id: string;
@@ -474,132 +475,7 @@ export default function ProductPage() {
   ========================================================= */
 
   if (loading) {
-    return (
-      <main className="loading-page">
-        <div className="loading-spider-field">
-          <img src={SPIDER_IMAGE} alt="" className="loading-spider loading-spider-one" />
-          <img src={SPIDER_IMAGE} alt="" className="loading-spider loading-spider-two" />
-          <img src={SPIDER_IMAGE} alt="" className="loading-spider loading-spider-three" />
-        </div>
-
-        <div className="loading-inner">
-          <div className="loading-brand">STOKED</div>
-
-          <div className="loading-line">
-            <span />
-          </div>
-
-          <div className="loading-meta">
-            <span>LOADING</span>
-            <span>PLEASE WAIT</span>
-          </div>
-        </div>
-
-        <style jsx>{`
-          .loading-page {
-            position: fixed;
-            inset: 0;
-            z-index: 999999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background: radial-gradient(circle at 50% 35%, rgba(130, 0, 0, 0.18), transparent 42%), #080303;
-            color: #f5f5f3;
-            font-family: Inter, sans-serif;
-          }
-          .loading-page::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            opacity: 0.14;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-            background-size: 70px 70px;
-          }
-          .loading-spider-field {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-          }
-          .loading-spider {
-            position: absolute;
-            opacity: 0.055;
-            filter: grayscale(1) drop-shadow(0 0 25px rgba(255, 0, 0, 0.25));
-          }
-          .loading-spider-one {
-            width: 150px;
-            left: 6%;
-            top: 12%;
-            animation: loadingFloat 6s ease-in-out infinite;
-          }
-          .loading-spider-two {
-            width: 100px;
-            right: 8%;
-            top: 22%;
-            animation: loadingFloat 7s ease-in-out infinite -2s;
-          }
-          .loading-spider-three {
-            width: 130px;
-            left: 43%;
-            bottom: 5%;
-            animation: loadingFloat 8s ease-in-out infinite -4s;
-          }
-          .loading-inner {
-            position: relative;
-            z-index: 2;
-            width: min(360px, 70vw);
-            text-align: center;
-          }
-          .loading-brand {
-            font-size: 32px;
-            font-weight: 900;
-            letter-spacing: 0.28em;
-            margin-left: 0.28em;
-            opacity: 0.9;
-          }
-          .loading-line {
-            width: 100%;
-            height: 1px;
-            margin-top: 28px;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.12);
-          }
-          .loading-line span {
-            display: block;
-            width: 35%;
-            height: 100%;
-            background: #ff1a1a;
-            box-shadow: 0 0 12px rgba(255, 26, 26, 0.8);
-            animation: loadingLine 1.4s ease-in-out infinite;
-          }
-          .loading-meta {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 12px;
-            font-size: 8px;
-            letter-spacing: 0.22em;
-            color: rgba(245, 245, 243, 0.42);
-          }
-          .loading-meta span:first-child {
-            color: rgba(255, 45, 45, 0.8);
-          }
-          @keyframes loadingLine {
-            0% { transform: translateX(-120%); }
-            100% { transform: translateX(320%); }
-          }
-          @keyframes loadingFloat {
-            0%, 100% { transform: translateY(0) rotate(-3deg); }
-            50% { transform: translateY(22px) rotate(4deg); }
-          }
-          @media (max-width: 600px) {
-            .loading-brand { font-size: 27px; }
-            .loading-spider-one { width: 90px; left: -8%; }
-            .loading-spider-two { width: 70px; right: -5%; }
-            .loading-spider-three { width: 90px; }
-          }
-        `}</style>
-      </main>
-    );
+    return <SpiderLoader />;
   }
 
   /* =========================================================
