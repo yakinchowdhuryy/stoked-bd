@@ -28,12 +28,10 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] =
-    useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] =
-    useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -185,9 +183,7 @@ export default function SignupPage() {
      SIGNUP
   ========================================================= */
 
-  const handleSignup = async (
-    e: React.FormEvent
-  ) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setError("");
@@ -211,9 +207,7 @@ export default function SignupPage() {
     }
 
     if (password.length < 6) {
-      setError(
-        "Password must be at least 6 characters."
-      );
+      setError("Password must be at least 6 characters.");
       return;
     }
 
@@ -225,10 +219,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const {
-        data,
-        error: signupError,
-      } = await supabase.auth.signUp({
+      const { data, error: signupError } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
         options: {
@@ -239,10 +230,7 @@ export default function SignupPage() {
       });
 
       if (signupError) {
-        console.error(
-          "SIGNUP ERROR:",
-          signupError
-        );
+        console.error("SIGNUP ERROR:", signupError);
 
         setError(signupError.message);
         return;
@@ -268,14 +256,9 @@ export default function SignupPage() {
         "Account created. Please check your email to verify your account."
       );
     } catch (err) {
-      console.error(
-        "SIGNUP ERROR:",
-        err
-      );
+      console.error("SIGNUP ERROR:", err);
 
-      setError(
-        "Something went wrong. Please try again."
-      );
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -286,34 +269,23 @@ export default function SignupPage() {
     setGoogleLoading(true);
 
     try {
-      const {
-        error: googleError,
-      } = await supabase.auth.signInWithOAuth({
+      const { error: googleError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo:
-            `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
       if (googleError) {
-        console.error(
-          "GOOGLE SIGNUP ERROR:",
-          googleError
-        );
+        console.error("GOOGLE SIGNUP ERROR:", googleError);
 
         setError(googleError.message);
         setGoogleLoading(false);
       }
     } catch (err) {
-      console.error(
-        "GOOGLE SIGNUP ERROR:",
-        err
-      );
+      console.error("GOOGLE SIGNUP ERROR:", err);
 
-      setError(
-        "Google signup failed. Please try again."
-      );
+      setError("Google signup failed. Please try again.");
 
       setGoogleLoading(false);
     }
@@ -361,37 +333,11 @@ export default function SignupPage() {
         </div>
 
         <div className="spider-field">
-
-          <img
-            src={SPIDER_IMAGE}
-            alt=""
-            className="spider spider-1"
-          />
-
-          <img
-            src={SPIDER_IMAGE}
-            alt=""
-            className="spider spider-2"
-          />
-
-          <img
-            src={SPIDER_IMAGE}
-            alt=""
-            className="spider spider-3"
-          />
-
-          <img
-            src={SPIDER_IMAGE}
-            alt=""
-            className="spider spider-4"
-          />
-
-          <img
-            src={SPIDER_IMAGE}
-            alt=""
-            className="spider spider-5"
-          />
-
+          <img src={SPIDER_IMAGE} alt="" className="spider spider-1" />
+          <img src={SPIDER_IMAGE} alt="" className="spider spider-2" />
+          <img src={SPIDER_IMAGE} alt="" className="spider spider-3" />
+          <img src={SPIDER_IMAGE} alt="" className="spider spider-4" />
+          <img src={SPIDER_IMAGE} alt="" className="spider spider-5" />
         </div>
 
         <div className="background-grid" />
@@ -417,12 +363,8 @@ export default function SignupPage() {
           display: "flex",
           alignItems: "center",
           gap: isMobile ? "8px" : 0,
-          padding: isMobile
-            ? "16px 6vw"
-            : "22px 6vw",
-          minHeight: isMobile
-            ? "64px"
-            : "70px",
+          padding: isMobile ? "16px 6vw" : "22px 6vw",
+          minHeight: isMobile ? "64px" : "70px",
           zIndex: 2147483640,
           pointerEvents: "none",
         }}
@@ -454,17 +396,14 @@ export default function SignupPage() {
             minWidth: 0,
             flexShrink: 1,
             padding: "3px",
-            border:
-              "1px solid rgba(255,255,255,.11)",
+            border: "1px solid rgba(255,255,255,.11)",
             borderRadius: "14px",
             background:
               "linear-gradient(135deg, rgba(255,255,255,.065), rgba(255,255,255,.018))",
             boxShadow:
               "0 12px 35px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05)",
-            backdropFilter:
-              "blur(14px)",
-            WebkitBackdropFilter:
-              "blur(14px)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
             pointerEvents: "auto",
           }}
         >
@@ -476,17 +415,14 @@ export default function SignupPage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color:
-                "rgba(255,255,255,.72)",
+              color: "rgba(255,255,255,.72)",
               textDecoration: "none",
-              fontFamily:
-                '"Space Grotesk", sans-serif',
+              fontFamily: '"Space Grotesk", sans-serif',
               fontSize: navFontSize,
               fontWeight: 600,
               letterSpacing: navLetterSpacing,
               borderRadius: "9px",
-              background:
-                "rgba(255,255,255,.045)",
+              background: "rgba(255,255,255,.045)",
               cursor: "pointer",
               whiteSpace: "nowrap",
             }}
@@ -498,8 +434,7 @@ export default function SignupPage() {
             style={{
               width: "1px",
               height: "18px",
-              background:
-                "rgba(255,255,255,.07)",
+              background: "rgba(255,255,255,.07)",
             }}
           />
 
@@ -515,10 +450,8 @@ export default function SignupPage() {
               border: 0,
               borderRadius: "9px",
               background: "transparent",
-              color:
-                "rgba(255,255,255,.65)",
-              fontFamily:
-                '"Space Grotesk", sans-serif',
+              color: "rgba(255,255,255,.65)",
+              fontFamily: '"Space Grotesk", sans-serif',
               fontSize: navFontSize,
               fontWeight: 500,
               letterSpacing: navLetterSpacing,
@@ -541,8 +474,7 @@ export default function SignupPage() {
                 fontSize: "6px",
                 fontWeight: 600,
                 color: "#fff",
-                background:
-                  "rgba(169,21,37,.8)",
+                background: "rgba(169,21,37,.8)",
               }}
             >
               00
@@ -553,8 +485,7 @@ export default function SignupPage() {
             style={{
               width: "1px",
               height: "18px",
-              background:
-                "rgba(255,255,255,.07)",
+              background: "rgba(255,255,255,.07)",
             }}
           />
 
@@ -568,14 +499,11 @@ export default function SignupPage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color:
-                "rgba(255,255,255,.72)",
-              background:
-                "rgba(255,255,255,.045)",
+              color: "rgba(255,255,255,.72)",
+              background: "rgba(255,255,255,.045)",
               border: 0,
               borderRadius: "9px",
-              fontFamily:
-                '"Space Grotesk", sans-serif',
+              fontFamily: '"Space Grotesk", sans-serif',
               fontSize: navFontSize,
               fontWeight: 600,
               letterSpacing: navLetterSpacing,
@@ -740,27 +668,15 @@ export default function SignupPage() {
                 gap: "10px",
               }}
             >
-              <button
-                type="button"
-                onClick={openInstagram}
-                style={socialButtonStyle}
-              >
+              <button type="button" onClick={openInstagram} style={socialButtonStyle}>
                 INSTAGRAM
               </button>
 
-              <button
-                type="button"
-                onClick={openFacebook}
-                style={socialButtonStyle}
-              >
+              <button type="button" onClick={openFacebook} style={socialButtonStyle}>
                 FACEBOOK
               </button>
 
-              <button
-                type="button"
-                onClick={openTikTok}
-                style={socialButtonStyle}
-              >
+              <button type="button" onClick={openTikTok} style={socialButtonStyle}>
                 TIKTOK
               </button>
             </div>
@@ -773,11 +689,7 @@ export default function SignupPage() {
       ===================================================== */}
 
       <div
-        className={`stoked-menu ${
-          menuOpen
-            ? "stoked-menu-visible"
-            : ""
-        }`}
+        className={`stoked-menu ${menuOpen ? "stoked-menu-visible" : ""}`}
         aria-hidden={!menuOpen}
         onClick={closeMenu}
       >
@@ -786,9 +698,7 @@ export default function SignupPage() {
           className="stoked-menu-backdrop"
           onClick={closeMenu}
           aria-label="Close menu"
-          tabIndex={
-            menuOpen ? 0 : -1
-          }
+          tabIndex={menuOpen ? 0 : -1}
         />
 
         <aside
@@ -796,9 +706,7 @@ export default function SignupPage() {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="stoked-menu-top">
-            <div className="stoked-menu-logo">
-              STOKED
-            </div>
+            <div className="stoked-menu-logo">STOKED</div>
 
             <button
               type="button"
@@ -810,50 +718,30 @@ export default function SignupPage() {
           </div>
 
           <nav className="stoked-menu-links">
-            <button
-              type="button"
-              onClick={goHome}
-            >
+            <button type="button" onClick={goHome}>
               HOME
             </button>
 
-            <button
-              type="button"
-              onClick={goToShop}
-            >
+            <button type="button" onClick={goToShop}>
               SHOP
             </button>
 
-            <button
-              type="button"
-              onClick={goToAccount}
-            >
+            <button type="button" onClick={goToAccount}>
               MY ACCOUNT
             </button>
 
-            <button
-              type="button"
-              onClick={openAbout}
-            >
+            <button type="button" onClick={openAbout}>
               ABOUT
             </button>
 
-            <button
-              type="button"
-              onClick={openContact}
-            >
+            <button type="button" onClick={openContact}>
               CONTACT
             </button>
           </nav>
 
           <div className="stoked-menu-footer">
-            <span>
-              © 2026 STOKED BD
-            </span>
-
-            <span>
-              EST. 2026
-            </span>
+            <span>© 2026 STOKED BD</span>
+            <span>EST. 2026</span>
           </div>
         </aside>
       </div>
@@ -873,9 +761,7 @@ export default function SignupPage() {
 
           {/* TITLE */}
           <div className="title-area">
-            <p className="small-title">
-              STOKED BD / 2026
-            </p>
+            <p className="small-title">STOKED BD / 2026</p>
 
             <h1>
               CREATE
@@ -883,9 +769,7 @@ export default function SignupPage() {
               ACCOUNT
             </h1>
 
-            <p className="subtitle">
-              JOIN THE STOKED COMMUNITY
-            </p>
+            <p className="subtitle">JOIN THE STOKED COMMUNITY</p>
           </div>
 
           {/* GOOGLE */}
@@ -893,24 +777,15 @@ export default function SignupPage() {
             type="button"
             className="google-button"
             onClick={handleGoogleSignup}
-            disabled={
-              loading ||
-              googleLoading
-            }
+            disabled={loading || googleLoading}
           >
-            <span className="google-icon">
-              G
-            </span>
+            <span className="google-icon">G</span>
 
             <span>
-              {googleLoading
-                ? "CONNECTING..."
-                : "CONTINUE WITH GOOGLE"}
+              {googleLoading ? "CONNECTING..." : "CONTINUE WITH GOOGLE"}
             </span>
 
-            <span className="button-arrow">
-              ↗
-            </span>
+            <span className="button-arrow">↗</span>
           </button>
 
           {/* DIVIDER */}
@@ -925,91 +800,61 @@ export default function SignupPage() {
 
             {/* NAME */}
             <div className="field">
-              <label htmlFor="name">
-                FULL NAME
-              </label>
+              <label htmlFor="name">FULL NAME</label>
 
               <input
                 id="name"
                 type="text"
                 placeholder="YOUR NAME"
                 value={name}
-                onChange={(e) =>
-                  setName(e.target.value)
-                }
+                onChange={(e) => setName(e.target.value)}
                 autoComplete="name"
-                disabled={
-                  loading ||
-                  googleLoading
-                }
+                disabled={loading || googleLoading}
               />
             </div>
 
             {/* EMAIL */}
             <div className="field">
-              <label htmlFor="email">
-                EMAIL ADDRESS
-              </label>
+              <label htmlFor="email">EMAIL ADDRESS</label>
 
               <input
                 id="email"
                 type="email"
                 placeholder="YOUR@EMAIL.COM"
                 value={email}
-                onChange={(e) =>
-                  setEmail(e.target.value)
-                }
+                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                disabled={
-                  loading ||
-                  googleLoading
-                }
+                disabled={loading || googleLoading}
               />
             </div>
 
             {/* PASSWORD */}
             <div className="field">
-              <label htmlFor="password">
-                PASSWORD
-              </label>
+              <label htmlFor="password">PASSWORD</label>
 
               <input
                 id="password"
                 type="password"
                 placeholder="MINIMUM 6 CHARACTERS"
                 value={password}
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
+                onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
-                disabled={
-                  loading ||
-                  googleLoading
-                }
+                disabled={loading || googleLoading}
               />
             </div>
 
             {/* CONFIRM PASSWORD */}
             <div className="field">
-              <label htmlFor="confirmPassword">
-                CONFIRM PASSWORD
-              </label>
+              <label htmlFor="confirmPassword">CONFIRM PASSWORD</label>
 
               <input
                 id="confirmPassword"
                 type="password"
                 placeholder="RE-ENTER PASSWORD"
                 value={confirmPassword}
-                onChange={(e) =>
-                  setConfirmPassword(
-                    e.target.value
-                  )
-                }
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 autoComplete="new-password"
-                disabled={
-                  loading ||
-                  googleLoading
-                }
+                disabled={loading || googleLoading}
               />
             </div>
 
@@ -1026,44 +871,28 @@ export default function SignupPage() {
             <button
               type="submit"
               className="signup-button"
-              disabled={
-                loading ||
-                googleLoading
-              }
+              disabled={loading || googleLoading}
             >
               <span>
-                {loading
-                  ? "CREATING ACCOUNT..."
-                  : "CREATE ACCOUNT"}
+                {loading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
               </span>
 
-              <span className="button-arrow">
-                →
-              </span>
+              <span className="button-arrow">→</span>
             </button>
 
           </form>
 
           {/* LOGIN */}
           <div className="login-area">
-            <p>
-              ALREADY HAVE AN ACCOUNT?
-            </p>
+            <p>ALREADY HAVE AN ACCOUNT?</p>
 
-            <Link
-              href="/login"
-              className="signin-button"
-            >
+            <Link href="/login" className="signin-button">
               <span className="signin-corner corner-tl" />
               <span className="signin-corner corner-br" />
 
-              <span className="signin-text">
-                SIGN IN
-              </span>
+              <span className="signin-text">SIGN IN</span>
 
-              <span className="signin-arrow">
-                ↗
-              </span>
+              <span className="signin-arrow">↗</span>
             </Link>
           </div>
 
@@ -1217,46 +1046,22 @@ export default function SignupPage() {
           transform-origin: center;
         }
 
-        .web-line-1 {
-          transform: rotate(0deg);
-        }
-
-        .web-line-2 {
-          transform: rotate(30deg);
-        }
-
-        .web-line-3 {
-          transform: rotate(60deg);
-        }
-
-        .web-line-4 {
-          transform: rotate(90deg);
-        }
-
-        .web-line-5 {
-          transform: rotate(120deg);
-        }
+        .web-line-1 { transform: rotate(0deg); }
+        .web-line-2 { transform: rotate(30deg); }
+        .web-line-3 { transform: rotate(60deg); }
+        .web-line-4 { transform: rotate(90deg); }
+        .web-line-5 { transform: rotate(120deg); }
 
         .web-ring {
           position: absolute;
-          border:
-            1px solid
-            rgba(255, 255, 255, 0.09);
+          border: 1px solid rgba(255, 255, 255, 0.09);
           border-radius: 50%;
           inset: 25%;
         }
 
-        .web-ring-1 {
-          inset: 17%;
-        }
-
-        .web-ring-2 {
-          inset: 35%;
-        }
-
-        .web-ring-3 {
-          inset: 53%;
-        }
+        .web-ring-1 { inset: 17%; }
+        .web-ring-2 { inset: 35%; }
+        .web-ring-3 { inset: 53%; }
 
         /* =====================================================
            SPIDERS
@@ -1273,80 +1078,21 @@ export default function SignupPage() {
           opacity: 0.075;
           filter:
             grayscale(1)
-            drop-shadow(
-              0 0 22px
-              rgba(255, 0, 0, 0.2)
-            );
-          animation:
-            spiderFloat
-            8s
-            ease-in-out
-            infinite;
+            drop-shadow(0 0 22px rgba(255, 0, 0, 0.2));
+          animation: spiderFloat 8s ease-in-out infinite;
         }
 
-        .spider-1 {
-          width: 125px;
-          left: 3%;
-          top: 9%;
-        }
-
-        .spider-2 {
-          width: 90px;
-          right: 6%;
-          top: 17%;
-          opacity: 0.06;
-          animation-delay: -2s;
-        }
-
-        .spider-3 {
-          width: 65px;
-          left: 7%;
-          top: 58%;
-          opacity: 0.045;
-          animation-delay: -4s;
-        }
-
-        .spider-4 {
-          width: 105px;
-          right: 3%;
-          top: 54%;
-          opacity: 0.065;
-          animation-delay: -1s;
-        }
-
-        .spider-5 {
-          width: 75px;
-          left: 43%;
-          bottom: 4%;
-          opacity: 0.045;
-          animation-delay: -5s;
-        }
+        .spider-1 { width: 125px; left: 3%; top: 9%; }
+        .spider-2 { width: 90px; right: 6%; top: 17%; opacity: 0.06; animation-delay: -2s; }
+        .spider-3 { width: 65px; left: 7%; top: 58%; opacity: 0.045; animation-delay: -4s; }
+        .spider-4 { width: 105px; right: 3%; top: 54%; opacity: 0.065; animation-delay: -1s; }
+        .spider-5 { width: 75px; left: 43%; bottom: 4%; opacity: 0.045; animation-delay: -5s; }
 
         @keyframes spiderFloat {
-          0%,
-          100% {
-            transform:
-              translate3d(0, 0, 0)
-              rotate(-2deg);
-          }
-
-          25% {
-            transform:
-              translate3d(8px, 18px, 0)
-              rotate(3deg);
-          }
-
-          50% {
-            transform:
-              translate3d(-8px, -5px, 0)
-              rotate(-4deg);
-          }
-
-          75% {
-            transform:
-              translate3d(5px, 13px, 0)
-              rotate(2deg);
-          }
+          0%, 100% { transform: translate3d(0, 0, 0) rotate(-2deg); }
+          25% { transform: translate3d(8px, 18px, 0) rotate(3deg); }
+          50% { transform: translate3d(-8px, -5px, 0) rotate(-4deg); }
+          75% { transform: translate3d(5px, 13px, 0) rotate(2deg); }
         }
 
         /* =====================================================
@@ -1358,22 +1104,10 @@ export default function SignupPage() {
           inset: 0;
           opacity: 0.18;
           background-image:
-            linear-gradient(
-              rgba(255, 255, 255, 0.025) 1px,
-              transparent 1px
-            ),
-            linear-gradient(
-              90deg,
-              rgba(255, 255, 255, 0.025) 1px,
-              transparent 1px
-            );
+            linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
           background-size: 75px 75px;
-          mask-image:
-            linear-gradient(
-              to bottom,
-              black,
-              transparent 90%
-            );
+          mask-image: linear-gradient(to bottom, black, transparent 90%);
         }
 
         .background-glow {
@@ -1403,9 +1137,7 @@ export default function SignupPage() {
         .red-vignette {
           position: absolute;
           inset: 0;
-          box-shadow:
-            inset 0 0 180px
-            rgba(80, 0, 0, 0.2);
+          box-shadow: inset 0 0 180px rgba(80, 0, 0, 0.2);
         }
 
         .grain {
@@ -1617,21 +1349,10 @@ export default function SignupPage() {
           transition: color 0.35s ease !important;
         }
 
-        .stoked-menu-links button:nth-child(2)::before {
-          content: "02" !important;
-        }
-
-        .stoked-menu-links button:nth-child(3)::before {
-          content: "03" !important;
-        }
-
-        .stoked-menu-links button:nth-child(4)::before {
-          content: "04" !important;
-        }
-
-        .stoked-menu-links button:nth-child(5)::before {
-          content: "05" !important;
-        }
+        .stoked-menu-links button:nth-child(2)::before { content: "02" !important; }
+        .stoked-menu-links button:nth-child(3)::before { content: "03" !important; }
+        .stoked-menu-links button:nth-child(4)::before { content: "04" !important; }
+        .stoked-menu-links button:nth-child(5)::before { content: "05" !important; }
 
         .stoked-menu-links button:hover {
           color: white !important;
@@ -1702,7 +1423,7 @@ export default function SignupPage() {
         }
 
         /* =====================================================
-           LOGIN CONTENT
+           SIGNUP CONTENT
         ===================================================== */
 
         .signup-section {
@@ -1719,8 +1440,7 @@ export default function SignupPage() {
           width: 100%;
           max-width: 480px;
           padding: 42px;
-          border: 1px solid
-            rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           background:
             linear-gradient(
               145deg,
@@ -1731,8 +1451,7 @@ export default function SignupPage() {
           -webkit-backdrop-filter: blur(18px);
           box-shadow:
             0 30px 100px rgba(0, 0, 0, 0.45),
-            inset 0 1px 0
-              rgba(255, 255, 255, 0.04);
+            inset 0 1px 0 rgba(255, 255, 255, 0.04);
         }
 
         .top-label {
@@ -1750,9 +1469,7 @@ export default function SignupPage() {
           height: 6px;
           border-radius: 50%;
           background: #9a111e;
-          box-shadow:
-            0 0 12px
-              rgba(154, 17, 30, 0.8);
+          box-shadow: 0 0 12px rgba(154, 17, 30, 0.8);
         }
 
         .title-area {
@@ -1785,8 +1502,7 @@ export default function SignupPage() {
         .signup-button {
           width: 100%;
           height: 54px;
-          border: 1px solid
-            rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1862,8 +1578,7 @@ export default function SignupPage() {
           height: 52px;
           padding: 0 15px;
           outline: none;
-          border: 1px solid
-            rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           background: rgba(0, 0, 0, 0.35);
           color: #fff;
           font-family: inherit;
@@ -1894,8 +1609,7 @@ export default function SignupPage() {
           gap: 9px;
           margin: 4px 0 15px;
           padding: 11px 13px;
-          border: 1px solid
-            rgba(180, 20, 35, 0.35);
+          border: 1px solid rgba(180, 20, 35, 0.35);
           background: rgba(130, 10, 20, 0.1);
           color: #e58a92;
           font-size: 10px;
@@ -1908,8 +1622,7 @@ export default function SignupPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 1px solid
-            rgba(180, 20, 35, 0.55);
+          border: 1px solid rgba(180, 20, 35, 0.55);
           border-radius: 50%;
           font-size: 9px;
           flex-shrink: 0;
@@ -1941,14 +1654,16 @@ export default function SignupPage() {
         }
 
         /* =====================================================
-           SIGN UP / CREATE ACCOUNT
+           SIGN IN LINK BUTTON
+           NOTE: <Link> is a component, so styled-jsx can't scope
+           classes onto it. We use :global() so the styles (and the
+           WHITE text colour) are actually applied.
         ===================================================== */
 
         .login-area {
           margin-top: 28px;
           padding-top: 24px;
-          border-top: 1px solid
-            rgba(255, 255, 255, 0.07);
+          border-top: 1px solid rgba(255, 255, 255, 0.07);
           text-align: center;
         }
 
@@ -1959,7 +1674,9 @@ export default function SignupPage() {
           letter-spacing: 0.16em;
         }
 
-        .signin-button {
+        .login-area :global(.signin-button),
+        .login-area :global(.signin-button:link),
+        .login-area :global(.signin-button:visited) {
           position: relative;
           display: flex;
           align-items: center;
@@ -1968,10 +1685,9 @@ export default function SignupPage() {
           height: 56px;
           overflow: hidden;
           isolation: isolate;
-          text-decoration: none;
-          color: #fff;
-          border: 1px solid
-            rgba(255, 255, 255, 0.14);
+          text-decoration: none !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.14);
           background:
             linear-gradient(
               135deg,
@@ -1981,9 +1697,8 @@ export default function SignupPage() {
             );
           box-shadow:
             0 14px 38px rgba(0, 0, 0, 0.35),
-            inset 0 1px 0
-              rgba(255, 255, 255, 0.06);
-          font-family: inherit;
+            inset 0 1px 0 rgba(255, 255, 255, 0.06);
+          font-family: "Space Grotesk", Inter, Arial, sans-serif;
           font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.22em;
@@ -1994,7 +1709,7 @@ export default function SignupPage() {
             transform 0.35s ease;
         }
 
-        .signin-button::before {
+        .login-area :global(.signin-button)::before {
           content: "";
           position: absolute;
           top: 0;
@@ -2011,14 +1726,13 @@ export default function SignupPage() {
               transparent
             );
           transform: skewX(-18deg);
-          transition: left 0.8s
-            cubic-bezier(0.2, 0.7, 0.2, 1);
+          transition: left 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
         }
 
-        .signin-button:hover {
+        .login-area :global(.signin-button:hover) {
           transform: translateY(-2px);
-          border-color:
-            rgba(255, 48, 48, 0.65);
+          color: #ffffff !important;
+          border-color: rgba(255, 48, 48, 0.65);
           background:
             linear-gradient(
               135deg,
@@ -2029,11 +1743,10 @@ export default function SignupPage() {
           box-shadow:
             0 18px 48px rgba(110, 0, 0, 0.35),
             0 0 28px rgba(255, 30, 30, 0.08),
-            inset 0 1px 0
-              rgba(255, 255, 255, 0.08);
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
         }
 
-        .signin-button:hover::before {
+        .login-area :global(.signin-button:hover)::before {
           left: 135%;
         }
 
@@ -2050,22 +1763,18 @@ export default function SignupPage() {
         .corner-tl {
           top: 6px;
           left: 6px;
-          border-top: 1px solid
-            rgba(255, 40, 40, 0.75);
-          border-left: 1px solid
-            rgba(255, 40, 40, 0.75);
+          border-top: 1px solid rgba(255, 40, 40, 0.75);
+          border-left: 1px solid rgba(255, 40, 40, 0.75);
         }
 
         .corner-br {
           right: 6px;
           bottom: 6px;
-          border-right: 1px solid
-            rgba(255, 40, 40, 0.75);
-          border-bottom: 1px solid
-            rgba(255, 40, 40, 0.75);
+          border-right: 1px solid rgba(255, 40, 40, 0.75);
+          border-bottom: 1px solid rgba(255, 40, 40, 0.75);
         }
 
-        .signin-button:hover .signin-corner {
+        .login-area :global(.signin-button:hover) .signin-corner {
           width: 18px;
           height: 18px;
         }
@@ -2073,6 +1782,7 @@ export default function SignupPage() {
         .signin-text {
           position: relative;
           z-index: 1;
+          color: #ffffff;
         }
 
         .signin-arrow {
@@ -2084,7 +1794,7 @@ export default function SignupPage() {
           transition: transform 0.35s ease;
         }
 
-        .signin-button:hover .signin-arrow {
+        .login-area :global(.signin-button:hover) .signin-arrow {
           transform: translate(3px, -3px);
         }
 
@@ -2100,8 +1810,7 @@ export default function SignupPage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          border-top: 1px solid
-            rgba(255, 255, 255, 0.07);
+          border-top: 1px solid rgba(255, 255, 255, 0.07);
           color: rgba(255, 255, 255, 0.22);
           font-size: 8px;
           letter-spacing: 0.15em;
@@ -2155,54 +1864,19 @@ export default function SignupPage() {
             bottom: -100px;
           }
 
-          .spider-1 {
-            width: 72px;
-            left: -5%;
-            top: 10%;
-          }
-
-          .spider-2 {
-            width: 58px;
-            right: -3%;
-            top: 17%;
-          }
-
-          .spider-3 {
-            width: 45px;
-            left: -2%;
-            top: 48%;
-          }
-
-          .spider-4 {
-            width: 62px;
-            right: -4%;
-            top: 55%;
-          }
-
-          .spider-5 {
-            width: 48px;
-            left: 38%;
-            bottom: 3%;
-          }
+          .spider-1 { width: 72px; left: -5%; top: 10%; }
+          .spider-2 { width: 58px; right: -3%; top: 17%; }
+          .spider-3 { width: 45px; left: -2%; top: 48%; }
+          .spider-4 { width: 62px; right: -4%; top: 55%; }
+          .spider-5 { width: 48px; left: 38%; bottom: 3%; }
         }
 
         @media (max-width: 390px) {
 
-          .spider-1 {
-            left: -12%;
-          }
-
-          .spider-2 {
-            right: -10%;
-          }
-
-          .spider-3 {
-            left: -8%;
-          }
-
-          .spider-4 {
-            right: -10%;
-          }
+          .spider-1 { left: -12%; }
+          .spider-2 { right: -10%; }
+          .spider-3 { left: -8%; }
+          .spider-4 { right: -10%; }
         }
 
       `}</style>

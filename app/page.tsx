@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 const spiderImage =
@@ -12,7 +12,31 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
-  const [shopLoading, setShopLoading] = useState(false);
+
+  // =========================================
+  // PREVENT MOBILE SCROLL (LOCK VIEWPORT)
+  // =========================================
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalPosition = document.body.style.position;
+    const originalTouchAction = document.body.style.touchAction;
+
+    document.documentElement.style.overflow = "hidden";
+    document.documentElement.style.height = "100%";
+    document.body.style.overflow = "hidden";
+    document.body.style.height = "100%";
+    document.body.style.overscrollBehavior = "none";
+
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.height = "";
+      document.body.style.overflow = originalOverflow;
+      document.body.style.height = "";
+      document.body.style.position = originalPosition;
+      document.body.style.touchAction = originalTouchAction;
+      document.body.style.overscrollBehavior = "";
+    };
+  }, []);
 
   // =========================================
   // MENU
@@ -46,11 +70,7 @@ export default function Home() {
     setAboutOpen(false);
     setContactOpen(false);
 
-    setShopLoading(true);
-
-    setTimeout(() => {
-      router.push("/shop");
-    }, 700);
+    router.push("/shop");
   };
 
   const goToAccount = (e?: React.MouseEvent) => {
@@ -194,31 +214,19 @@ export default function Home() {
   };
 
   return (
-    <main className="landing">
-      {/* =========================================
-          PREMIUM SHOP TRANSITION
-      ========================================== */}
-
-      {shopLoading && (
-        <div className="shop-transition">
-          <div className="shop-transition-glow" />
-
-          <div className="shop-transition-content">
-            <div className="shop-transition-logo">
-              STOKED
-            </div>
-
-            <div className="shop-transition-line">
-              <span />
-            </div>
-
-            <div className="shop-transition-text">
-              ENTERING COLLECTION
-            </div>
-          </div>
-        </div>
-      )}
-
+    <main
+      className="landing"
+      style={{
+        position: "fixed",
+        inset: 0,
+        width: "100%",
+        height: "100dvh",
+        maxHeight: "100dvh",
+        minHeight: "100dvh",
+        overflow: "hidden",
+        overscrollBehavior: "none",
+      }}
+    >
       {/* Grain */}
       <div className="grain" />
 
@@ -297,12 +305,53 @@ export default function Home() {
       </header>
 
       {/* Center Hero */}
-      <section className="hero">
-        <div className="brand-mark">
+      <section
+        className="hero"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          width: "100%",
+        }}
+      >
+        <div
+          className="brand-mark"
+          style={{
+            textAlign: "center",
+            margin: "0 auto",
+            padding: 0,
+          }}
+        >
           STOKED
         </div>
 
-        <div className="campaign-title">
+        {/* মাথা নষ্ট জিন্স - পারফেক্ট সেন্ট্রাল অ্যালাইনমেন্ট */}
+        <div
+          className="campaign-title"
+          style={{
+            fontFamily: '"Space Grotesk", sans-serif',
+            fontSize: "clamp(18px, 3vw, 44px)",
+            fontWeight: 800,
+            letterSpacing: "-0.035em",
+            lineHeight: 1,
+            marginTop: "10px",
+            marginBottom: 0,
+            padding: 0,
+            textAlign: "center",
+            width: "100%",
+            display: "block",
+            textTransform: "uppercase",
+            background:
+              "linear-gradient(180deg, #FFFFFF 10%, #E6E6EB 50%, #8A8B99 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            filter:
+              "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 22px rgba(180, 18, 40, 0.45))",
+            userSelect: "none",
+          }}
+        >
           MATHANOSHTOJEANZ
         </div>
 
@@ -316,8 +365,29 @@ export default function Home() {
             SHOP NOW
           </span>
 
-          <span className="shop-arrow">
-            ↗
+          {/* ইমোজি প্রতিরোধক শার্প ভেক্টর অ্যারো */}
+          <span
+            className="shop-arrow"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="7" y1="17" x2="17" y2="7" />
+              <polyline points="7 7 17 7 17 17" />
+            </svg>
           </span>
         </button>
       </section>

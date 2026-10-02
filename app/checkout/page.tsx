@@ -30,6 +30,16 @@ type CustomerInfo = {
   thana: string;
 };
 
+/*
+  In-site dialog (replaces browser alert()):
+  - "auth"  -> guest tried to order, ask them to create an account
+  - "error" -> simple themed error message
+*/
+type DialogState =
+  | { kind: "auth" }
+  | { kind: "error"; title: string; message: string; redirectTo?: string }
+  | null;
+
 const CART_KEY = "stoked-cart";
 
 const SPIDER_IMAGE =
@@ -464,6 +474,9 @@ export default function CheckoutPage() {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
 
+  // In-site dialog (auth gate + errors)
+  const [dialog, setDialog] = useState<DialogState>(null);
+
   const [customer, setCustomer] = useState<CustomerInfo>({
     name: "",
     phone: "",
@@ -492,6 +505,20 @@ export default function CheckoutPage() {
 
     setLoaded(true);
   }, []);
+
+  // Close dialog with ESC key
+  useEffect(() => {
+    if (!dialog) return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeDialog();
+    };
+
+    window.addEventListener("keydown", onKey);
+
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dialog]);
 
   const subtotal = cart.reduce(
     (total, item) =>
@@ -546,28 +573,85 @@ export default function CheckoutPage() {
     }));
   }
 
+  function showError(
+    title: string,
+    message: string,
+    redirectTo?: string
+  ) {
+    setDialog({ kind: "error", title, message, redirectTo });
+  }
+
+  function closeDialog() {
+    const current = dialog;
+
+    setDialog(null);
+
+    if (current && current.kind === "error" && current.redirectTo) {
+      router.push(current.redirectTo);
+    }
+  }
+
+  function goToCreateAccount() {
+    setDialog(null);
+    router.push("/account");
+  }
+
   async function handlePlaceOrder(
     event: React.FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
+
+    if (placingOrder) return;
 
     if (cart.length === 0) {
       router.push("/cart");
       return;
     }
 
+    /*
+     * AUTH CHECK
+     * Guest (not logged in) hole order hobe na.
+     * Site er theme er sathe match kora popup dekhabe.
+     */
+    let currentUser: { id: string } | null = null;
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      currentUser = user ? { id: user.id } : null;
+    } catch (authError) {
+      console.error("AUTH CHECK ERROR:", authError);
+      currentUser = null;
+    }
+
+    if (!currentUser) {
+      setDialog({ kind: "auth" });
+      return;
+    }
+
     if (!customer.deliveryZone) {
-      alert("Please select a delivery area.");
+      showError(
+        "DELIVERY AREA MISSING",
+        "Please select a delivery area."
+      );
       return;
     }
 
     if (!customer.district) {
-      alert("Please select your district.");
+      showError(
+        "DISTRICT MISSING",
+        "Please select your district."
+      );
       return;
     }
 
     if (!customer.thana) {
-      alert("Please select your thana / area.");
+      showError(
+        "THANA MISSING",
+        "Please select your thana / area."
+      );
       return;
     }
 
@@ -587,7 +671,11 @@ export default function CheckoutPage() {
         .in("id", stockIds);
 
       if (statusError) {
-        alert("Could not verify product availability. Please try again.");
+        console.error("STOCK STATUS ERROR:", statusError);
+        showError(
+          "PLEASE TRY AGAIN",
+          "We could not verify product availability. Please try again."
+        );
         setPlacingOrder(false);
         return;
       }
@@ -598,18 +686,22 @@ export default function CheckoutPage() {
       });
 
       if (blockedItems.length > 0) {
-        alert(
+        showError(
+          "STOCKED OUT",
           `Sorry, these items are stocked out:\n\n${blockedItems
             .map((item) => item.name)
-            .join("\n")}\n\nPlease remove them from your bag.`
+            .join("\n")}\n\nPlease remove them from your bag.`,
+          "/cart"
         );
         setPlacingOrder(false);
-        router.push("/cart");
         return;
       }
     } catch (stockCheckError) {
       console.error("STOCK CHECK ERROR:", stockCheckError);
-      alert("Could not verify product availability. Please try again.");
+      showError(
+        "PLEASE TRY AGAIN",
+        "We could not verify product availability. Please try again."
+      );
       setPlacingOrder(false);
       return;
     }
@@ -633,16 +725,11 @@ export default function CheckoutPage() {
         .filter(Boolean)
         .join(", ");
 
-      // Get currently logged-in customer
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
       const { data: createdOrder, error: orderError } =
         await supabase
           .from("orders")
           .insert({
-            user_id: user?.id || null,
+            user_id: currentUser.id,
 
             customer_name: customer.name,
             customer_phone: customer.phone,
@@ -659,10 +746,6 @@ export default function CheckoutPage() {
         console.error(
           "ORDER INSERT ERROR FULL:",
           JSON.stringify(orderError, null, 2)
-        );
-
-        alert(
-          `Order Error:\n\nCode: ${orderError.code}\nMessage: ${orderError.message}\nDetails: ${orderError.details}\nHint: ${orderError.hint}`
         );
 
         throw orderError;
@@ -692,10 +775,6 @@ export default function CheckoutPage() {
         console.error(
           "ORDER ITEMS INSERT ERROR FULL:",
           JSON.stringify(itemsError, null, 2)
-        );
-
-        alert(
-          `Order Items Error:\n\nCode: ${itemsError.code}\nMessage: ${itemsError.message}\nDetails: ${itemsError.details}\nHint: ${itemsError.hint}`
         );
 
         await supabase
@@ -747,7 +826,8 @@ export default function CheckoutPage() {
     } catch (error) {
       console.error("ORDER ERROR:", error);
 
-      alert(
+      showError(
+        "ORDER FAILED",
         "Something went wrong while placing your order. Please try again."
       );
 
@@ -779,7 +859,7 @@ export default function CheckoutPage() {
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 9px;
+            font-size: 11.7px;
             letter-spacing: 0.24em;
           }
 
@@ -816,6 +896,12 @@ export default function CheckoutPage() {
   if (orderPlaced) {
     return (
       <main className="checkout-page">
+        {/* Unique fonts for the success screen */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600&family=Syne:wght@500;700;800&display=swap"
+        />
+
         <SiteChrome totalItems={0} />
 
         <section className="success-container">
@@ -864,21 +950,28 @@ export default function CheckoutPage() {
                 href="/shop"
                 className="success-button primary"
               >
-                <span>CONTINUE SHOPPING</span>
-                <span>→</span>
+                <span className="sb-label">CONTINUE SHOPPING</span>
+                <span className="sb-arrow">→</span>
               </Link>
 
               <Link
                 href="/"
                 className="success-button secondary"
               >
-                <span>BACK HOME</span>
-                <span>↗</span>
+                <span className="sb-label">BACK HOME</span>
+                <span className="sb-arrow">↗</span>
               </Link>
             </div>
 
-            <div className="success-footer-text">
-              STOKED BD — BUILT FOR THE STREETS
+            <div className="success-tagline">
+              <span className="tagline-dash" />
+
+              <div className="tagline-text">
+                <span className="tagline-solid">STAY STOKED,</span>
+                <span className="tagline-outline">STAY DIFFERENT</span>
+              </div>
+
+              <span className="tagline-dash" />
             </div>
           </div>
         </section>
@@ -927,7 +1020,7 @@ export default function CheckoutPage() {
             width: min(650px, 100%);
             overflow: hidden;
             text-align: center;
-            padding: 65px 45px;
+            padding: 65px 45px 50px;
             border: 1px solid rgba(255, 255, 255, 0.09);
             background:
               linear-gradient(
@@ -942,7 +1035,7 @@ export default function CheckoutPage() {
           .success-kicker {
             position: relative;
             color: rgba(255, 50, 50, 0.65);
-            font-size: 7px;
+            font-size: 9.1px;
             letter-spacing: 0.22em;
           }
 
@@ -980,7 +1073,7 @@ export default function CheckoutPage() {
             position: relative;
             margin: 0;
             color: rgba(245, 245, 243, 0.34);
-            font-size: 8px;
+            font-size: 10.4px;
             line-height: 1.8;
             letter-spacing: 0.08em;
           }
@@ -997,14 +1090,14 @@ export default function CheckoutPage() {
             display: block;
             margin-bottom: 8px;
             color: rgba(245, 245, 243, 0.27);
-            font-size: 6px;
+            font-size: 7.8px;
             letter-spacing: 0.18em;
           }
 
           .order-number-box strong {
             color: rgba(255, 60, 60, 0.8);
             font-family: "Space Grotesk", Inter, sans-serif;
-            font-size: 13px;
+            font-size: 16.9px;
             font-weight: 500;
             letter-spacing: 0.15em;
           }
@@ -1025,53 +1118,207 @@ export default function CheckoutPage() {
             display: block;
             margin-bottom: 6px;
             color: rgba(245, 245, 243, 0.24);
-            font-size: 6px;
+            font-size: 7.8px;
             letter-spacing: 0.16em;
           }
 
           .success-meta strong {
             color: rgba(245, 245, 243, 0.7);
-            font-size: 7px;
+            font-size: 9.1px;
             letter-spacing: 0.12em;
           }
+
+          /* ---------- PREMIUM WHITE BUTTONS ---------- */
 
           .success-actions {
             position: relative;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 22px;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 28px;
           }
 
-          .success-button {
+          .success-actions :global(.success-button) {
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            min-height: 48px;
-            padding: 0 15px;
+            gap: 14px;
+            min-height: 62px;
+            padding: 0 14px 0 24px;
+            border-radius: 3px;
             text-decoration: none;
-            font-size: 7px;
-            letter-spacing: 0.14em;
+            font-family: "Unbounded", "Space Grotesk", Inter, sans-serif;
+            font-size: 10.5px;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
             transition:
-              transform 0.25s ease,
-              border-color 0.25s ease,
-              background 0.25s ease;
+              transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+              box-shadow 0.35s ease,
+              color 0.35s ease,
+              background 0.35s ease,
+              border-color 0.35s ease;
           }
 
-          .success-button:hover {
-            transform: translateY(-2px);
+          .success-actions :global(.success-button .sb-label) {
+            position: relative;
+            z-index: 2;
           }
 
-          .success-button.primary {
-            color: #fff;
-            border: 1px solid rgba(255, 40, 40, 0.45);
-            background: linear-gradient(100deg, #9d0000, #e31b1b);
+          .success-actions :global(.success-button .sb-arrow) {
+            position: relative;
+            z-index: 2;
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-family: Inter, Arial, sans-serif;
+            font-size: 15px;
+            letter-spacing: 0;
+            transition:
+              transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+              background 0.35s ease,
+              color 0.35s ease;
           }
 
-          .success-button.secondary {
-            color: rgba(245, 245, 243, 0.65);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.025);
+          /* shine sweep */
+          .success-actions :global(.success-button::before) {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 45%;
+            height: 100%;
+            z-index: 1;
+            transform: translateX(-160%) skewX(-18deg);
+            background: linear-gradient(
+              90deg,
+              transparent,
+              rgba(255, 255, 255, 0.7),
+              transparent
+            );
+            transition: transform 0.8s ease;
+          }
+
+          .success-actions :global(.success-button:hover::before) {
+            transform: translateX(340%) skewX(-18deg);
+          }
+
+          .success-actions :global(.success-button:hover) {
+            transform: translateY(-3px);
+          }
+
+          .success-actions :global(.success-button:hover .sb-arrow) {
+            transform: rotate(-45deg) scale(1.05);
+          }
+
+          .success-actions :global(.success-button:active) {
+            transform: translateY(0) scale(0.985);
+          }
+
+          /* PRIMARY: solid white */
+          .success-actions :global(.success-button.primary) {
+            color: #0a0303;
+            background: #f7f7f5;
+            border: 1px solid #ffffff;
+            box-shadow:
+              0 0 0 1px rgba(255, 255, 255, 0.08),
+              0 14px 40px rgba(255, 255, 255, 0.1);
+          }
+
+          .success-actions :global(.success-button.primary .sb-arrow) {
+            background: #0a0303;
+            color: #ffffff;
+          }
+
+          .success-actions :global(.success-button.primary:hover) {
+            box-shadow:
+              0 0 0 1px rgba(255, 255, 255, 0.2),
+              0 18px 55px rgba(255, 255, 255, 0.2);
+          }
+
+          .success-actions :global(.success-button.primary:hover .sb-arrow) {
+            background: #c40f0f;
+          }
+
+          /* SECONDARY: white outline -> fills white on hover */
+          .success-actions :global(.success-button.secondary) {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+          }
+
+          .success-actions :global(.success-button.secondary .sb-arrow) {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+          }
+
+          .success-actions :global(.success-button.secondary:hover) {
+            color: #0a0303;
+            background: #f7f7f5;
+            box-shadow: 0 18px 55px rgba(255, 255, 255, 0.16);
+          }
+
+          .success-actions :global(.success-button.secondary:hover .sb-arrow) {
+            background: #0a0303;
+            color: #ffffff;
+          }
+
+          /* ---------- TAGLINE ---------- */
+
+          .success-tagline {
+            position: relative;
+            margin-top: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+          }
+
+          .tagline-dash {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(
+              90deg,
+              transparent,
+              rgba(255, 45, 45, 0.55)
+            );
+          }
+
+          .tagline-dash:last-child {
+            background: linear-gradient(
+              90deg,
+              rgba(255, 45, 45, 0.55),
+              transparent
+            );
+          }
+
+          .tagline-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-family: "Syne", "Unbounded", "Space Grotesk", sans-serif;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.24em;
+            line-height: 1;
+            white-space: nowrap;
+          }
+
+          .tagline-solid {
+            color: #f5f5f3;
+          }
+
+          .tagline-outline {
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(245, 245, 243, 0.7);
           }
 
           .checkout-footer {
@@ -1085,7 +1332,7 @@ export default function CheckoutPage() {
             align-items: center;
             border-top: 1px solid rgba(255, 255, 255, 0.06);
             color: rgba(245, 245, 243, 0.25);
-            font-size: 7px;
+            font-size: 9.1px;
             letter-spacing: 0.18em;
           }
 
@@ -1105,7 +1352,7 @@ export default function CheckoutPage() {
             }
 
             .success-card {
-              padding: 50px 20px;
+              padding: 50px 20px 40px;
             }
 
             .success-card h1 {
@@ -1116,8 +1363,20 @@ export default function CheckoutPage() {
               grid-template-columns: 1fr;
             }
 
-            .success-actions {
-              grid-template-columns: 1fr;
+            .success-actions :global(.success-button) {
+              min-height: 58px;
+              padding: 0 12px 0 18px;
+              font-size: 9.5px;
+              letter-spacing: 0.16em;
+            }
+
+            .tagline-text {
+              font-size: 12px;
+              letter-spacing: 0.18em;
+            }
+
+            .tagline-dash {
+              display: none;
             }
 
             .checkout-footer {
@@ -1126,7 +1385,7 @@ export default function CheckoutPage() {
               grid-template-columns: 1fr 1fr;
               row-gap: 12px;
               padding: 20px 0;
-              font-size: 6px;
+              font-size: 7.8px;
             }
 
             .checkout-footer div:nth-child(2) {
@@ -1220,7 +1479,7 @@ export default function CheckoutPage() {
 
           .empty-box span {
             color: rgba(255, 50, 50, 0.65);
-            font-size: 7px;
+            font-size: 9.1px;
             letter-spacing: 0.22em;
           }
 
@@ -1236,7 +1495,7 @@ export default function CheckoutPage() {
           .empty-box p {
             margin: 0 0 28px;
             color: rgba(245, 245, 243, 0.3);
-            font-size: 8px;
+            font-size: 10.4px;
             line-height: 1.8;
             letter-spacing: 0.08em;
           }
@@ -1245,8 +1504,8 @@ export default function CheckoutPage() {
             display: inline-flex;
             align-items: center;
             gap: 12px;
-            height: 42px;
-            padding: 0 17px;
+            height: 48px;
+            padding: 0 19px;
             color: #fff;
             text-decoration: none;
             border: 1px solid rgba(180, 25, 25, 0.65);
@@ -1256,7 +1515,7 @@ export default function CheckoutPage() {
                 rgba(55, 4, 4, 0.98),
                 rgba(12, 4, 4, 1)
               );
-            font-size: 7px;
+            font-size: 9.1px;
             letter-spacing: 0.18em;
           }
 
@@ -1271,7 +1530,7 @@ export default function CheckoutPage() {
             align-items: center;
             border-top: 1px solid rgba(255, 255, 255, 0.06);
             color: rgba(245, 245, 243, 0.25);
-            font-size: 7px;
+            font-size: 9.1px;
             letter-spacing: 0.18em;
           }
 
@@ -1290,7 +1549,7 @@ export default function CheckoutPage() {
               grid-template-columns: 1fr 1fr;
               row-gap: 12px;
               padding: 20px 0;
-              font-size: 6px;
+              font-size: 7.8px;
             }
 
             .checkout-footer div:nth-child(2) {
@@ -1710,6 +1969,136 @@ export default function CheckoutPage() {
         <div>BUILT FOR THE STREETS</div>
       </footer>
 
+      {/* =====================================================
+          DIALOG: ACCOUNT REQUIRED + ERRORS (site theme)
+      ===================================================== */}
+      {dialog && (
+        <div
+          className="gate-overlay"
+          onClick={closeDialog}
+          role="presentation"
+        >
+          <div
+            className={`gate-panel ${
+              dialog.kind === "error" ? "gate-panel-error" : ""
+            }`}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <span className="gate-scan" />
+
+            {/* web rings in the corner */}
+            <div className="gate-web" aria-hidden="true">
+              <span className="gate-ring gate-ring-1" />
+              <span className="gate-ring gate-ring-2" />
+              <span className="gate-ring gate-ring-3" />
+            </div>
+
+            <button
+              type="button"
+              className="gate-close"
+              onClick={closeDialog}
+            >
+              CLOSE <span>×</span>
+            </button>
+
+            {dialog.kind === "auth" ? (
+              <>
+                <span className="gate-kicker">
+                  STOKED BD / MEMBERS ONLY
+                </span>
+
+                <div className="gate-icon">
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="4" y="10.5" width="16" height="10" rx="1.5" />
+                    <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+                    <circle cx="12" cy="15.5" r="1" />
+                  </svg>
+                </div>
+
+                <h2 className="gate-title">
+                  CREATE AN
+                  <br />
+                  <span>ACCOUNT FIRST</span>
+                </h2>
+
+                <div className="gate-line" />
+
+                <p className="gate-text">
+                  You need an account to place an order.
+                  <br />
+                  Create one in a few seconds — your bag stays safe.
+                </p>
+
+                <div className="gate-actions">
+                  <button
+                    type="button"
+                    className="gate-btn gate-btn-primary"
+                    onClick={goToCreateAccount}
+                  >
+                    <span>CREATE ACCOUNT / LOGIN</span>
+                    <span className="gate-btn-arrow">→</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="gate-btn gate-btn-ghost"
+                    onClick={closeDialog}
+                  >
+                    <span>MAYBE LATER</span>
+                  </button>
+                </div>
+
+                <span className="gate-footer">
+                  STAY STOKED / STAY DIFFERENT
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="gate-kicker">
+                  STOKED BD / NOTICE
+                </span>
+
+                <div className="gate-icon gate-icon-error">!</div>
+
+                <h2 className="gate-title gate-title-small">
+                  {dialog.title}
+                </h2>
+
+                <div className="gate-line" />
+
+                <p className="gate-text gate-text-pre">
+                  {dialog.message}
+                </p>
+
+                <div className="gate-actions">
+                  <button
+                    type="button"
+                    className="gate-btn gate-btn-primary"
+                    onClick={closeDialog}
+                  >
+                    <span>
+                      {dialog.redirectTo ? "GO TO BAG" : "OKAY"}
+                    </span>
+                    <span className="gate-btn-arrow">→</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         * {
           box-sizing: border-box;
@@ -1756,7 +2145,7 @@ export default function CheckoutPage() {
           gap: 11px;
           margin-bottom: 18px;
           color: rgba(245, 245, 243, 0.4);
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: 0.24em;
         }
 
@@ -1785,10 +2174,10 @@ export default function CheckoutPage() {
 
         .title-number {
           position: absolute;
-          top: -7px;
-          right: -27px;
+          top: -9px;
+          right: -30px;
           color: rgba(255, 45, 45, 0.6);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: 0.2em;
         }
 
@@ -1802,7 +2191,7 @@ export default function CheckoutPage() {
 
         .hero-label {
           color: rgba(245, 245, 243, 0.35);
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: 0.2em;
         }
 
@@ -1864,13 +2253,13 @@ export default function CheckoutPage() {
 
         .form-heading span:first-child {
           color: #f5f5f3;
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: 0.2em;
         }
 
         .form-heading span:last-child {
           color: rgba(255, 60, 60, 0.7);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: 0.15em;
         }
 
@@ -1887,13 +2276,13 @@ export default function CheckoutPage() {
 
         .section-label-number {
           color: rgba(255, 45, 45, 0.65);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: 0.15em;
         }
 
         .section-label-text {
           color: rgba(245, 245, 243, 0.55);
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: 0.2em;
         }
 
@@ -1921,7 +2310,7 @@ export default function CheckoutPage() {
 
         .field-label {
           color: rgba(245, 245, 243, 0.32);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: 0.18em;
         }
 
@@ -1934,7 +2323,7 @@ export default function CheckoutPage() {
           background: rgba(255, 255, 255, 0.018);
           color: #f5f5f3;
           font-family: Inter, Arial, sans-serif;
-          font-size: 10px;
+          font-size: 13px;
           letter-spacing: 0.04em;
           transition:
             border-color 0.25s ease,
@@ -1944,13 +2333,13 @@ export default function CheckoutPage() {
 
         .field-input,
         .field-select {
-          height: 46px;
-          padding: 0 13px;
+          height: 50px;
+          padding: 0 14px;
         }
 
         .field-textarea {
-          min-height: 100px;
-          padding: 13px;
+          min-height: 110px;
+          padding: 14px;
           resize: vertical;
         }
 
@@ -1990,13 +2379,13 @@ export default function CheckoutPage() {
           justify-content: space-between;
           margin: 0 0 12px;
           color: rgba(245, 245, 243, 0.32);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: 0.18em;
         }
 
         .delivery-zone-current {
           color: rgba(255, 60, 60, 0.75);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: 0.14em;
         }
 
@@ -2009,7 +2398,7 @@ export default function CheckoutPage() {
 
         .delivery-zone-card {
           position: relative;
-          min-height: 88px;
+          min-height: 100px;
           padding: 13px;
           display: flex;
           flex-direction: column;
@@ -2081,7 +2470,7 @@ export default function CheckoutPage() {
 
         .zone-number {
           color: rgba(255, 55, 55, 0.65);
-          font-size: 6px;
+          font-size: 7.8px;
           letter-spacing: 0.16em;
         }
 
@@ -2094,14 +2483,14 @@ export default function CheckoutPage() {
         .zone-info strong {
           color: rgba(245, 245, 243, 0.82);
           font-family: "Space Grotesk", Inter, sans-serif;
-          font-size: 8px;
+          font-size: 10.4px;
           font-weight: 500;
           letter-spacing: 0.12em;
         }
 
         .zone-info small {
           color: rgba(245, 245, 243, 0.25);
-          font-size: 6px;
+          font-size: 7.8px;
           letter-spacing: 0.1em;
         }
 
@@ -2111,7 +2500,7 @@ export default function CheckoutPage() {
           right: 13px;
           color: rgba(255, 70, 70, 0.8);
           font-family: "Space Grotesk", Inter, sans-serif;
-          font-size: 9px;
+          font-size: 11.7px;
           letter-spacing: 0.02em;
         }
 
@@ -2128,7 +2517,7 @@ export default function CheckoutPage() {
           display: flex;
           align-items: center;
           gap: 14px;
-          min-height: 72px;
+          min-height: 80px;
           padding: 15px;
           border: 1px solid rgba(255, 40, 40, 0.35);
           background:
@@ -2167,28 +2556,28 @@ export default function CheckoutPage() {
           display: block;
           margin-bottom: 5px;
           color: #f5f5f3;
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: 0.17em;
         }
 
         .payment-description {
           display: block;
           color: rgba(245, 245, 243, 0.3);
-          font-size: 7px;
+          font-size: 9.1px;
           line-height: 1.6;
           letter-spacing: 0.04em;
         }
 
         .payment-tag {
           color: rgba(255, 60, 60, 0.7);
-          font-size: 6px;
+          font-size: 7.8px;
           letter-spacing: 0.15em;
         }
 
         .place-order-button {
           position: relative;
           width: 100%;
-          height: 54px;
+          height: 58px;
           margin-top: 30px;
           display: flex;
           align-items: center;
@@ -2198,7 +2587,7 @@ export default function CheckoutPage() {
           background: linear-gradient(100deg, #9d0000, #e31b1b);
           color: #fff;
           font-family: inherit;
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: 0.16em;
           cursor: pointer;
           overflow: hidden;
@@ -2284,13 +2673,13 @@ export default function CheckoutPage() {
           padding: 22px 24px 18px;
           border-bottom: 1px solid rgba(255, 255, 255, 0.07);
           color: #f5f5f3;
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: 0.2em;
         }
 
         .summary-status {
           color: rgba(255, 60, 60, 0.7);
-          font-size: 7px;
+          font-size: 9.1px;
         }
 
         .summary-content {
@@ -2338,7 +2727,7 @@ export default function CheckoutPage() {
           white-space: nowrap;
           color: rgba(245, 245, 243, 0.8);
           font-family: "Space Grotesk", Inter, sans-serif;
-          font-size: 9px;
+          font-size: 11.7px;
           letter-spacing: 0.01em;
         }
 
@@ -2346,13 +2735,13 @@ export default function CheckoutPage() {
           display: block;
           margin-top: 6px;
           color: rgba(245, 245, 243, 0.28);
-          font-size: 6px;
+          font-size: 7.8px;
           letter-spacing: 0.12em;
         }
 
         .summary-item-price {
           color: rgba(245, 245, 243, 0.7);
-          font-size: 8px;
+          font-size: 10.4px;
           white-space: nowrap;
         }
 
@@ -2368,7 +2757,7 @@ export default function CheckoutPage() {
           justify-content: space-between;
           margin-bottom: 16px;
           color: rgba(245, 245, 243, 0.42);
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: 0.16em;
         }
 
@@ -2388,7 +2777,7 @@ export default function CheckoutPage() {
           margin-top: -5px;
           margin-bottom: 4px;
           color: rgba(255, 60, 60, 0.48);
-          font-size: 6px;
+          font-size: 7.8px;
           letter-spacing: 0.12em;
         }
 
@@ -2402,7 +2791,7 @@ export default function CheckoutPage() {
 
         .summary-total span {
           color: rgba(245, 245, 243, 0.4);
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: 0.18em;
         }
 
@@ -2417,7 +2806,7 @@ export default function CheckoutPage() {
         .summary-note {
           margin: 0;
           color: rgba(245, 245, 243, 0.23);
-          font-size: 6px;
+          font-size: 7.8px;
           line-height: 1.7;
           letter-spacing: 0.08em;
         }
@@ -2435,7 +2824,7 @@ export default function CheckoutPage() {
           align-items: center;
           border-top: 1px solid rgba(255, 255, 255, 0.06);
           color: rgba(245, 245, 243, 0.25);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: 0.18em;
         }
 
@@ -2445,6 +2834,357 @@ export default function CheckoutPage() {
 
         .checkout-footer div:nth-child(3) {
           text-align: right;
+        }
+
+        /* ---------- DIALOG (ACCOUNT REQUIRED / ERRORS) ---------- */
+
+        .gate-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 2147483645;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          background: rgba(0, 0, 0, 0.74);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          animation: gateFade 0.35s ease both;
+        }
+
+        .gate-panel {
+          position: relative;
+          width: min(520px, 100%);
+          padding: 62px 44px 40px;
+          overflow: hidden;
+          text-align: center;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: linear-gradient(
+            145deg,
+            rgba(38, 5, 5, 0.98),
+            rgba(7, 2, 2, 0.99)
+          );
+          box-shadow:
+            0 30px 110px rgba(0, 0, 0, 0.7),
+            0 0 60px rgba(150, 0, 0, 0.1);
+          animation: gatePop 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+
+        .gate-panel::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 1px;
+          background: linear-gradient(
+            90deg,
+            #ff2020,
+            rgba(255, 32, 32, 0.15),
+            transparent
+          );
+          box-shadow: 0 0 15px rgba(255, 20, 20, 0.5);
+        }
+
+        .gate-panel-error {
+          animation:
+            gatePop 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both,
+            gateShake 0.5s 0.45s ease both;
+        }
+
+        .gate-scan {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 90px;
+          pointer-events: none;
+          background: linear-gradient(
+            to bottom,
+            transparent,
+            rgba(255, 40, 40, 0.07),
+            transparent
+          );
+          animation: gateScan 4s ease-in-out infinite;
+        }
+
+        .gate-web {
+          position: absolute;
+          width: 300px;
+          height: 300px;
+          right: -150px;
+          top: -150px;
+          opacity: 0.14;
+          pointer-events: none;
+          animation: gateSpin 40s linear infinite;
+        }
+
+        .gate-ring {
+          position: absolute;
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          border-radius: 50%;
+        }
+
+        .gate-ring-1 { inset: 0; }
+        .gate-ring-2 { inset: 22%; }
+        .gate-ring-3 { inset: 42%; }
+
+        .gate-close {
+          position: absolute;
+          top: 22px;
+          right: 22px;
+          z-index: 3;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          border: 0;
+          background: transparent;
+          color: rgba(255, 255, 255, 0.45);
+          font-family: Inter, sans-serif;
+          font-size: 9.1px;
+          letter-spacing: 0.16em;
+          cursor: pointer;
+          transition: color 0.25s ease;
+        }
+
+        .gate-close:hover {
+          color: #fff;
+        }
+
+        .gate-close span {
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 18px;
+          line-height: 1;
+        }
+
+        .gate-kicker {
+          position: relative;
+          display: block;
+          color: rgba(255, 50, 50, 0.65);
+          font-size: 9.1px;
+          letter-spacing: 0.22em;
+          animation: gateRise 0.6s 0.15s ease both;
+        }
+
+        .gate-icon {
+          position: relative;
+          width: 58px;
+          height: 58px;
+          margin: 26px auto 22px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(255, 45, 45, 0.6);
+          border-radius: 50%;
+          color: #ff3030;
+          font-family: "Space Grotesk", Inter, sans-serif;
+          font-size: 24px;
+          box-shadow: 0 0 30px rgba(255, 0, 0, 0.14);
+          animation: gateRise 0.6s 0.22s ease both;
+        }
+
+        .gate-icon::after {
+          content: "";
+          position: absolute;
+          inset: -1px;
+          border-radius: 50%;
+          border: 1px solid rgba(255, 45, 45, 0.55);
+          animation: gatePulse 2.2s ease-out infinite;
+        }
+
+        .gate-title {
+          position: relative;
+          margin: 0;
+          color: #f5f5f3;
+          font-family: "Space Grotesk", Inter, sans-serif;
+          font-size: clamp(32px, 6vw, 46px);
+          line-height: 0.95;
+          font-weight: 500;
+          letter-spacing: -0.05em;
+          animation: gateRise 0.6s 0.3s ease both;
+        }
+
+        .gate-title span {
+          color: transparent;
+          -webkit-text-stroke: 1px rgba(245, 245, 243, 0.5);
+        }
+
+        .gate-title-small {
+          font-size: clamp(24px, 5vw, 32px);
+          letter-spacing: -0.03em;
+        }
+
+        .gate-line {
+          width: 48px;
+          height: 1px;
+          margin: 22px auto;
+          background: linear-gradient(90deg, #ff2020, transparent);
+          box-shadow: 0 0 10px rgba(255, 20, 20, 0.7);
+          animation: gateRise 0.6s 0.36s ease both;
+        }
+
+        .gate-text {
+          position: relative;
+          margin: 0 auto;
+          max-width: 400px;
+          color: rgba(245, 245, 243, 0.5);
+          font-size: 12.5px;
+          line-height: 1.9;
+          letter-spacing: 0.04em;
+          animation: gateRise 0.6s 0.42s ease both;
+        }
+
+        .gate-text-pre {
+          white-space: pre-line;
+        }
+
+        .gate-actions {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 30px;
+          animation: gateRise 0.6s 0.5s ease both;
+        }
+
+        .gate-btn {
+          position: relative;
+          overflow: hidden;
+          width: 100%;
+          min-height: 54px;
+          padding: 0 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 14px;
+          font-family: inherit;
+          font-size: 10.4px;
+          letter-spacing: 0.17em;
+          cursor: pointer;
+          transition:
+            transform 0.3s ease,
+            box-shadow 0.3s ease,
+            background 0.3s ease,
+            color 0.3s ease,
+            border-color 0.3s ease;
+        }
+
+        .gate-btn-primary {
+          justify-content: space-between;
+          color: #fff;
+          border: 1px solid rgba(255, 40, 40, 0.45);
+          background: linear-gradient(100deg, #9d0000, #e31b1b);
+          box-shadow: 0 0 30px rgba(255, 0, 0, 0.08);
+        }
+
+        .gate-btn-primary::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            110deg,
+            transparent 30%,
+            rgba(255, 255, 255, 0.2),
+            transparent 70%
+          );
+          transform: translateX(-120%);
+          transition: transform 0.6s ease;
+        }
+
+        .gate-btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 35px rgba(255, 0, 0, 0.2);
+        }
+
+        .gate-btn-primary:hover::before {
+          transform: translateX(120%);
+        }
+
+        .gate-btn-primary span {
+          position: relative;
+          z-index: 1;
+        }
+
+        .gate-btn-arrow {
+          font-size: 15px;
+          transition: transform 0.3s ease;
+        }
+
+        .gate-btn-primary:hover .gate-btn-arrow {
+          transform: translateX(4px);
+        }
+
+        .gate-btn-ghost {
+          color: rgba(245, 245, 243, 0.55);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.02);
+        }
+
+        .gate-btn-ghost:hover {
+          color: #fff;
+          border-color: rgba(255, 255, 255, 0.28);
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        .gate-footer {
+          position: relative;
+          display: block;
+          margin-top: 28px;
+          color: rgba(255, 255, 255, 0.2);
+          font-size: 7.8px;
+          letter-spacing: 0.22em;
+          animation: gateRise 0.6s 0.58s ease both;
+        }
+
+        @keyframes gateFade {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes gatePop {
+          from {
+            opacity: 0;
+            transform: translateY(28px) scale(0.96);
+            filter: blur(6px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+          }
+        }
+
+        @keyframes gateRise {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes gatePulse {
+          0% { transform: scale(1); opacity: 0.8; }
+          100% { transform: scale(1.7); opacity: 0; }
+        }
+
+        @keyframes gateScan {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(520px); }
+        }
+
+        @keyframes gateSpin {
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes gateShake {
+          0%, 100% { transform: translateX(0); }
+          20% { transform: translateX(-7px); }
+          40% { transform: translateX(6px); }
+          60% { transform: translateX(-4px); }
+          80% { transform: translateX(3px); }
         }
 
         /* RESPONSIVE */
@@ -2460,7 +3200,7 @@ export default function CheckoutPage() {
           }
 
           .delivery-zone-card {
-            min-height: 72px;
+            min-height: 80px;
           }
         }
 
@@ -2506,7 +3246,7 @@ export default function CheckoutPage() {
 
           .eyebrow {
             margin-bottom: 14px;
-            font-size: 7px;
+            font-size: 9.1px;
           }
 
           .checkout-title {
@@ -2515,8 +3255,8 @@ export default function CheckoutPage() {
           }
 
           .title-number {
-            top: -5px;
-            right: -23px;
+            top: -7px;
+            right: -26px;
           }
 
           .title-line {
@@ -2525,7 +3265,7 @@ export default function CheckoutPage() {
           }
 
           .hero-label {
-            font-size: 7px;
+            font-size: 9.1px;
           }
 
           .form-heading {
@@ -2552,11 +3292,11 @@ export default function CheckoutPage() {
 
           .field-input,
           .field-select {
-            height: 44px;
+            height: 48px;
           }
 
           .field-textarea {
-            min-height: 95px;
+            min-height: 105px;
           }
 
           .delivery-zone-label {
@@ -2569,7 +3309,7 @@ export default function CheckoutPage() {
           }
 
           .delivery-zone-card {
-            min-height: 70px;
+            min-height: 78px;
             padding: 12px;
           }
 
@@ -2579,7 +3319,7 @@ export default function CheckoutPage() {
           }
 
           .payment-card {
-            min-height: 78px;
+            min-height: 86px;
             padding: 13px;
           }
 
@@ -2595,13 +3335,17 @@ export default function CheckoutPage() {
             font-size: 23px;
           }
 
+          .gate-panel {
+            padding: 58px 22px 34px;
+          }
+
           .checkout-footer {
             width: calc(100% - 28px);
             min-height: 100px;
             grid-template-columns: 1fr 1fr;
             row-gap: 12px;
             padding: 20px 0;
-            font-size: 6px;
+            font-size: 7.8px;
           }
 
           .checkout-footer div:nth-child(2) {
@@ -2633,7 +3377,13 @@ export default function CheckoutPage() {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .checkout-title {
+          .checkout-title,
+          .gate-overlay,
+          .gate-panel,
+          .gate-panel-error,
+          .gate-scan,
+          .gate-web,
+          .gate-icon::after {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
           }
@@ -3282,7 +4032,7 @@ function SiteChrome({ totalItems }: { totalItems: number }) {
           background: transparent;
           color: rgba(255, 255, 255, 0.45);
           font-family: Inter, sans-serif;
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: 0.16em;
           cursor: pointer;
         }
@@ -3295,7 +4045,7 @@ function SiteChrome({ totalItems }: { totalItems: number }) {
 
         .overlay-kicker {
           color: rgba(255, 50, 50, 0.65);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: 0.22em;
         }
 
@@ -3325,7 +4075,7 @@ function SiteChrome({ totalItems }: { totalItems: number }) {
           max-width: 500px;
           margin: 0;
           color: rgba(245, 245, 243, 0.48);
-          font-size: 10px;
+          font-size: 13px;
           line-height: 1.9;
           letter-spacing: 0.04em;
         }
@@ -3335,7 +4085,7 @@ function SiteChrome({ totalItems }: { totalItems: number }) {
           left: 55px;
           bottom: 28px;
           color: rgba(255, 255, 255, 0.2);
-          font-size: 6px;
+          font-size: 7.8px;
           letter-spacing: 0.18em;
         }
 
@@ -3348,7 +4098,7 @@ function SiteChrome({ totalItems }: { totalItems: number }) {
         .social-list button {
           position: relative;
           width: 100%;
-          min-height: 55px;
+          min-height: 58px;
           padding: 0 17px;
           display: flex;
           align-items: center;
@@ -3356,7 +4106,7 @@ function SiteChrome({ totalItems }: { totalItems: number }) {
           background: rgba(255, 255, 255, 0.018);
           color: rgba(255, 255, 255, 0.58);
           font-family: "Space Grotesk", Inter, sans-serif;
-          font-size: 10px;
+          font-size: 13px;
           font-weight: 500;
           letter-spacing: 0.13em;
           cursor: pointer;

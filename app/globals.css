@@ -467,19 +467,25 @@ body {
 ================================= */
 
 .campaign-title {
-  margin-top: 25px;
+  margin-top: 14px;
 
-  font-family: "Inter", sans-serif;
+  font-family: "Space Grotesk", "Inter", sans-serif;
 
-  font-size: clamp(9px, 1vw, 12px);
+  font-size: clamp(24px, 4.5vw, 68px);
 
-  font-weight: 500;
+  font-weight: 700;
 
-  letter-spacing: 0.5em;
+  line-height: 1;
 
-  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.08em;
 
-  padding-left: 0.5em;
+  color: #f5f5f3;
+
+  padding-left: 0.08em;
+
+  text-shadow:
+    0 0 20px rgba(255, 255, 255, 0.04),
+    0 0 40px rgba(130, 0, 0, 0.15);
 
   animation:
     subtitleReveal 1.2s ease 0.3s both;
@@ -748,11 +754,13 @@ body {
   }
 
   .campaign-title {
-    margin-top: 20px;
+    margin-top: 10px;
 
-    font-size: 7px;
+    font-size: clamp(16px, 5.2vw, 24px);
 
-    letter-spacing: 0.35em;
+    letter-spacing: 0.07em;
+
+    padding-left: 0.07em;
   }
 
   .shop-button {
@@ -2196,19 +2204,25 @@ img {
 ========================================================= */
 
 .campaign-title {
-  margin-top: 25px;
+  margin-top: 14px;
 
-  font-family: "Inter", sans-serif;
+  font-family: "Space Grotesk", "Inter", sans-serif;
 
-  font-size: clamp(9px, 1vw, 12px);
+  font-size: clamp(24px, 4.5vw, 68px);
 
-  font-weight: 500;
+  font-weight: 700;
 
-  letter-spacing: 0.5em;
+  line-height: 1;
 
-  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.08em;
 
-  padding-left: 0.5em;
+  color: #f5f5f3;
+
+  padding-left: 0.08em;
+
+  text-shadow:
+    0 0 20px rgba(255, 255, 255, 0.04),
+    0 0 40px rgba(130, 0, 0, 0.15);
 
   animation:
     subtitleReveal 1.2s ease 0.3s both;
@@ -2465,9 +2479,10 @@ img {
   }
 
   .campaign-title {
-    margin-top: 20px;
-    font-size: 7px;
-    letter-spacing: 0.35em;
+    margin-top: 10px;
+    font-size: clamp(16px, 5.2vw, 24px);
+    letter-spacing: 0.07em;
+    padding-left: 0.07em;
   }
 
   .shop-button {

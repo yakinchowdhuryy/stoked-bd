@@ -281,37 +281,11 @@ export default function LoginPage() {
         </div>
 
         <div className="spider-field">
-
-          <img
-            src={SPIDER_IMAGE}
-            alt=""
-            className="spider spider-1"
-          />
-
-          <img
-            src={SPIDER_IMAGE}
-            alt=""
-            className="spider spider-2"
-          />
-
-          <img
-            src={SPIDER_IMAGE}
-            alt=""
-            className="spider spider-3"
-          />
-
-          <img
-            src={SPIDER_IMAGE}
-            alt=""
-            className="spider spider-4"
-          />
-
-          <img
-            src={SPIDER_IMAGE}
-            alt=""
-            className="spider spider-5"
-          />
-
+          <img src={SPIDER_IMAGE} alt="" className="spider spider-1" />
+          <img src={SPIDER_IMAGE} alt="" className="spider spider-2" />
+          <img src={SPIDER_IMAGE} alt="" className="spider spider-3" />
+          <img src={SPIDER_IMAGE} alt="" className="spider spider-4" />
+          <img src={SPIDER_IMAGE} alt="" className="spider spider-5" />
         </div>
 
         <div className="background-grid" />
@@ -337,12 +311,8 @@ export default function LoginPage() {
           display: "flex",
           alignItems: "center",
           gap: isMobile ? "8px" : 0,
-          padding: isMobile
-            ? "16px 6vw"
-            : "22px 6vw",
-          minHeight: isMobile
-            ? "64px"
-            : "70px",
+          padding: isMobile ? "16px 6vw" : "22px 6vw",
+          minHeight: isMobile ? "64px" : "70px",
           zIndex: 2147483640,
           pointerEvents: "none",
         }}
@@ -374,17 +344,14 @@ export default function LoginPage() {
             minWidth: 0,
             flexShrink: 1,
             padding: "3px",
-            border:
-              "1px solid rgba(255,255,255,.11)",
+            border: "1px solid rgba(255,255,255,.11)",
             borderRadius: "14px",
             background:
               "linear-gradient(135deg, rgba(255,255,255,.065), rgba(255,255,255,.018))",
             boxShadow:
               "0 12px 35px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05)",
-            backdropFilter:
-              "blur(14px)",
-            WebkitBackdropFilter:
-              "blur(14px)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
             pointerEvents: "auto",
           }}
         >
@@ -396,17 +363,14 @@ export default function LoginPage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color:
-                "rgba(255,255,255,.72)",
+              color: "rgba(255,255,255,.72)",
               textDecoration: "none",
-              fontFamily:
-                '"Space Grotesk", sans-serif',
+              fontFamily: '"Space Grotesk", sans-serif',
               fontSize: navFontSize,
               fontWeight: 600,
               letterSpacing: navLetterSpacing,
               borderRadius: "9px",
-              background:
-                "rgba(255,255,255,.045)",
+              background: "rgba(255,255,255,.045)",
               cursor: "pointer",
               whiteSpace: "nowrap",
             }}
@@ -418,8 +382,7 @@ export default function LoginPage() {
             style={{
               width: "1px",
               height: "18px",
-              background:
-                "rgba(255,255,255,.07)",
+              background: "rgba(255,255,255,.07)",
             }}
           />
 
@@ -435,10 +398,8 @@ export default function LoginPage() {
               border: 0,
               borderRadius: "9px",
               background: "transparent",
-              color:
-                "rgba(255,255,255,.65)",
-              fontFamily:
-                '"Space Grotesk", sans-serif',
+              color: "rgba(255,255,255,.65)",
+              fontFamily: '"Space Grotesk", sans-serif',
               fontSize: navFontSize,
               fontWeight: 500,
               letterSpacing: navLetterSpacing,
@@ -461,8 +422,7 @@ export default function LoginPage() {
                 fontSize: "6px",
                 fontWeight: 600,
                 color: "#fff",
-                background:
-                  "rgba(169,21,37,.8)",
+                background: "rgba(169,21,37,.8)",
               }}
             >
               00
@@ -473,8 +433,7 @@ export default function LoginPage() {
             style={{
               width: "1px",
               height: "18px",
-              background:
-                "rgba(255,255,255,.07)",
+              background: "rgba(255,255,255,.07)",
             }}
           />
 
@@ -488,14 +447,11 @@ export default function LoginPage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color:
-                "rgba(255,255,255,.72)",
-              background:
-                "rgba(255,255,255,.045)",
+              color: "rgba(255,255,255,.72)",
+              background: "rgba(255,255,255,.045)",
               border: 0,
               borderRadius: "9px",
-              fontFamily:
-                '"Space Grotesk", sans-serif',
+              fontFamily: '"Space Grotesk", sans-serif',
               fontSize: navFontSize,
               fontWeight: 600,
               letterSpacing: navLetterSpacing,
@@ -660,27 +616,15 @@ export default function LoginPage() {
                 gap: "10px",
               }}
             >
-              <button
-                type="button"
-                onClick={openInstagram}
-                style={socialButtonStyle}
-              >
+              <button type="button" onClick={openInstagram} style={socialButtonStyle}>
                 INSTAGRAM
               </button>
 
-              <button
-                type="button"
-                onClick={openFacebook}
-                style={socialButtonStyle}
-              >
+              <button type="button" onClick={openFacebook} style={socialButtonStyle}>
                 FACEBOOK
               </button>
 
-              <button
-                type="button"
-                onClick={openTikTok}
-                style={socialButtonStyle}
-              >
+              <button type="button" onClick={openTikTok} style={socialButtonStyle}>
                 TIKTOK
               </button>
             </div>
@@ -693,11 +637,7 @@ export default function LoginPage() {
       ===================================================== */}
 
       <div
-        className={`stoked-menu ${
-          menuOpen
-            ? "stoked-menu-visible"
-            : ""
-        }`}
+        className={`stoked-menu ${menuOpen ? "stoked-menu-visible" : ""}`}
         aria-hidden={!menuOpen}
         onClick={closeMenu}
       >
@@ -706,9 +646,7 @@ export default function LoginPage() {
           className="stoked-menu-backdrop"
           onClick={closeMenu}
           aria-label="Close menu"
-          tabIndex={
-            menuOpen ? 0 : -1
-          }
+          tabIndex={menuOpen ? 0 : -1}
         />
 
         <aside
@@ -716,9 +654,7 @@ export default function LoginPage() {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="stoked-menu-top">
-            <div className="stoked-menu-logo">
-              STOKED
-            </div>
+            <div className="stoked-menu-logo">STOKED</div>
 
             <button
               type="button"
@@ -730,50 +666,30 @@ export default function LoginPage() {
           </div>
 
           <nav className="stoked-menu-links">
-            <button
-              type="button"
-              onClick={goHome}
-            >
+            <button type="button" onClick={goHome}>
               HOME
             </button>
 
-            <button
-              type="button"
-              onClick={goToShop}
-            >
+            <button type="button" onClick={goToShop}>
               SHOP
             </button>
 
-            <button
-              type="button"
-              onClick={goToAccount}
-            >
+            <button type="button" onClick={goToAccount}>
               MY ACCOUNT
             </button>
 
-            <button
-              type="button"
-              onClick={openAbout}
-            >
+            <button type="button" onClick={openAbout}>
               ABOUT
             </button>
 
-            <button
-              type="button"
-              onClick={openContact}
-            >
+            <button type="button" onClick={openContact}>
               CONTACT
             </button>
           </nav>
 
           <div className="stoked-menu-footer">
-            <span>
-              © 2026 STOKED BD
-            </span>
-
-            <span>
-              EST. 2026
-            </span>
+            <span>© 2026 STOKED BD</span>
+            <span>EST. 2026</span>
           </div>
         </aside>
       </div>
@@ -800,9 +716,7 @@ export default function LoginPage() {
               ACCOUNT
             </h1>
 
-            <p className="subtitle">
-              SIGN IN TO CONTINUE
-            </p>
+            <p className="subtitle">SIGN IN TO CONTINUE</p>
           </div>
 
           {/* GOOGLE */}
@@ -812,19 +726,13 @@ export default function LoginPage() {
             onClick={handleGoogleLogin}
             disabled={googleLoading || loading}
           >
-            <span className="google-icon">
-              G
-            </span>
+            <span className="google-icon">G</span>
 
             <span>
-              {googleLoading
-                ? "CONNECTING..."
-                : "CONTINUE WITH GOOGLE"}
+              {googleLoading ? "CONNECTING..." : "CONTINUE WITH GOOGLE"}
             </span>
 
-            <span className="button-arrow">
-              ↗
-            </span>
+            <span className="button-arrow">↗</span>
           </button>
 
           {/* DIVIDER */}
@@ -838,18 +746,14 @@ export default function LoginPage() {
           <form onSubmit={handleLogin}>
             {/* EMAIL */}
             <div className="field">
-              <label htmlFor="email">
-                EMAIL ADDRESS
-              </label>
+              <label htmlFor="email">EMAIL ADDRESS</label>
 
               <input
                 id="email"
                 type="email"
                 placeholder="your@email.com"
                 value={email}
-                onChange={(e) =>
-                  setEmail(e.target.value)
-                }
+                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 disabled={loading || googleLoading}
               />
@@ -857,18 +761,14 @@ export default function LoginPage() {
 
             {/* PASSWORD */}
             <div className="field">
-              <label htmlFor="password">
-                PASSWORD
-              </label>
+              <label htmlFor="password">PASSWORD</label>
 
               <input
                 id="password"
                 type="password"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
+                onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 disabled={loading || googleLoading}
               />
@@ -888,38 +788,23 @@ export default function LoginPage() {
               className="login-button"
               disabled={loading || googleLoading}
             >
-              <span>
-                {loading
-                  ? "AUTHENTICATING..."
-                  : "SIGN IN"}
-              </span>
+              <span>{loading ? "AUTHENTICATING..." : "SIGN IN"}</span>
 
-              <span className="button-arrow">
-                →
-              </span>
+              <span className="button-arrow">→</span>
             </button>
           </form>
 
           {/* SIGN UP */}
           <div className="signup-area">
-            <p>
-              {"DON'T HAVE AN ACCOUNT?"}
-            </p>
+            <p>{"DON'T HAVE AN ACCOUNT?"}</p>
 
-            <Link
-              href="/signup"
-              className="create-account-button"
-            >
+            <Link href="/signup" className="create-account-button">
               <span className="create-account-corner corner-tl" />
               <span className="create-account-corner corner-br" />
 
-              <span className="create-account-text">
-                CREATE ACCOUNT
-              </span>
+              <span className="create-account-text">CREATE ACCOUNT</span>
 
-              <span className="create-account-arrow">
-                ↗
-              </span>
+              <span className="create-account-arrow">↗</span>
             </Link>
           </div>
         </div>
@@ -1072,46 +957,22 @@ export default function LoginPage() {
           transform-origin: center;
         }
 
-        .web-line-1 {
-          transform: rotate(0deg);
-        }
-
-        .web-line-2 {
-          transform: rotate(30deg);
-        }
-
-        .web-line-3 {
-          transform: rotate(60deg);
-        }
-
-        .web-line-4 {
-          transform: rotate(90deg);
-        }
-
-        .web-line-5 {
-          transform: rotate(120deg);
-        }
+        .web-line-1 { transform: rotate(0deg); }
+        .web-line-2 { transform: rotate(30deg); }
+        .web-line-3 { transform: rotate(60deg); }
+        .web-line-4 { transform: rotate(90deg); }
+        .web-line-5 { transform: rotate(120deg); }
 
         .web-ring {
           position: absolute;
-          border:
-            1px solid
-            rgba(255, 255, 255, 0.09);
+          border: 1px solid rgba(255, 255, 255, 0.09);
           border-radius: 50%;
           inset: 25%;
         }
 
-        .web-ring-1 {
-          inset: 17%;
-        }
-
-        .web-ring-2 {
-          inset: 35%;
-        }
-
-        .web-ring-3 {
-          inset: 53%;
-        }
+        .web-ring-1 { inset: 17%; }
+        .web-ring-2 { inset: 35%; }
+        .web-ring-3 { inset: 53%; }
 
         /* =====================================================
            SPIDERS
@@ -1128,80 +989,21 @@ export default function LoginPage() {
           opacity: 0.075;
           filter:
             grayscale(1)
-            drop-shadow(
-              0 0 22px
-              rgba(255, 0, 0, 0.2)
-            );
-          animation:
-            spiderFloat
-            8s
-            ease-in-out
-            infinite;
+            drop-shadow(0 0 22px rgba(255, 0, 0, 0.2));
+          animation: spiderFloat 8s ease-in-out infinite;
         }
 
-        .spider-1 {
-          width: 125px;
-          left: 3%;
-          top: 9%;
-        }
-
-        .spider-2 {
-          width: 90px;
-          right: 6%;
-          top: 17%;
-          opacity: 0.06;
-          animation-delay: -2s;
-        }
-
-        .spider-3 {
-          width: 65px;
-          left: 7%;
-          top: 58%;
-          opacity: 0.045;
-          animation-delay: -4s;
-        }
-
-        .spider-4 {
-          width: 105px;
-          right: 3%;
-          top: 54%;
-          opacity: 0.065;
-          animation-delay: -1s;
-        }
-
-        .spider-5 {
-          width: 75px;
-          left: 43%;
-          bottom: 4%;
-          opacity: 0.045;
-          animation-delay: -5s;
-        }
+        .spider-1 { width: 125px; left: 3%; top: 9%; }
+        .spider-2 { width: 90px; right: 6%; top: 17%; opacity: 0.06; animation-delay: -2s; }
+        .spider-3 { width: 65px; left: 7%; top: 58%; opacity: 0.045; animation-delay: -4s; }
+        .spider-4 { width: 105px; right: 3%; top: 54%; opacity: 0.065; animation-delay: -1s; }
+        .spider-5 { width: 75px; left: 43%; bottom: 4%; opacity: 0.045; animation-delay: -5s; }
 
         @keyframes spiderFloat {
-          0%,
-          100% {
-            transform:
-              translate3d(0, 0, 0)
-              rotate(-2deg);
-          }
-
-          25% {
-            transform:
-              translate3d(8px, 18px, 0)
-              rotate(3deg);
-          }
-
-          50% {
-            transform:
-              translate3d(-8px, -5px, 0)
-              rotate(-4deg);
-          }
-
-          75% {
-            transform:
-              translate3d(5px, 13px, 0)
-              rotate(2deg);
-          }
+          0%, 100% { transform: translate3d(0, 0, 0) rotate(-2deg); }
+          25% { transform: translate3d(8px, 18px, 0) rotate(3deg); }
+          50% { transform: translate3d(-8px, -5px, 0) rotate(-4deg); }
+          75% { transform: translate3d(5px, 13px, 0) rotate(2deg); }
         }
 
         /* =====================================================
@@ -1213,22 +1015,10 @@ export default function LoginPage() {
           inset: 0;
           opacity: 0.18;
           background-image:
-            linear-gradient(
-              rgba(255, 255, 255, 0.025) 1px,
-              transparent 1px
-            ),
-            linear-gradient(
-              90deg,
-              rgba(255, 255, 255, 0.025) 1px,
-              transparent 1px
-            );
+            linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
           background-size: 75px 75px;
-          mask-image:
-            linear-gradient(
-              to bottom,
-              black,
-              transparent 90%
-            );
+          mask-image: linear-gradient(to bottom, black, transparent 90%);
         }
 
         .background-glow {
@@ -1258,9 +1048,7 @@ export default function LoginPage() {
         .red-vignette {
           position: absolute;
           inset: 0;
-          box-shadow:
-            inset 0 0 180px
-            rgba(80, 0, 0, 0.2);
+          box-shadow: inset 0 0 180px rgba(80, 0, 0, 0.2);
         }
 
         .grain {
@@ -1472,21 +1260,10 @@ export default function LoginPage() {
           transition: color 0.35s ease !important;
         }
 
-        .stoked-menu-links button:nth-child(2)::before {
-          content: "02" !important;
-        }
-
-        .stoked-menu-links button:nth-child(3)::before {
-          content: "03" !important;
-        }
-
-        .stoked-menu-links button:nth-child(4)::before {
-          content: "04" !important;
-        }
-
-        .stoked-menu-links button:nth-child(5)::before {
-          content: "05" !important;
-        }
+        .stoked-menu-links button:nth-child(2)::before { content: "02" !important; }
+        .stoked-menu-links button:nth-child(3)::before { content: "03" !important; }
+        .stoked-menu-links button:nth-child(4)::before { content: "04" !important; }
+        .stoked-menu-links button:nth-child(5)::before { content: "05" !important; }
 
         .stoked-menu-links button:hover {
           color: white !important;
@@ -1574,8 +1351,7 @@ export default function LoginPage() {
           width: 100%;
           max-width: 480px;
           padding: 42px;
-          border: 1px solid
-            rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           background:
             linear-gradient(
               145deg,
@@ -1586,8 +1362,7 @@ export default function LoginPage() {
           -webkit-backdrop-filter: blur(18px);
           box-shadow:
             0 30px 100px rgba(0, 0, 0, 0.45),
-            inset 0 1px 0
-              rgba(255, 255, 255, 0.04);
+            inset 0 1px 0 rgba(255, 255, 255, 0.04);
         }
 
         .top-label {
@@ -1605,9 +1380,7 @@ export default function LoginPage() {
           height: 6px;
           border-radius: 50%;
           background: #9a111e;
-          box-shadow:
-            0 0 12px
-              rgba(154, 17, 30, 0.8);
+          box-shadow: 0 0 12px rgba(154, 17, 30, 0.8);
         }
 
         .title-area {
@@ -1640,8 +1413,7 @@ export default function LoginPage() {
         .login-button {
           width: 100%;
           height: 54px;
-          border: 1px solid
-            rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1717,8 +1489,7 @@ export default function LoginPage() {
           height: 52px;
           padding: 0 15px;
           outline: none;
-          border: 1px solid
-            rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           background: rgba(0, 0, 0, 0.35);
           color: #fff;
           font-family: inherit;
@@ -1749,8 +1520,7 @@ export default function LoginPage() {
           gap: 9px;
           margin: 3px 0 15px;
           padding: 11px 13px;
-          border: 1px solid
-            rgba(180, 20, 35, 0.35);
+          border: 1px solid rgba(180, 20, 35, 0.35);
           background: rgba(130, 10, 20, 0.1);
           color: #e58a92;
           font-size: 10px;
@@ -1763,8 +1533,7 @@ export default function LoginPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 1px solid
-            rgba(180, 20, 35, 0.55);
+          border: 1px solid rgba(180, 20, 35, 0.55);
           border-radius: 50%;
           font-size: 9px;
           flex-shrink: 0;
@@ -1793,13 +1562,15 @@ export default function LoginPage() {
 
         /* =====================================================
            SIGN UP / CREATE ACCOUNT
+           NOTE: <Link> is a component, so styled-jsx can't scope
+           classes onto it. We use :global() so the styles (and the
+           WHITE text colour) are actually applied.
         ===================================================== */
 
         .signup-area {
           margin-top: 30px;
           padding-top: 25px;
-          border-top: 1px solid
-            rgba(255, 255, 255, 0.07);
+          border-top: 1px solid rgba(255, 255, 255, 0.07);
           text-align: center;
         }
 
@@ -1810,7 +1581,9 @@ export default function LoginPage() {
           letter-spacing: 0.16em;
         }
 
-        .create-account-button {
+        .signup-area :global(.create-account-button),
+        .signup-area :global(.create-account-button:link),
+        .signup-area :global(.create-account-button:visited) {
           position: relative;
           display: flex;
           align-items: center;
@@ -1819,10 +1592,9 @@ export default function LoginPage() {
           height: 56px;
           overflow: hidden;
           isolation: isolate;
-          text-decoration: none;
-          color: #fff;
-          border: 1px solid
-            rgba(255, 255, 255, 0.14);
+          text-decoration: none !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.14);
           background:
             linear-gradient(
               135deg,
@@ -1832,9 +1604,8 @@ export default function LoginPage() {
             );
           box-shadow:
             0 14px 38px rgba(0, 0, 0, 0.35),
-            inset 0 1px 0
-              rgba(255, 255, 255, 0.06);
-          font-family: inherit;
+            inset 0 1px 0 rgba(255, 255, 255, 0.06);
+          font-family: "Space Grotesk", Inter, Arial, sans-serif;
           font-size: 10px;
           font-weight: 600;
           letter-spacing: 0.22em;
@@ -1845,7 +1616,7 @@ export default function LoginPage() {
             transform 0.35s ease;
         }
 
-        .create-account-button::before {
+        .signup-area :global(.create-account-button)::before {
           content: "";
           position: absolute;
           top: 0;
@@ -1862,14 +1633,13 @@ export default function LoginPage() {
               transparent
             );
           transform: skewX(-18deg);
-          transition: left 0.8s
-            cubic-bezier(0.2, 0.7, 0.2, 1);
+          transition: left 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
         }
 
-        .create-account-button:hover {
+        .signup-area :global(.create-account-button:hover) {
           transform: translateY(-2px);
-          border-color:
-            rgba(255, 48, 48, 0.65);
+          color: #ffffff !important;
+          border-color: rgba(255, 48, 48, 0.65);
           background:
             linear-gradient(
               135deg,
@@ -1880,11 +1650,10 @@ export default function LoginPage() {
           box-shadow:
             0 18px 48px rgba(110, 0, 0, 0.35),
             0 0 28px rgba(255, 30, 30, 0.08),
-            inset 0 1px 0
-              rgba(255, 255, 255, 0.08);
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
         }
 
-        .create-account-button:hover::before {
+        .signup-area :global(.create-account-button:hover)::before {
           left: 135%;
         }
 
@@ -1901,22 +1670,18 @@ export default function LoginPage() {
         .corner-tl {
           top: 6px;
           left: 6px;
-          border-top: 1px solid
-            rgba(255, 40, 40, 0.75);
-          border-left: 1px solid
-            rgba(255, 40, 40, 0.75);
+          border-top: 1px solid rgba(255, 40, 40, 0.75);
+          border-left: 1px solid rgba(255, 40, 40, 0.75);
         }
 
         .corner-br {
           right: 6px;
           bottom: 6px;
-          border-right: 1px solid
-            rgba(255, 40, 40, 0.75);
-          border-bottom: 1px solid
-            rgba(255, 40, 40, 0.75);
+          border-right: 1px solid rgba(255, 40, 40, 0.75);
+          border-bottom: 1px solid rgba(255, 40, 40, 0.75);
         }
 
-        .create-account-button:hover .create-account-corner {
+        .signup-area :global(.create-account-button:hover) .create-account-corner {
           width: 18px;
           height: 18px;
         }
@@ -1924,6 +1689,7 @@ export default function LoginPage() {
         .create-account-text {
           position: relative;
           z-index: 1;
+          color: #ffffff;
         }
 
         .create-account-arrow {
@@ -1935,7 +1701,7 @@ export default function LoginPage() {
           transition: transform 0.35s ease;
         }
 
-        .create-account-button:hover .create-account-arrow {
+        .signup-area :global(.create-account-button:hover) .create-account-arrow {
           transform: translate(3px, -3px);
         }
 
@@ -1951,8 +1717,7 @@ export default function LoginPage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          border-top: 1px solid
-            rgba(255, 255, 255, 0.07);
+          border-top: 1px solid rgba(255, 255, 255, 0.07);
           color: rgba(255, 255, 255, 0.22);
           font-size: 8px;
           letter-spacing: 0.15em;
@@ -2006,54 +1771,19 @@ export default function LoginPage() {
             bottom: -100px;
           }
 
-          .spider-1 {
-            width: 72px;
-            left: -5%;
-            top: 10%;
-          }
-
-          .spider-2 {
-            width: 58px;
-            right: -3%;
-            top: 17%;
-          }
-
-          .spider-3 {
-            width: 45px;
-            left: -2%;
-            top: 48%;
-          }
-
-          .spider-4 {
-            width: 62px;
-            right: -4%;
-            top: 55%;
-          }
-
-          .spider-5 {
-            width: 48px;
-            left: 38%;
-            bottom: 3%;
-          }
+          .spider-1 { width: 72px; left: -5%; top: 10%; }
+          .spider-2 { width: 58px; right: -3%; top: 17%; }
+          .spider-3 { width: 45px; left: -2%; top: 48%; }
+          .spider-4 { width: 62px; right: -4%; top: 55%; }
+          .spider-5 { width: 48px; left: 38%; bottom: 3%; }
         }
 
         @media (max-width: 390px) {
 
-          .spider-1 {
-            left: -12%;
-          }
-
-          .spider-2 {
-            right: -10%;
-          }
-
-          .spider-3 {
-            left: -8%;
-          }
-
-          .spider-4 {
-            right: -10%;
-          }
+          .spider-1 { left: -12%; }
+          .spider-2 { right: -10%; }
+          .spider-3 { left: -8%; }
+          .spider-4 { right: -10%; }
         }
 
       `}</style>

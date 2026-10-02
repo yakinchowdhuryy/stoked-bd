@@ -723,6 +723,7 @@ export default function ProductPage() {
           pointerEvents: "none",
         }}
       >
+        {/* Logo: same as shop page (style comes from global .mini-logo) */}
         <Link
           href="/"
           className="mini-logo"
@@ -731,11 +732,6 @@ export default function ProductPage() {
             pointerEvents: "auto",
             display: "block",
             flexShrink: 0,
-            fontFamily: '"Space Grotesk", sans-serif',
-            fontSize: isMobile ? "12px" : "14px",
-            fontWeight: 700,
-            letterSpacing: isMobile ? "0.12em" : "0.18em",
-            color: "#ffffff",
           }}
         >
           STOKED
@@ -2146,13 +2142,14 @@ export default function ProductPage() {
           animation: detailsReveal 0.8s 0.08s cubic-bezier(0.2, 0.7, 0.2, 1) both;
         }
 
+        /* CATEGORY LABEL (above product name) — bigger */
         .collection-label {
           display: flex;
           align-items: center;
           gap: 10px;
           margin-bottom: 22px;
           color: #ff3030;
-          font-size: 8px;
+          font-size: 9.6px;
           letter-spacing: 0.25em;
           text-transform: uppercase;
         }
@@ -2164,11 +2161,12 @@ export default function ProductPage() {
           box-shadow: 0 0 10px rgba(255, 41, 41, 0.45);
         }
 
+        /* PRODUCT NAME — 20% smaller */
         .product-name {
           max-width: 800px;
           margin: 0 0 18px;
           color: #f5f5f3;
-          font-size: clamp(42px, 5vw, 78px);
+          font-size: clamp(34px, 4vw, 62px);
           line-height: 0.9;
           font-weight: 500;
           letter-spacing: -0.055em;
@@ -2230,13 +2228,13 @@ export default function ProductPage() {
 
         .section-heading {
           color: rgba(255, 255, 255, 0.88);
-          font-size: 8px;
+          font-size: 9.6px;
           letter-spacing: 0.2em;
         }
 
         .selected-size {
           color: #ff3030;
-          font-size: 7px;
+          font-size: 8.4px;
           letter-spacing: 0.15em;
         }
 
@@ -2322,7 +2320,7 @@ export default function ProductPage() {
         .description {
           margin: 12px 0 0;
           color: rgba(255, 255, 255, 0.62);
-          font-size: 12px;
+          font-size: 14.4px;
           line-height: 1.85;
           white-space: pre-line;
         }
@@ -2337,7 +2335,7 @@ export default function ProductPage() {
 
         .measurements {
           color: rgba(255, 255, 255, 0.3);
-          font-size: 7px;
+          font-size: 8.4px;
           letter-spacing: 0.15em;
         }
 
@@ -2366,7 +2364,7 @@ export default function ProductPage() {
         .size-table {
           width: 100%;
           border-collapse: collapse;
-          font-size: 9px;
+          font-size: 10.8px;
         }
 
         .size-table th {
@@ -2402,7 +2400,7 @@ export default function ProductPage() {
           background: rgba(255, 255, 255, 0.035);
           color: #fff;
           font-family: inherit;
-          font-size: 8px;
+          font-size: 9.6px;
           font-weight: 600;
           letter-spacing: 0.25em;
           cursor: not-allowed;
@@ -2453,13 +2451,13 @@ export default function ProductPage() {
         .info-number {
           margin-bottom: 6px;
           color: #ff3030;
-          font-size: 7px;
+          font-size: 8.4px;
           letter-spacing: 0.15em;
         }
 
         .info-label {
           color: rgba(255, 255, 255, 0.42);
-          font-size: 7px;
+          font-size: 8.4px;
           letter-spacing: 0.13em;
         }
 
@@ -2530,7 +2528,7 @@ export default function ProductPage() {
             padding-top: 0;
           }
           .product-name {
-            font-size: clamp(42px, 8vw, 70px);
+            font-size: clamp(34px, 6.4vw, 56px);
           }
           .gallery-arrow {
             opacity: 1;
@@ -2576,9 +2574,9 @@ export default function ProductPage() {
           .thumbnail-number { left: 6px; bottom: 5px; font-size: 6px; }
           .gallery-meta { font-size: 5px; }
           .details-column { display: flex; flex-direction: column; padding: 0; }
-          .collection-label { margin-bottom: 14px; font-size: 7px; }
+          .collection-label { margin-bottom: 14px; font-size: 8.4px; }
           .collection-label > span:first-child { width: 18px; }
-          .product-name { margin: 0 0 16px; font-size: clamp(36px, 11vw, 54px); line-height: 0.92; }
+          .product-name { margin: 0 0 16px; font-size: clamp(29px, 8.8vw, 43px); line-height: 0.92; }
           .name-line { margin-bottom: 23px; }
           .price-section { margin-bottom: 25px; }
           .price { font-size: 22px; }
@@ -2587,7 +2585,7 @@ export default function ProductPage() {
           .size-button { height: 54px; }
           .details-divider { margin-bottom: 25px; }
           .description-section { margin-bottom: 30px; }
-          .description { font-size: 11px; line-height: 1.8; }
+          .description { font-size: 13.2px; line-height: 1.8; }
           .size-chart-section { margin-bottom: 28px; padding-top: 23px; }
           .add-to-bag { height: 59px; }
           .info-grid { margin-top: 22px; }
@@ -2606,8 +2604,8 @@ export default function ProductPage() {
           .thumbnail { flex-basis: 52px; width: 52px; height: 52px; }
           .sizes-grid { gap: 6px; }
           .size-button { font-size: 10px; }
-          .collection-label { font-size: 6px; }
-          .product-name { font-size: 34px; }
+          .collection-label { font-size: 7.2px; }
+          .product-name { font-size: 27px; }
           .spider-1 { left: -12%; }
           .spider-2 { right: -10%; }
           .spider-3 { left: -8%; }

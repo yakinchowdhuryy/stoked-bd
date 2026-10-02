@@ -3,13 +3,16 @@
 import Link from "next/link";
 import {
   useEffect,
+  useLayoutEffect,
   useState,
+  useRef,
   type MouseEvent,
   type CSSProperties,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { getPricing, isSaleName } from "@/lib/sale";
+import SpiderLoader from "@/app/components/SpiderLoader";
 
 type Product = {
   id: string;
@@ -67,31 +70,45 @@ const socialButtonStyle: CSSProperties = {
   cursor: "pointer",
 };
 
+let _cachedProducts: Product[] = [];
+let _productsLoaded = false;
+
+let _cachedCategories: Category[] = [ALL_CATEGORY];
+let _categoriesLoaded = false;
+let _isMobile = false;
+
+function resolveSelectedCategory(slug: string, cats: Category[]): string {
+  if (!slug) return ALL;
+  const found = cats.find((c) => c.slug === slug);
+  return found ? found.name : "";
+}
+
 export default function ShopView() {
   const router = useRouter();
   const pathname = usePathname();
+  const productScrollRef = useRef<HTMLDivElement>(null);
 
-  /* /shop => "" , /shop/sale => "sale" */
   const slug = (pathname || "").split("/").filter(Boolean)[1] || "";
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [productsLoading, setProductsLoading] = useState(true);
-  const [categories, setCategories] = useState<Category[]>([ALL_CATEGORY]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState(
-    slug ? "" : ALL
+  const [products, setProducts] = useState<Product[]>(_cachedProducts);
+  const [productsLoading, setProductsLoading] = useState(!_productsLoaded);
+
+  const [categories, setCategories] = useState<Category[]>(_cachedCategories);
+  const [categoriesLoading, setCategoriesLoading] = useState(!_categoriesLoaded);
+
+  const [selectedCategory, setSelectedCategory] = useState(() =>
+    resolveSelectedCategory(slug, _cachedCategories)
   );
+
   const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
   const [categoryMinPrice, setCategoryMinPrice] = useState(0);
   const [categoryMaxPrice, setCategoryMaxPrice] = useState(5000);
   const [maxPrice, setMaxPrice] = useState(5000);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(_isMobile);
   const [currentPage, setCurrentPage] = useState(1);
   const [menuOpen, setMenuOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
-
-  /* ================= CATEGORY MATCH ================= */
 
   const selectedCategoryId = categories.find(
     (category) => category.name === selectedCategory
@@ -111,8 +128,6 @@ export default function ShopView() {
 
     return names.length > 0 ? names.join(" / ") : product.category;
   }
-
-  /* ================= MENU HANDLERS ================= */
 
   const stop = (e?: MouseEvent) => {
     e?.preventDefault();
@@ -165,8 +180,6 @@ export default function ShopView() {
     setMenuOpen(false);
   };
 
-  /* ================= SOCIAL ================= */
-
   const openLink = (url: string) => (e?: MouseEvent) => {
     stop(e);
 
@@ -188,14 +201,12 @@ export default function ShopView() {
   );
   const openTikTok = openLink("https://www.tiktok.com/@stoked.bd");
 
-  /* ================= LOAD PRODUCTS ================= */
-
   useEffect(() => {
+    if (_productsLoaded) return;
+
     let mounted = true;
 
     async function loadProducts() {
-      // NOTE: status filter ta ekhane remove kora hoyeche,
-      // jate UNAVAILABLE product o shop e dekhay (STOCKED OUT hishebe).
       const { data, error } = await supabase
         .from("products")
         .select(`
@@ -248,12 +259,13 @@ export default function ShopView() {
           id: product.id,
           name: product.name,
           category: category?.name || "NO COLLECTION",
-          categoryIds: Array.isArray(product.category_ids) &&
+          categoryIds:
+            Array.isArray(product.category_ids) &&
             product.category_ids.length > 0
-            ? product.category_ids
-            : product.category_id
-            ? [product.category_id]
-            : [],
+              ? product.category_ids
+              : product.category_id
+              ? [product.category_id]
+              : [],
           ...pricing,
           image: images[0]?.image_url || "",
           soldOut:
@@ -263,9 +275,10 @@ export default function ShopView() {
         };
       });
 
-      // available gulo age, stocked out gulo sobar niche
-      // (sort stable, tai newest-first order ta ager moto thakbe)
       formatted.sort((a, b) => Number(a.soldOut) - Number(b.soldOut));
+
+      _cachedProducts = formatted;
+      _productsLoaded = true;
 
       setProducts(formatted);
       setProductsLoading(false);
@@ -278,10 +291,33 @@ export default function ShopView() {
     };
   }, []);
 
-  /* ================= LOAD CATEGORIES ================= */
-
   useEffect(() => {
     let mounted = true;
+
+    function applySlug(list: Category[]) {
+      if (!slug) {
+        setSelectedCategory(ALL);
+      } else {
+        const current = list.find(
+          (category) => category.id !== "all" && category.slug === slug
+        );
+
+        if (current) {
+          setSelectedCategory(current.name);
+        } else {
+          router.replace("/shop");
+        }
+      }
+
+      setCurrentPage(1);
+    }
+
+    if (_categoriesLoaded) {
+      setCategories(_cachedCategories);
+      setCategoriesLoading(false);
+      applySlug(_cachedCategories);
+      return;
+    }
 
     async function loadCategories() {
       const { data, error } = await supabase
@@ -313,21 +349,13 @@ export default function ShopView() {
             : 5000,
         }));
 
-      setCategories([ALL_CATEGORY, ...list]);
+      const fullList = [ALL_CATEGORY, ...list];
 
-      if (!slug) {
-        setSelectedCategory(ALL);
-      } else {
-        const current = list.find((category) => category.slug === slug);
+      _cachedCategories = fullList;
+      _categoriesLoaded = true;
 
-        if (current) {
-          setSelectedCategory(current.name);
-        } else {
-          router.replace("/shop");
-        }
-      }
-
-      setCurrentPage(1);
+      setCategories(fullList);
+      applySlug(fullList);
       setCategoriesLoading(false);
     }
 
@@ -337,8 +365,6 @@ export default function ShopView() {
       mounted = false;
     };
   }, [slug, router]);
-
-  /* ================= PRICE RANGE ================= */
 
   useEffect(() => {
     if (productsLoading) return;
@@ -372,18 +398,18 @@ export default function ShopView() {
     setCurrentPage(1);
   }, [products, productsLoading, selectedCategory, categories]);
 
-  /* ================= MOBILE CHECK ================= */
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth <= 768);
+  useLayoutEffect(() => {
+    const check = () => {
+      const next = window.innerWidth <= 768;
+      _isMobile = next;
+      setIsMobile(next);
+    };
 
     check();
     window.addEventListener("resize", check);
 
     return () => window.removeEventListener("resize", check);
   }, []);
-
-  /* ================= FILTER + PAGINATION ================= */
 
   const filteredProducts = products.filter((product) => {
     const categoryMatch = matchesSelected(product);
@@ -411,15 +437,18 @@ export default function ShopView() {
     startIndex + PRODUCTS_PER_PAGE
   );
 
-  const categoryLabel = selectedCategory === ALL ? "ALL CATEGORY" : selectedCategory;
-
-  /* ================= ACTIONS ================= */
+  const categoryLabel =
+    selectedCategory === ALL ? "ALL CATEGORY" : selectedCategory;
 
   const selectCategory = (category: Category) => {
+    if (category.name === selectedCategory) {
+      setMobileCategoryOpen(false);
+      return;
+    }
+
+    setMobileCategoryOpen(false);
     setSelectedCategory(category.name);
     setCurrentPage(1);
-    setMobileCategoryOpen(false);
-
     router.push(category.id === "all" ? "/shop" : `/shop/${category.slug}`);
   };
 
@@ -427,7 +456,17 @@ export default function ShopView() {
     if (page < 1 || page > totalPages) return;
 
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    if (productScrollRef.current) {
+      productScrollRef.current.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
   const sliderValue = Math.min(
@@ -436,8 +475,6 @@ export default function ShopView() {
   );
 
   const sliderDisabled = categoryMinPrice === categoryMaxPrice;
-
-  /* ================= RENDER ================= */
 
   return (
     <main
@@ -450,7 +487,7 @@ export default function ShopView() {
         color: "#f5f5f3",
       }}
     >
-      {/* BACKGROUND */}
+      {productsLoading && <SpiderLoader label="ENTERING COLLECTION" />}
 
       <div
         style={{
@@ -489,8 +526,6 @@ export default function ShopView() {
       </div>
 
       <div style={{ position: "relative", zIndex: 5 }}>
-        {/* HEADER */}
-
         <header
           style={{
             position: "absolute",
@@ -646,10 +681,9 @@ export default function ShopView() {
           </div>
         </header>
 
-        {/* ================= DESKTOP ================= */}
-
         {!isMobile && (
           <section
+            className="shop-desktop"
             style={{
               height: "calc(100vh - 92px)",
               minHeight: "650px",
@@ -661,8 +695,6 @@ export default function ShopView() {
               boxSizing: "border-box",
             }}
           >
-            {/* LEFT FILTER */}
-
             <aside
               style={{
                 position: "relative",
@@ -708,7 +740,7 @@ export default function ShopView() {
                 <span
                   style={{
                     fontFamily: FONT,
-                    fontSize: "13px",
+                    fontSize: "14px",
                     fontWeight: 600,
                     letterSpacing: ".23em",
                     color: "rgba(255,255,255,.9)",
@@ -720,18 +752,16 @@ export default function ShopView() {
                 <span
                   style={{
                     fontFamily: FONT,
-                    fontSize: "8px",
+                    fontSize: "10px",
                     fontWeight: 500,
                     letterSpacing: ".16em",
-                    color: "rgba(255,255,255,.38)",
+                    color: "rgba(255,255,255,.45)",
                     whiteSpace: "nowrap",
                   }}
                 >
                   {categoryLabel || "CATEGORY"}
                 </span>
               </div>
-
-              {/* PRICE RANGE */}
 
               <div style={{ marginBottom: "45px" }}>
                 <div
@@ -745,9 +775,10 @@ export default function ShopView() {
                   <span
                     style={{
                       fontFamily: FONT,
-                      fontSize: "9px",
+                      fontSize: "12px",
+                      fontWeight: 600,
                       letterSpacing: ".2em",
-                      color: "rgba(255,255,255,.48)",
+                      color: "rgba(255,255,255,.6)",
                     }}
                   >
                     PRICE RANGE
@@ -756,8 +787,9 @@ export default function ShopView() {
                   <span
                     style={{
                       fontFamily: FONT,
-                      fontSize: "11px",
-                      color: "rgba(255,255,255,.78)",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      color: "rgba(255,255,255,.9)",
                     }}
                   >
                     ৳ {categoryMinPrice.toLocaleString()} — ৳{" "}
@@ -787,9 +819,9 @@ export default function ShopView() {
                     justifyContent: "space-between",
                     marginTop: "10px",
                     fontFamily: FONT,
-                    fontSize: "7px",
+                    fontSize: "10px",
                     letterSpacing: ".14em",
-                    color: "rgba(255,255,255,.24)",
+                    color: "rgba(255,255,255,.38)",
                   }}
                 >
                   <span>৳ {categoryMinPrice.toLocaleString()}</span>
@@ -797,16 +829,15 @@ export default function ShopView() {
                 </div>
               </div>
 
-              {/* CATEGORIES */}
-
               <div>
-                <div style={{ marginBottom: "15px" }}>
+                <div style={{ marginBottom: "16px" }}>
                   <span
                     style={{
                       fontFamily: FONT,
-                      fontSize: "10px",
+                      fontSize: "12px",
+                      fontWeight: 600,
                       letterSpacing: ".2em",
-                      color: "rgba(255,255,255,.48)",
+                      color: "rgba(255,255,255,.6)",
                     }}
                   >
                     CATEGORIES
@@ -819,7 +850,7 @@ export default function ShopView() {
                       style={{
                         color: "rgba(255,255,255,.25)",
                         fontFamily: FONT,
-                        fontSize: "9px",
+                        fontSize: "11px",
                         letterSpacing: ".16em",
                         padding: "15px 0",
                       }}
@@ -839,7 +870,7 @@ export default function ShopView() {
                           style={{
                             position: "relative",
                             width: "100%",
-                            height: "46px",
+                            height: "48px",
                             padding: "0 0 0 18px",
                             border: 0,
                             background: "transparent",
@@ -849,12 +880,12 @@ export default function ShopView() {
                                 : "rgba(255,74,74,.7)"
                               : active
                               ? "rgba(255,255,255,.95)"
-                              : "rgba(255,255,255,.43)",
+                              : "rgba(255,255,255,.45)",
                             textAlign: "left",
                             fontFamily: FONT,
-                            fontSize: "13px",
+                            fontSize: "15px",
                             fontWeight: active ? 600 : 500,
-                            letterSpacing: ".15em",
+                            letterSpacing: ".12em",
                             cursor: "pointer",
                             transition:
                               "color .25s ease, padding-left .25s ease",
@@ -879,11 +910,11 @@ export default function ShopView() {
                           <span
                             style={{
                               display: "inline-block",
-                              width: "31px",
-                              fontSize: "8px",
+                              width: "32px",
+                              fontSize: "10px",
                               color: active
-                                ? "rgba(255,255,255,.38)"
-                                : "rgba(255,255,255,.17)",
+                                ? "rgba(255,255,255,.45)"
+                                : "rgba(255,255,255,.25)",
                             }}
                           >
                             {String(index + 1).padStart(2, "0")}
@@ -898,9 +929,8 @@ export default function ShopView() {
               </div>
             </aside>
 
-            {/* PRODUCT SECTION */}
-
             <div
+              ref={productScrollRef}
               className="stoked-product-scroll"
               style={{
                 minWidth: 0,
@@ -908,6 +938,7 @@ export default function ShopView() {
                 overflowY: "auto",
                 overflowX: "hidden",
                 paddingRight: "8px",
+                scrollBehavior: "smooth",
                 scrollbarWidth: "thin",
                 scrollbarColor: "#a91525 rgba(255,255,255,.04)",
               }}
@@ -986,7 +1017,209 @@ export default function ShopView() {
                   paddingBottom: "45px",
                 }}
               >
-                {productsLoading ? (
+                {paginatedProducts.map((product, index) => (
+                  <Link
+                    href={`/product/${product.id}`}
+                    key={product.id}
+                    className="product-card-animated"
+                    style={{
+                      color: "inherit",
+                      textDecoration: "none",
+                      display: "flex",
+                      flexDirection: "column",
+                      minWidth: 0,
+                      animationDelay: `${(index % 12) * 0.045}s`,
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: "relative",
+                        width: "100%",
+                        aspectRatio: "4 / 5",
+                        overflow: "hidden",
+                        background: CARD_BG,
+                        border: "1px solid rgba(255,255,255,.07)",
+                      }}
+                    >
+                      {product.image ? (
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            position: "relative",
+                            zIndex: 2,
+                            filter: product.soldOut
+                              ? "grayscale(100%)"
+                              : "none",
+                            opacity: product.soldOut ? 0.45 : 1,
+                          }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "clamp(35px, 5vw, 75px)",
+                              fontWeight: 600,
+                              letterSpacing: "-.07em",
+                              opacity: 0.12,
+                            }}
+                          >
+                            STOKED
+                          </span>
+                        </div>
+                      )}
+
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: "18px",
+                          left: "18px",
+                          zIndex: 4,
+                          fontSize: "9px",
+                          letterSpacing: ".15em",
+                          opacity: 0.5,
+                        }}
+                      >
+                        {String(startIndex + index + 1).padStart(2, "0")}
+                      </span>
+
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: "18px",
+                          right: "18px",
+                          zIndex: 4,
+                          fontSize: "8px",
+                          letterSpacing: ".15em",
+                          opacity: 0.45,
+                        }}
+                      >
+                        {product.soldOut ? "STOCKED OUT" : "AVAILABLE"}
+                      </span>
+
+                      {product.soldOut && (
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            zIndex: 5,
+                            padding: "10px 22px",
+                            background: "rgba(8,3,3,.85)",
+                            border: "1px solid rgba(169,21,37,.9)",
+                            color: "#ff4a4a",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            letterSpacing: ".25em",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          STOCKED OUT
+                        </span>
+                      )}
+
+                      {product.onSale && !product.soldOut && (
+                        <span
+                          style={{
+                            position: "absolute",
+                            bottom: "18px",
+                            left: "18px",
+                            zIndex: 4,
+                            padding: "6px 10px",
+                            background: "#a91525",
+                            color: "#fff",
+                            fontSize: "9px",
+                            fontWeight: 600,
+                            letterSpacing: ".15em",
+                          }}
+                        >
+                          -{product.discountPercent}%
+                        </span>
+                      )}
+
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: "18px",
+                          right: "18px",
+                          zIndex: 4,
+                          width: "45px",
+                          height: "45px",
+                          borderRadius: "50%",
+                          border: "1px solid rgba(255,255,255,.18)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "16px",
+                          background: "rgba(0,0,0,.18)",
+                        }}
+                      >
+                        ↗
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        paddingTop: "16px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: "20px",
+                      }}
+                    >
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <h2
+                          style={{
+                            margin: 0,
+                            fontSize: "clamp(13px, 1.4vw, 17px)",
+                            fontWeight: 500,
+                            letterSpacing: "-.02em",
+                            overflow: "hidden",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            lineHeight: 1.3,
+                            minHeight: "2.6em",
+                          }}
+                        >
+                          {product.name}
+                        </h2>
+
+                        <p
+                          style={{
+                            margin: "7px 0 0",
+                            fontSize: "8px",
+                            letterSpacing: ".14em",
+                            opacity: 0.4,
+                          }}
+                        >
+                          {categoryText(product)}
+                        </p>
+                      </div>
+
+                      <Price
+                        price={product.price}
+                        salePrice={product.salePrice}
+                        size={13}
+                        align="right"
+                      />
+                    </div>
+                  </Link>
+                ))}
+
+                {!productsLoading && filteredProducts.length === 0 && (
                   <div
                     style={{
                       gridColumn: "1 / -1",
@@ -1003,233 +1236,9 @@ export default function ShopView() {
                         opacity: 0.4,
                       }}
                     >
-                      LOADING COLLECTION...
+                      NO PIECES FOUND
                     </p>
                   </div>
-                ) : (
-                  <>
-                    {paginatedProducts.map((product, index) => (
-                      <Link
-                        href={`/product/${product.id}`}
-                        key={product.id}
-                        style={{
-                          color: "inherit",
-                          textDecoration: "none",
-                          display: "flex",
-                          flexDirection: "column",
-                          minWidth: 0,
-                        }}
-                      >
-                        <div
-                          style={{
-                            position: "relative",
-                            width: "100%",
-                            aspectRatio: "4 / 5",
-                            overflow: "hidden",
-                            background: CARD_BG,
-                            border: "1px solid rgba(255,255,255,.07)",
-                          }}
-                        >
-                          {product.image ? (
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                                position: "relative",
-                                zIndex: 2,
-                                filter: product.soldOut
-                                  ? "grayscale(100%)"
-                                  : "none",
-                                opacity: product.soldOut ? 0.45 : 1,
-                              }}
-                            />
-                          ) : (
-                            <div
-                              style={{
-                                position: "absolute",
-                                inset: 0,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  fontSize: "clamp(35px, 5vw, 75px)",
-                                  fontWeight: 600,
-                                  letterSpacing: "-.07em",
-                                  opacity: 0.12,
-                                }}
-                              >
-                                STOKED
-                              </span>
-                            </div>
-                          )}
-
-                          <span
-                            style={{
-                              position: "absolute",
-                              top: "18px",
-                              left: "18px",
-                              zIndex: 4,
-                              fontSize: "9px",
-                              letterSpacing: ".15em",
-                              opacity: 0.5,
-                            }}
-                          >
-                            {String(startIndex + index + 1).padStart(2, "0")}
-                          </span>
-
-                          <span
-                            style={{
-                              position: "absolute",
-                              top: "18px",
-                              right: "18px",
-                              zIndex: 4,
-                              fontSize: "8px",
-                              letterSpacing: ".15em",
-                              opacity: 0.45,
-                            }}
-                          >
-                            {product.soldOut ? "STOCKED OUT" : "AVAILABLE"}
-                          </span>
-
-                          {product.soldOut && (
-                            <span
-                              style={{
-                                position: "absolute",
-                                top: "50%",
-                                left: "50%",
-                                transform: "translate(-50%, -50%)",
-                                zIndex: 5,
-                                padding: "10px 22px",
-                                background: "rgba(8,3,3,.85)",
-                                border: "1px solid rgba(169,21,37,.9)",
-                                color: "#ff4a4a",
-                                fontSize: "12px",
-                                fontWeight: 600,
-                                letterSpacing: ".25em",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              STOCKED OUT
-                            </span>
-                          )}
-
-                          {product.onSale && !product.soldOut && (
-                            <span
-                              style={{
-                                position: "absolute",
-                                bottom: "18px",
-                                left: "18px",
-                                zIndex: 4,
-                                padding: "6px 10px",
-                                background: "#a91525",
-                                color: "#fff",
-                                fontSize: "9px",
-                                fontWeight: 600,
-                                letterSpacing: ".15em",
-                              }}
-                            >
-                              -{product.discountPercent}%
-                            </span>
-                          )}
-
-                          <div
-                            style={{
-                              position: "absolute",
-                              bottom: "18px",
-                              right: "18px",
-                              zIndex: 4,
-                              width: "45px",
-                              height: "45px",
-                              borderRadius: "50%",
-                              border: "1px solid rgba(255,255,255,.18)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "16px",
-                              background: "rgba(0,0,0,.18)",
-                            }}
-                          >
-                            ↗
-                          </div>
-                        </div>
-
-                        <div
-                          style={{
-                            paddingTop: "16px",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                            gap: "20px",
-                          }}
-                        >
-                          <div style={{ minWidth: 0, flex: 1 }}>
-                            <h2
-                              style={{
-                                margin: 0,
-                                fontSize: "clamp(13px, 1.4vw, 17px)",
-                                fontWeight: 500,
-                                letterSpacing: "-.02em",
-                                overflow: "hidden",
-                                display: "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
-                                lineHeight: 1.3,
-                                minHeight: "2.6em",
-                              }}
-                            >
-                              {product.name}
-                            </h2>
-
-                            <p
-                              style={{
-                                margin: "7px 0 0",
-                                fontSize: "8px",
-                                letterSpacing: ".14em",
-                                opacity: 0.4,
-                              }}
-                            >
-                              {categoryText(product)}
-                            </p>
-                          </div>
-
-                          <Price
-                            price={product.price}
-                            salePrice={product.salePrice}
-                            size={13}
-                            align="right"
-                          />
-                        </div>
-                      </Link>
-                    ))}
-
-                    {filteredProducts.length === 0 && (
-                      <div
-                        style={{
-                          gridColumn: "1 / -1",
-                          padding: "120px 0",
-                          textAlign: "center",
-                        }}
-                      >
-                        <p
-                          style={{
-                            margin: 0,
-                            fontFamily: FONT,
-                            fontSize: "10px",
-                            letterSpacing: ".2em",
-                            opacity: 0.4,
-                          }}
-                        >
-                          NO PIECES FOUND
-                        </p>
-                      </div>
-                    )}
-                  </>
                 )}
               </div>
 
@@ -1244,10 +1253,8 @@ export default function ShopView() {
           </section>
         )}
 
-        {/* ================= MOBILE ================= */}
-
         {isMobile && (
-          <section style={{ padding: "94px 6vw 0" }}>
+          <section className="shop-mobile" style={{ padding: "94px 6vw 0" }}>
             <div style={{ marginBottom: "30px" }}>
               <div
                 style={{
@@ -1450,7 +1457,135 @@ export default function ShopView() {
                 paddingBottom: "45px",
               }}
             >
-              {productsLoading ? (
+              {paginatedProducts.map((product, index) => (
+                <Link
+                  key={product.id}
+                  href={`/product/${product.id}`}
+                  className="product-card-animated"
+                  style={{
+                    color: "inherit",
+                    textDecoration: "none",
+                    minWidth: 0,
+                    animationDelay: `${(index % 12) * 0.045}s`,
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "relative",
+                      width: "100%",
+                      aspectRatio: "4 / 5",
+                      overflow: "hidden",
+                      background: CARD_BG,
+                      border: "1px solid rgba(255,255,255,.07)",
+                    }}
+                  >
+                    {product.image ? (
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          filter: product.soldOut
+                            ? "grayscale(100%)"
+                            : "none",
+                          opacity: product.soldOut ? 0.45 : 1,
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        STOKED
+                      </div>
+                    )}
+
+                    {product.soldOut && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: "50%",
+                          left: "50%",
+                          transform: "translate(-50%, -50%)",
+                          zIndex: 5,
+                          padding: "7px 12px",
+                          background: "rgba(8,3,3,.85)",
+                          border: "1px solid rgba(169,21,37,.9)",
+                          color: "#ff4a4a",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          letterSpacing: ".18em",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        STOCKED OUT
+                      </span>
+                    )}
+
+                    {product.onSale && !product.soldOut && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          bottom: "8px",
+                          left: "8px",
+                          padding: "4px 8px",
+                          background: "#a91525",
+                          color: "#fff",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        -{product.discountPercent}%
+                      </span>
+                    )}
+                  </div>
+
+                  <div style={{ paddingTop: "12px" }}>
+                    <h2
+                      style={{
+                        margin: 0,
+                        fontSize: "17px",
+                        fontWeight: 500,
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        lineHeight: 1.3,
+                        minHeight: "2.6em",
+                      }}
+                    >
+                      {product.name}
+                    </h2>
+
+                    <p
+                      style={{
+                        margin: "6px 0 0",
+                        fontSize: "12px",
+                        opacity: 0.4,
+                      }}
+                    >
+                      {categoryText(product)}
+                    </p>
+
+                    <div style={{ marginTop: "8px" }}>
+                      <Price
+                        price={product.price}
+                        salePrice={product.salePrice}
+                        size={15}
+                      />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+
+              {!productsLoading && filteredProducts.length === 0 && (
                 <div
                   style={{
                     gridColumn: "1 / -1",
@@ -1458,148 +1593,8 @@ export default function ShopView() {
                     textAlign: "center",
                   }}
                 >
-                  LOADING COLLECTION...
+                  NO PIECES FOUND
                 </div>
-              ) : (
-                <>
-                  {paginatedProducts.map((product) => (
-                    <Link
-                      key={product.id}
-                      href={`/product/${product.id}`}
-                      style={{
-                        color: "inherit",
-                        textDecoration: "none",
-                        minWidth: 0,
-                      }}
-                    >
-                      <div
-                        style={{
-                          position: "relative",
-                          width: "100%",
-                          aspectRatio: "4 / 5",
-                          overflow: "hidden",
-                          background: CARD_BG,
-                          border: "1px solid rgba(255,255,255,.07)",
-                        }}
-                      >
-                        {product.image ? (
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              filter: product.soldOut
-                                ? "grayscale(100%)"
-                                : "none",
-                              opacity: product.soldOut ? 0.45 : 1,
-                            }}
-                          />
-                        ) : (
-                          <div
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            STOKED
-                          </div>
-                        )}
-
-                        {product.soldOut && (
-                          <span
-                            style={{
-                              position: "absolute",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                              zIndex: 5,
-                              padding: "7px 12px",
-                              background: "rgba(8,3,3,.85)",
-                              border: "1px solid rgba(169,21,37,.9)",
-                              color: "#ff4a4a",
-                              fontSize: "10px",
-                              fontWeight: 600,
-                              letterSpacing: ".18em",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            STOCKED OUT
-                          </span>
-                        )}
-
-                        {product.onSale && !product.soldOut && (
-                          <span
-                            style={{
-                              position: "absolute",
-                              bottom: "8px",
-                              left: "8px",
-                              padding: "4px 8px",
-                              background: "#a91525",
-                              color: "#fff",
-                              fontSize: "10px",
-                              fontWeight: 600,
-                            }}
-                          >
-                            -{product.discountPercent}%
-                          </span>
-                        )}
-                      </div>
-
-                      <div style={{ paddingTop: "12px" }}>
-                        <h2
-                          style={{
-                            margin: 0,
-                            fontSize: "17px",
-                            fontWeight: 500,
-                            overflow: "hidden",
-                                display: "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
-                                lineHeight: 1.3,
-                                minHeight: "2.6em",
-                          }}
-                        >
-                          {product.name}
-                        </h2>
-
-                        <p
-                          style={{
-                            margin: "6px 0 0",
-                            fontSize: "12px",
-                            opacity: 0.4,
-                          }}
-                        >
-                          {categoryText(product)}
-                        </p>
-
-                        <div style={{ marginTop: "8px" }}>
-                          <Price
-                            price={product.price}
-                            salePrice={product.salePrice}
-                            size={15}
-                          />
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-
-                  {filteredProducts.length === 0 && (
-                    <div
-                      style={{
-                        gridColumn: "1 / -1",
-                        padding: "80px 0",
-                        textAlign: "center",
-                      }}
-                    >
-                      NO PIECES FOUND
-                    </div>
-                  )}
-                </>
               )}
             </div>
 
@@ -1613,8 +1608,6 @@ export default function ShopView() {
             )}
           </section>
         )}
-
-        {/* FOOTER */}
 
         <footer
           style={{
@@ -1640,8 +1633,6 @@ export default function ShopView() {
           <span>EST. 2026</span>
         </footer>
       </div>
-
-      {/* ABOUT */}
 
       {aboutOpen && (
         <Modal onClose={closeAbout} isMobile={isMobile}>
@@ -1674,8 +1665,6 @@ export default function ShopView() {
           </p>
         </Modal>
       )}
-
-      {/* CONTACT */}
 
       {contactOpen && (
         <Modal onClose={closeContact} isMobile={isMobile}>
@@ -1718,8 +1707,6 @@ export default function ShopView() {
           </div>
         </Modal>
       )}
-
-      {/* MENU */}
 
       <div
         className={`stoked-menu ${menuOpen ? "stoked-menu-visible" : ""}`}
@@ -1779,6 +1766,28 @@ export default function ShopView() {
       </div>
 
       <style jsx global>{`
+        html {
+          scroll-behavior: smooth;
+        }
+
+        @media (max-width: 768px) {
+          .shop-page .shop-desktop {
+            display: none !important;
+          }
+        }
+
+        @media (min-width: 769px) {
+          .shop-page .shop-mobile {
+            display: none !important;
+          }
+        }
+
+        .shop-page .stoked-product-scroll {
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior-y: contain;
+        }
+
         .shop-page .stoked-product-scroll::-webkit-scrollbar {
           width: 5px;
         }
@@ -1792,19 +1801,37 @@ export default function ShopView() {
           background: #a91525;
           border-radius: 999px;
           box-shadow: 0 0 8px rgba(169, 21, 37, 0.35);
+          transition: background 0.3s ease;
         }
 
         .shop-page .stoked-product-scroll::-webkit-scrollbar-thumb:hover {
           background: #c51d32;
         }
+
+        @keyframes productEntrance {
+          0% {
+            opacity: 0;
+            transform: translateY(16px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .product-card-animated {
+          animation: productEntrance 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+          will-change: transform, opacity;
+          transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .product-card-animated:hover {
+          transform: translateY(-3px);
+        }
       `}</style>
     </main>
   );
 }
-
-/* =========================================================
-   PRICE (strike-through old price + red sale price)
-========================================================= */
 
 function Price({
   price,
@@ -1851,10 +1878,6 @@ function Price({
     </span>
   );
 }
-
-/* =========================================================
-   MODAL
-========================================================= */
 
 const closeBtnStyle: CSSProperties = {
   position: "absolute",
@@ -1915,10 +1938,6 @@ function Modal({
   );
 }
 
-/* =========================================================
-   PAGINATION
-========================================================= */
-
 function Pagination({
   currentPage,
   totalPages,
@@ -1955,6 +1974,7 @@ function Pagination({
           background: "rgba(0,0,0,.18)",
           color: currentPage === 1 ? "rgba(255,255,255,.18)" : "#fff",
           cursor: currentPage === 1 ? "default" : "pointer",
+          transition: "all .25s ease",
         }}
       >
         ←
@@ -1979,6 +1999,8 @@ function Pagination({
                 : "rgba(0,0,0,.16)",
               color: active ? "#fff" : "rgba(255,255,255,.42)",
               cursor: "pointer",
+              transition: "all .25s cubic-bezier(0.16, 1, 0.3, 1)",
+              transform: active ? "scale(1.05)" : "scale(1)",
             }}
           >
             {String(page).padStart(2, "0")}
@@ -1998,6 +2020,7 @@ function Pagination({
           color:
             currentPage === totalPages ? "rgba(255,255,255,.18)" : "#fff",
           cursor: currentPage === totalPages ? "default" : "pointer",
+          transition: "all .25s ease",
         }}
       >
         →

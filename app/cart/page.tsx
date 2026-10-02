@@ -275,7 +275,7 @@ export default function CartPage() {
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 9px;
+            font-size: 11.7px;
             letter-spacing: 0.24em;
           }
 
@@ -637,7 +637,7 @@ export default function CartPage() {
                               border: "1px solid rgba(169,21,37,.9)",
                               background: "rgba(169,21,37,.15)",
                               color: "#ff4a4a",
-                              fontSize: "7px",
+                              fontSize: "9.1px",
                               fontWeight: 600,
                               letterSpacing: ".15em",
                               whiteSpace: "nowrap",
@@ -1104,7 +1104,7 @@ export default function CartPage() {
           gap: 11px;
           margin-bottom: 18px;
           color: rgba(245, 245, 243, 0.4);
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: 0.24em;
         }
 
@@ -1173,7 +1173,7 @@ export default function CartPage() {
 
         .bag-item-count {
           color: rgba(245, 245, 243, 0.4);
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: 0.2em;
         }
 
@@ -1182,8 +1182,8 @@ export default function CartPage() {
           display: flex;
           align-items: center;
           gap: 9px;
-          height: 34px;
-          padding: 0 12px;
+          height: 40px;
+          padding: 0 14px;
           overflow: hidden;
           border: 1px solid rgba(255,255,255,.09);
           background:
@@ -1194,7 +1194,7 @@ export default function CartPage() {
             );
           color: rgba(245,245,243,.58);
           font-family: inherit;
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: .16em;
           cursor: pointer;
         }
@@ -1259,7 +1259,7 @@ export default function CartPage() {
         .table-head {
           padding: 0 14px 14px;
           color: rgba(245,245,243,.28);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: .2em;
           border-bottom:
             1px solid
@@ -1351,7 +1351,7 @@ export default function CartPage() {
         .product-category {
           margin-bottom: 7px;
           color: rgba(245,245,243,.27);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: .17em;
         }
 
@@ -1366,22 +1366,22 @@ export default function CartPage() {
             "Space Grotesk",
             Inter,
             sans-serif;
-          font-size: 15px;
+          font-size: 17px;
           font-weight: 500;
         }
 
         .product-size {
           margin-top: 7px;
           color: rgba(245,245,245,.4);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: .15em;
           white-space: nowrap;
         }
 
         .remove-button {
           margin-top: 14px;
-          min-height: 30px;
-          padding: 0 11px;
+          min-height: 34px;
+          padding: 0 13px;
           border:
             1px solid
             rgba(255,255,255,.10);
@@ -1396,7 +1396,7 @@ export default function CartPage() {
             "Space Grotesk",
             Inter,
             sans-serif;
-          font-size: 7px;
+          font-size: 9.1px;
           font-weight: 600;
           letter-spacing: .15em;
           cursor: pointer;
@@ -1414,7 +1414,7 @@ export default function CartPage() {
           content: "×";
           margin-right: 7px;
           color: rgba(255,48,48,.7);
-          font-size: 11px;
+          font-size: 14px;
           vertical-align: -1px;
         }
 
@@ -1433,7 +1433,7 @@ export default function CartPage() {
         .price-cell {
           color: rgba(245,245,243,.75);
           text-align: center;
-          font-size: 10px;
+          font-size: 13px;
         }
 
         .qty-control {
@@ -1467,12 +1467,12 @@ export default function CartPage() {
           flex: 1;
           text-align: center;
           color: #f5f5f3;
-          font-size: 9px;
+          font-size: 11.7px;
         }
 
         .row-index {
           color: rgba(245,245,245,.2);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: .15em;
           text-align: right;
         }
@@ -1516,13 +1516,13 @@ export default function CartPage() {
           border-bottom:
             1px solid
             rgba(255,255,255,.07);
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: .2em;
         }
 
         .summary-status {
           color: rgba(255,60,60,.7);
-          font-size: 7px;
+          font-size: 9.1px;
         }
 
         .summary-content {
@@ -1535,7 +1535,7 @@ export default function CartPage() {
           justify-content: space-between;
           margin-bottom: 16px;
           color: rgba(245,245,243,.42);
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: .16em;
         }
 
@@ -1558,7 +1558,7 @@ export default function CartPage() {
 
         .summary-total span {
           color: rgba(245,245,243,.4);
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: .18em;
         }
 
@@ -1575,7 +1575,7 @@ export default function CartPage() {
         .checkout-button {
           position: relative;
           width: 100%;
-          height: 52px;
+          height: 56px;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -1591,7 +1591,7 @@ export default function CartPage() {
             );
           color: #fff;
           font-family: inherit;
-          font-size: 8px;
+          font-size: 10.4px;
           letter-spacing: .16em;
           cursor: pointer;
         }
@@ -1622,13 +1622,13 @@ export default function CartPage() {
           display: block;
           margin-bottom: 7px;
           color: rgba(255,45,45,.55);
-          font-size: 7px;
+          font-size: 9.1px;
         }
 
         .trust-item p {
           margin: 0;
           color: rgba(245,245,245,.27);
-          font-size: 6px;
+          font-size: 7.8px;
           line-height: 1.5;
           letter-spacing: .12em;
         }
@@ -1661,7 +1661,7 @@ export default function CartPage() {
 
         .empty-kicker {
           color: rgba(255,50,50,.65);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: .22em;
         }
 
@@ -1687,7 +1687,7 @@ export default function CartPage() {
         .empty-content p {
           margin: 0 0 32px;
           color: rgba(245,245,243,.35);
-          font-size: 9px;
+          font-size: 11.7px;
           line-height: 1.8;
           letter-spacing: .08em;
         }
@@ -1721,7 +1721,7 @@ export default function CartPage() {
           position: relative;
           z-index: 5;
           display: inline-flex;
-          padding: 6px 9px;
+          padding: 8px 12px;
           border:
             1px solid
             rgba(255,255,255,.12);
@@ -1734,7 +1734,7 @@ export default function CartPage() {
             "Space Grotesk",
             Inter,
             sans-serif;
-          font-size: 8px;
+          font-size: 10.4px;
           font-weight: 600;
           letter-spacing: .2em;
           color: #fff;
@@ -1868,7 +1868,7 @@ export default function CartPage() {
             1px solid
             rgba(255,255,255,.06);
           color: rgba(245,245,243,.25);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: .18em;
         }
 
@@ -1944,7 +1944,7 @@ export default function CartPage() {
           background: transparent;
           color: rgba(255,255,255,.45);
           font-family: Inter, sans-serif;
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: .16em;
           cursor: pointer;
         }
@@ -1957,7 +1957,7 @@ export default function CartPage() {
 
         .overlay-kicker {
           color: rgba(255,50,50,.65);
-          font-size: 7px;
+          font-size: 9.1px;
           letter-spacing: .22em;
         }
 
@@ -1997,7 +1997,7 @@ export default function CartPage() {
           max-width: 500px;
           margin: 0;
           color: rgba(245,245,243,.48);
-          font-size: 10px;
+          font-size: 13px;
           line-height: 1.9;
           letter-spacing: .04em;
         }
@@ -2007,7 +2007,7 @@ export default function CartPage() {
           left: 55px;
           bottom: 28px;
           color: rgba(255,255,255,.2);
-          font-size: 6px;
+          font-size: 7.8px;
           letter-spacing: .18em;
         }
 
@@ -2020,7 +2020,7 @@ export default function CartPage() {
         .social-list button {
           position: relative;
           width: 100%;
-          min-height: 55px;
+          min-height: 58px;
           padding: 0 17px;
           display: flex;
           align-items: center;
@@ -2033,7 +2033,7 @@ export default function CartPage() {
             "Space Grotesk",
             Inter,
             sans-serif;
-          font-size: 10px;
+          font-size: 13px;
           font-weight: 500;
           letter-spacing: .13em;
           cursor: pointer;
@@ -2362,7 +2362,7 @@ export default function CartPage() {
             grid-template-columns: 1fr 1fr;
             row-gap: 12px;
             padding: 20px 0;
-            font-size: 6px;
+            font-size: 7.8px;
           }
 
           .cart-footer div:nth-child(2) {
@@ -2453,7 +2453,7 @@ export default function CartPage() {
             padding: 2px 0 0;
             text-align: right;
             white-space: nowrap;
-            font-size: 9px;
+            font-size: 11.7px;
           }
 
           .qty-control {
@@ -2475,7 +2475,7 @@ export default function CartPage() {
 
           .remove-button {
             margin-top: 12px;
-            min-height: 28px;
+            min-height: 32px;
           }
         }
 
@@ -2499,7 +2499,7 @@ export default function CartPage() {
           }
 
           .product-name {
-            font-size: 13px;
+            font-size: 15px;
           }
 
           .price-cell {
