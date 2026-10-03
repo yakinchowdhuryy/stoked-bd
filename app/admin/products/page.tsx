@@ -60,6 +60,8 @@ const DEFAULT_SIZES: ProductSize[] = [
 
 const STORAGE_MARKER = "/storage/v1/object/public/product-images/";
 
+const DESCRIPTION_MAX = 2000;
+
 /* Get the storage path from a public image URL */
 function getStoragePath(imageUrl: string): string | null {
   try {
@@ -103,7 +105,7 @@ function getProductCategoryIds(product: Product): string[] {
   return product.category_id ? [product.category_id] : [];
 }
 
-/* Multi category chooser */
+/* Multi category chooser (mobile safe) */
 function CategoryPicker({
   categories,
   selectedIds,
@@ -132,9 +134,12 @@ function CategoryPicker({
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))",
+        gridTemplateColumns:
+          "repeat(auto-fill, minmax(min(100%, 170px), 1fr))",
         gap: "10px",
         marginTop: "12px",
+        width: "100%",
+        boxSizing: "border-box",
       }}
     >
       {categories.map((item) => {
@@ -144,31 +149,59 @@ function CategoryPicker({
           <label
             key={item.id}
             style={{
+              /* force a clean left aligned row: checkbox + name */
               display: "flex",
+              flexDirection: "row",
               alignItems: "center",
-              gap: "10px",
-              padding: "14px 16px",
+              justifyContent: "flex-start",
+              gap: "14px",
+              width: "100%",
+              minWidth: 0,
+              boxSizing: "border-box",
+              padding: "16px 18px",
               cursor: "pointer",
               margin: 0,
+              textAlign: "left",
+              overflow: "hidden",
               border: selected
                 ? "1px solid rgba(255,45,45,0.75)"
                 : "1px solid rgba(255,255,255,0.10)",
               background: selected
                 ? "linear-gradient(145deg, rgba(90,0,0,0.55), rgba(20,5,5,0.9))"
                 : "linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015))",
+              transition: "border-color 0.2s ease, background 0.2s ease",
             }}
           >
             <input
               type="checkbox"
               checked={selected}
               onChange={() => onToggle(item.id)}
+              style={{
+                /* stop global input styles (width:100%) from pushing the name away */
+                flex: "0 0 18px",
+                width: "18px",
+                minWidth: "18px",
+                maxWidth: "18px",
+                height: "18px",
+                margin: 0,
+                padding: 0,
+                accentColor: "#ff2d2d",
+                cursor: "pointer",
+              }}
             />
 
             <span
               style={{
+                flex: "1 1 auto",
+                minWidth: 0,
+                textAlign: "left",
                 fontSize: "11px",
                 letterSpacing: "0.12em",
                 fontWeight: 600,
+                lineHeight: 1.4,
+                color: selected ? "#fff" : "rgba(255,255,255,0.75)",
+                wordBreak: "break-word",
+                overflowWrap: "anywhere",
               }}
             >
               {item.name}
@@ -176,6 +209,141 @@ function CategoryPicker({
           </label>
         );
       })}
+    </div>
+  );
+}
+
+/* Big premium description box */
+function DescriptionBox({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  const [focused, setFocused] = useState(false);
+
+  const length = value.length;
+  const nearLimit = length > DESCRIPTION_MAX * 0.9;
+
+  return (
+    <div style={{ width: "100%", marginTop: "12px" }}>
+      <style>{`
+        .premium-textarea::placeholder {
+          color: rgba(255,255,255,0.28);
+          letter-spacing: 0.08em;
+        }
+        .premium-textarea::-webkit-scrollbar {
+          width: 6px;
+        }
+        .premium-textarea::-webkit-scrollbar-thumb {
+          background: rgba(255,45,45,0.45);
+        }
+        .premium-textarea::-webkit-scrollbar-track {
+          background: transparent;
+        }
+      `}</style>
+
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          boxSizing: "border-box",
+          border: focused
+            ? "1px solid rgba(255,45,45,0.75)"
+            : "1px solid rgba(255,255,255,0.12)",
+          background:
+            "linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015) 55%, rgba(60,0,0,0.25))",
+          boxShadow: focused
+            ? "0 0 0 3px rgba(255,45,45,0.10), 0 18px 50px rgba(0,0,0,0.55)"
+            : "0 12px 40px rgba(0,0,0,0.45)",
+          transition: "border-color 0.25s ease, box-shadow 0.25s ease",
+        }}
+      >
+        {/* red accent line */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: focused ? "100%" : "64px",
+            height: "2px",
+            background: "linear-gradient(90deg, #ff2d2d, rgba(255,45,45,0))",
+            transition: "width 0.4s ease",
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* top bar */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "14px 18px",
+            borderBottom: "1px solid rgba(255,255,255,0.07)",
+            fontSize: "8px",
+            letterSpacing: "0.2em",
+            color: "rgba(255,255,255,0.4)",
+          }}
+        >
+          <span>PRODUCT DETAILS</span>
+
+          <span style={{ color: nearLimit ? "#ff4a4a" : undefined }}>
+            {length} / {DESCRIPTION_MAX}
+          </span>
+        </div>
+
+        <textarea
+          className="premium-textarea"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={placeholder}
+          maxLength={DESCRIPTION_MAX}
+          rows={10}
+          style={{
+            display: "block",
+            width: "100%",
+            minHeight: "300px",
+            boxSizing: "border-box",
+            padding: "20px 18px",
+            border: "none",
+            outline: "none",
+            resize: "vertical",
+            background: "transparent",
+            color: "#fff",
+            caretColor: "#ff2d2d",
+            fontFamily: "inherit",
+            /* 16px stops iPhone Safari from zooming in on focus */
+            fontSize: "16px",
+            lineHeight: 1.85,
+            letterSpacing: "0.02em",
+            textTransform: "none",
+            WebkitAppearance: "none",
+            appearance: "none",
+            borderRadius: 0,
+          }}
+        />
+
+        {/* bottom bar */}
+        <div
+          style={{
+            padding: "12px 18px",
+            borderTop: "1px solid rgba(255,255,255,0.07)",
+            fontSize: "8px",
+            letterSpacing: "0.16em",
+            lineHeight: 1.7,
+            color: "rgba(255,255,255,0.32)",
+          }}
+        >
+          TIP: PRESS ENTER FOR A NEW LINE. DRAG THE CORNER TO MAKE THIS BOX
+          BIGGER.
+        </div>
+      </div>
     </div>
   );
 }
@@ -1415,11 +1583,10 @@ export default function ProductsPage() {
                 >
                   <label>DESCRIPTION</label>
 
-                  <textarea
+                  <DescriptionBox
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="ENTER PRODUCT DESCRIPTION"
-                    rows={4}
+                    onChange={setDescription}
+                    placeholder="Write the product description here. Fabric, fit, feel, care instructions..."
                   />
                 </div>
 
@@ -1788,10 +1955,10 @@ export default function ProductsPage() {
                   >
                     <label>DESCRIPTION</label>
 
-                    <textarea
+                    <DescriptionBox
                       value={editDescription}
-                      onChange={(e) => setEditDescription(e.target.value)}
-                      rows={4}
+                      onChange={setEditDescription}
+                      placeholder="Write the product description here."
                     />
                   </div>
 
