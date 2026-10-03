@@ -51,6 +51,18 @@ type CartItem = {
 
 const CART_KEY = "stoked-cart";
 
+/* S, M, L, XL order (alphabetical order would give L, M, S, XL) */
+const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL"];
+
+function sortSizes(list: ProductSize[]) {
+  return [...list].sort((a, b) => {
+    const ai = SIZE_ORDER.indexOf(a.size);
+    const bi = SIZE_ORDER.indexOf(b.size);
+
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+}
+
 const SPIDER_IMAGE =
   "https://www.pngall.com/wp-content/uploads/13/Spiderman-Logo-No-Background.png";
 
@@ -286,14 +298,13 @@ export default function ProductPage() {
       const { data: sizeData, error: sizeError } = await supabase
         .from("product_sizes")
         .select("id, size, stock")
-        .eq("product_id", productId)
-        .order("size", { ascending: true });
+        .eq("product_id", productId);
 
       if (sizeError) {
         console.error("SIZE LOAD ERROR:", sizeError);
       }
 
-      setSizes(sizeData || []);
+      setSizes(sortSizes((sizeData || []) as ProductSize[]));
 
       const { data: chartData, error: chartError } = await supabase
         .from("size_charts")
@@ -435,6 +446,7 @@ export default function ProductPage() {
           ? selectedSizeData.stock
           : Infinity;
 
+        /* cart e already max stock porjonto ase, ar add kora jabe na */
         if (existingItem.quantity >= stockLimit) {
           setAddedToBag(true);
           setTimeout(() => setAddedToBag(false), 1800);
@@ -637,16 +649,19 @@ export default function ProductPage() {
      DERIVED
   ========================================================= */
 
-  const isStockedOut = product.status !== "AVAILABLE";
+  const hasSizeSelection = sizes.length > 0;
 
   const availableSizes = sizes.filter((size) => size.stock > 0);
 
-  const hasSizeSelection = sizes.length > 0;
+  /* every size is at 0 stock -> whole product is stocked out */
+  const allSizesSoldOut = hasSizeSelection && availableSizes.length === 0;
+
+  const isStockedOut = product.status !== "AVAILABLE" || allSizesSoldOut;
+
+  const selectedSizeData = sizes.find((size) => size.size === selectedSize);
 
   const cannotAddToBag =
-    isStockedOut ||
-    (hasSizeSelection && availableSizes.length === 0) ||
-    (hasSizeSelection && availableSizes.length > 0 && !selectedSize);
+    isStockedOut || (hasSizeSelection && !selectedSize);
 
   const currentImageIndex = Math.max(
     images.findIndex((image) => image.image_url === selectedImage),
@@ -826,7 +841,7 @@ export default function ProductPage() {
                 background: "rgba(169,21,37,.8)",
               }}
             >
-              00
+              {String(cartCount).padStart(2, "0")}
             </span>
           </Link>
 
@@ -1202,6 +1217,7 @@ export default function ProductPage() {
                 {sizes.map((size) => {
                   const available = size.stock > 0 && !isStockedOut;
                   const selected = selectedSize === size.size;
+                  const lowStock = size.stock > 0 && size.stock <= 3;
 
                   return (
                     <button
@@ -1214,13 +1230,47 @@ export default function ProductPage() {
                     >
                       <span>{size.size}</span>
 
-                      {!available && <small>SOLD OUT</small>}
+                      {available ? (
+                        <small className={lowStock ? "size-low" : ""}>
+                          {size.stock} LEFT
+                        </small>
+                      ) : (
+                        <small>SOLD OUT</small>
+                      )}
 
                       {selected && <span className="size-active-line" />}
                     </button>
                   );
                 })}
               </div>
+
+              {/* STOCK LIST: Small: 2 ta ase / Medium: 1 ta ase ... */}
+
+              <div className="stock-list">
+                {sizes.map((size) => (
+                  <div
+                    key={size.id}
+                    className={`stock-row ${
+                      size.stock > 0 ? "" : "stock-row-out"
+                    }`}
+                  >
+                    <span>{size.size}</span>
+
+                    <span>
+                      {size.stock > 0
+                        ? `${size.stock} IN STOCK`
+                        : "STOCK OUT"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {selectedSizeData && selectedSizeData.stock > 0 && (
+                <div className="selected-stock-note">
+                  ONLY {selectedSizeData.stock} LEFT IN SIZE{" "}
+                  {selectedSizeData.size}
+                </div>
+              )}
             </div>
           )}
 
@@ -1295,8 +1345,6 @@ export default function ProductPage() {
           >
             <span>
               {isStockedOut
-                ? "STOCKED OUT"
-                : availableSizes.length === 0 && sizes.length > 0
                 ? "STOCKED OUT"
                 : addedToBag
                 ? "ADDED TO BAG"
@@ -2279,9 +2327,17 @@ export default function ProductPage() {
         .size-button small {
           display: block;
           margin-top: 4px;
-          color: rgba(255, 255, 255, 0.28);
+          color: rgba(255, 255, 255, 0.4);
           font-size: 6px;
           letter-spacing: 0.12em;
+        }
+
+        .size-unavailable small {
+          color: rgba(255, 255, 255, 0.28);
+        }
+
+        .size-button small.size-low {
+          color: #ff4a4a;
         }
 
         .size-active-line {
@@ -2292,6 +2348,45 @@ export default function ProductPage() {
           height: 2px;
           background: #ff2424;
           box-shadow: 0 0 10px rgba(255, 36, 36, 0.8);
+        }
+
+        /* STOCK LIST */
+
+        .stock-list {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 1px;
+          margin-top: 14px;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .stock-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          padding: 11px 13px;
+          background: #090303;
+          color: rgba(255, 255, 255, 0.62);
+          font-size: 8.4px;
+          letter-spacing: 0.14em;
+        }
+
+        .stock-row span:first-child {
+          color: #fff;
+          font-weight: 600;
+        }
+
+        .stock-row-out span {
+          color: #ff4a4a !important;
+        }
+
+        .selected-stock-note {
+          margin-top: 12px;
+          color: #ff3030;
+          font-size: 8.4px;
+          letter-spacing: 0.16em;
         }
 
         /* DIVIDER */
@@ -2583,6 +2678,7 @@ export default function ProductPage() {
           .size-section { margin-bottom: 27px; }
           .sizes-grid { grid-template-columns: repeat(4, 1fr); }
           .size-button { height: 54px; }
+          .stock-row { padding: 10px 11px; font-size: 7.8px; }
           .details-divider { margin-bottom: 25px; }
           .description-section { margin-bottom: 30px; }
           .description { font-size: 13.2px; line-height: 1.8; }

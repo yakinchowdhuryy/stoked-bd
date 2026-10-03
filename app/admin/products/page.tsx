@@ -25,6 +25,11 @@ type ProductImage = {
   sort_order: number;
 };
 
+type ProductSizeRow = {
+  size: string;
+  stock: number;
+};
+
 type Product = {
   id: string;
   name: string;
@@ -38,6 +43,7 @@ type Product = {
   created_at: string;
   category?: Category | null;
   product_images?: ProductImage[];
+  product_sizes?: ProductSizeRow[];
 };
 
 type ProductSize = {
@@ -57,6 +63,8 @@ const DEFAULT_SIZES: ProductSize[] = [
   { size: "L", stock: 0, selected: false },
   { size: "XL", stock: 0, selected: false },
 ];
+
+const SIZE_ORDER = DEFAULT_SIZES.map((item) => item.size);
 
 const STORAGE_MARKER = "/storage/v1/object/public/product-images/";
 
@@ -94,6 +102,25 @@ function validateSalePrice(priceValue: string, salePriceValue: string) {
   }
 
   return "";
+}
+
+/* If every selected size has 0 stock, the whole product becomes UNAVAILABLE */
+function resolveStatus(
+  sizeList: { stock: number; selected: boolean }[],
+  chosenStatus: string
+) {
+  const total = sizeList
+    .filter((item) => item.selected)
+    .reduce((sum, item) => sum + item.stock, 0);
+
+  return total <= 0 ? "UNAVAILABLE" : chosenStatus;
+}
+
+/* Sort sizes S, M, L, XL */
+function sortSizeRows(rows: ProductSizeRow[]) {
+  return [...rows].sort(
+    (a, b) => SIZE_ORDER.indexOf(a.size) - SIZE_ORDER.indexOf(b.size)
+  );
 }
 
 /* All category ids of a product (falls back to the old single category) */
@@ -369,7 +396,9 @@ export default function ProductsPage() {
   const [mainPreview, setMainPreview] = useState("");
   const [morePreviews, setMorePreviews] = useState<string[]>([]);
 
-  const [sizes, setSizes] = useState<ProductSize[]>(DEFAULT_SIZES);
+  const [sizes, setSizes] = useState<ProductSize[]>(
+    DEFAULT_SIZES.map((item) => ({ ...item }))
+  );
 
   const [sizeChartImage, setSizeChartImage] = useState<File | null>(null);
   const [sizeChartPreview, setSizeChartPreview] = useState("");
@@ -453,6 +482,10 @@ export default function ProductsPage() {
           product_id,
           image_url,
           sort_order
+        ),
+        product_sizes (
+          size,
+          stock
         )
       `)
       .order("created_at", { ascending: false });
@@ -477,6 +510,8 @@ export default function ProductsPage() {
         : product.categories || null,
 
       product_images: product.product_images || [],
+
+      product_sizes: product.product_sizes || [],
     }));
 
     setProducts(formattedProducts);
@@ -594,7 +629,7 @@ export default function ProductsPage() {
   }
 
   function updateSizeStock(index: number, value: string) {
-    const stock = Number(value) >= 0 ? Number(value) : 0;
+    const stock = Number(value) >= 0 ? Math.floor(Number(value)) : 0;
 
     setSizes((prev) =>
       prev.map((item, itemIndex) =>
@@ -772,6 +807,7 @@ export default function ProductsPage() {
     try {
       /*
        * CREATE PRODUCT
+       * (status becomes UNAVAILABLE automatically if all stock is 0)
        */
 
       const { data: product, error: productError } = await supabase
@@ -784,7 +820,7 @@ export default function ProductsPage() {
           price: Number(price),
           sale_price: salePrice.trim() === "" ? null : Number(salePrice),
           description: description.trim() || null,
-          status,
+          status: resolveStatus(selectedSizes, status),
         })
         .select()
         .single();
@@ -919,7 +955,7 @@ export default function ProductsPage() {
     setEditMainPreview(sortedImages[0]?.image_url || "");
 
     /*
-     * LOAD SIZES
+     * LOAD SIZES (fresh from DB so orders that changed stock are reflected)
      */
 
     const { data: sizeData, error: sizeError } = await supabase
@@ -1052,7 +1088,7 @@ export default function ProductsPage() {
    */
 
   function updateEditSizeStock(index: number, value: string) {
-    const stock = Number(value) >= 0 ? Number(value) : 0;
+    const stock = Number(value) >= 0 ? Math.floor(Number(value)) : 0;
 
     setEditSizes((prev) =>
       prev.map((item, itemIndex) =>
@@ -1111,6 +1147,7 @@ export default function ProductsPage() {
     try {
       /*
        * UPDATE PRODUCT
+       * (status becomes UNAVAILABLE automatically if all stock is 0)
        */
 
       const { error: productUpdateError } = await supabase
@@ -1124,7 +1161,7 @@ export default function ProductsPage() {
           sale_price:
             editSalePrice.trim() === "" ? null : Number(editSalePrice),
           description: editDescription.trim() || null,
-          status: editStatus,
+          status: resolveStatus(selectedEditSizes, editStatus),
         })
         .eq("id", editingProduct.id);
 
@@ -1680,18 +1717,19 @@ export default function ProductsPage() {
                   )}
                 </div>
 
-                {/* AVAILABLE SIZES */}
+                {/* AVAILABLE SIZES / STOCK */}
 
                 <div
                   className="product-field"
                   style={{ gridColumn: "1 / -1" }}
                 >
-                  <label>AVAILABLE SIZES</label>
+                  <label>AVAILABLE SIZES / STOCK QUANTITY</label>
 
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(min(100%, 140px), 1fr))",
                       gap: "12px",
                       marginTop: "12px",
                     }}
@@ -1751,12 +1789,13 @@ export default function ProductsPage() {
                         <input
                           type="number"
                           min="0"
+                          step="1"
                           value={item.stock}
                           disabled={!item.selected}
                           onChange={(e) =>
                             updateSizeStock(index, e.target.value)
                           }
-                          placeholder="STOCK"
+                          placeholder="QUANTITY"
                           style={{
                             width: "100%",
                             height: "42px",
@@ -1766,8 +1805,35 @@ export default function ProductsPage() {
                             color: "#fff",
                           }}
                         />
+
+                        {item.selected && item.stock === 0 && (
+                          <div
+                            style={{
+                              marginTop: "8px",
+                              fontSize: "8px",
+                              letterSpacing: "0.14em",
+                              color: "#ff4a4a",
+                            }}
+                          >
+                            STOCK OUT
+                          </div>
+                        )}
                       </div>
                     ))}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: "10px",
+                      fontSize: "8px",
+                      letterSpacing: "0.14em",
+                      lineHeight: 1.7,
+                      color: "rgba(255,255,255,0.35)",
+                    }}
+                  >
+                    ENTER HOW MANY PIECES YOU HAVE FOR EACH SIZE. WHEN EVERY
+                    SIZE REACHES 0, THE PRODUCT BECOMES UNAVAILABLE
+                    AUTOMATICALLY.
                   </div>
                 </div>
 
@@ -2032,12 +2098,13 @@ export default function ProductsPage() {
                     className="product-field"
                     style={{ gridColumn: "1 / -1" }}
                   >
-                    <label>AVAILABLE SIZES / STOCK</label>
+                    <label>AVAILABLE SIZES / STOCK QUANTITY</label>
 
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                        gridTemplateColumns:
+                          "repeat(auto-fill, minmax(min(100%, 140px), 1fr))",
                         gap: "12px",
                         marginTop: "12px",
                       }}
@@ -2075,6 +2142,7 @@ export default function ProductsPage() {
                           <input
                             type="number"
                             min="0"
+                            step="1"
                             disabled={!item.selected}
                             value={item.stock}
                             onChange={(e) =>
@@ -2090,8 +2158,35 @@ export default function ProductsPage() {
                               color: "#fff",
                             }}
                           />
+
+                          {item.selected && item.stock === 0 && (
+                            <div
+                              style={{
+                                marginTop: "8px",
+                                fontSize: "8px",
+                                letterSpacing: "0.14em",
+                                color: "#ff4a4a",
+                              }}
+                            >
+                              STOCK OUT
+                            </div>
+                          )}
                         </div>
                       ))}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: "10px",
+                        fontSize: "8px",
+                        letterSpacing: "0.14em",
+                        lineHeight: 1.7,
+                        color: "rgba(255,255,255,0.35)",
+                      }}
+                    >
+                      IF EVERY SIZE IS 0, THE PRODUCT IS SAVED AS UNAVAILABLE.
+                      TO MAKE IT AVAILABLE AGAIN, ADD STOCK AND SET STATUS TO
+                      AVAILABLE.
                     </div>
                   </div>
 
@@ -2201,6 +2296,15 @@ export default function ProductsPage() {
                     Number(product.sale_price) > 0 &&
                     Number(product.sale_price) < Number(product.price);
 
+                  const sizeRows = sortSizeRows(product.product_sizes || []);
+
+                  const totalStock = sizeRows.reduce(
+                    (sum, row) => sum + row.stock,
+                    0
+                  );
+
+                  const soldOut = sizeRows.length > 0 && totalStock <= 0;
+
                   return (
                     <div className="inventory-row" key={product.id}>
                       <div className="inventory-number">
@@ -2219,9 +2323,42 @@ export default function ProductsPage() {
                         <strong>{product.name}</strong>
 
                         <span>{getCategoryNames(product)}</span>
+
+                        {/* STOCK PER SIZE */}
+
+                        <span
+                          style={{
+                            display: "block",
+                            marginTop: "6px",
+                            lineHeight: 1.7,
+                          }}
+                        >
+                          {sizeRows.length === 0
+                            ? "NO SIZES"
+                            : sizeRows.map((row, rowIndex) => (
+                                <span
+                                  key={row.size}
+                                  style={{
+                                    color:
+                                      row.stock > 0
+                                        ? "rgba(255,255,255,0.7)"
+                                        : "#ff4a4a",
+                                  }}
+                                >
+                                  {rowIndex > 0 && " · "}
+                                  {row.size}:{" "}
+                                  {row.stock > 0 ? row.stock : "OUT"}
+                                </span>
+                              ))}
+                        </span>
                       </div>
 
-                      <div className="inventory-type">{product.status}</div>
+                      <div
+                        className="inventory-type"
+                        style={soldOut ? { color: "#ff4a4a" } : undefined}
+                      >
+                        {soldOut ? "STOCK OUT" : product.status}
+                      </div>
 
                       <div className="inventory-price">
                         {onSale ? (

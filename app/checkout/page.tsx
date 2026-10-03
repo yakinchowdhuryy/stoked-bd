@@ -658,53 +658,43 @@ export default function CheckoutPage() {
     setPlacingOrder(true);
 
     /*
-     * STOCK CHECK
-     * Order dewar age database theke abar check kori,
-     * kono product STOCKED OUT hoye gele order hobe na.
+     * STOCK RESERVE
+     * Sob item er size wise stock ek shathe komano hoy (atomic).
+     * Kono size e stock na thakle order hobe na.
      */
-    try {
-      const stockIds = Array.from(new Set(cart.map((item) => item.id)));
+    const orderLines = cart.map((item) => ({
+      product_id: item.id,
+      size: item.size || "",
+      quantity: Number(item.quantity),
+    }));
 
-      const { data: statusRows, error: statusError } = await supabase
-        .from("products")
-        .select("id, status")
-        .in("id", stockIds);
+    let stockReserved = false;
 
-      if (statusError) {
-        console.error("STOCK STATUS ERROR:", statusError);
-        showError(
-          "PLEASE TRY AGAIN",
-          "We could not verify product availability. Please try again."
-        );
-        setPlacingOrder(false);
-        return;
-      }
+    const { error: reserveError } = await supabase.rpc("reserve_stock", {
+      p_items: orderLines,
+    });
 
-      const blockedItems = cart.filter((item) => {
-        const row = (statusRows || []).find((r: any) => r.id === item.id);
-        return !row || row.status !== "AVAILABLE";
-      });
+    if (reserveError) {
+      console.error("RESERVE STOCK ERROR:", reserveError);
 
-      if (blockedItems.length > 0) {
+      if ((reserveError.message || "").includes("OUT_OF_STOCK")) {
         showError(
           "STOCKED OUT",
-          `Sorry, these items are stocked out:\n\n${blockedItems
-            .map((item) => item.name)
-            .join("\n")}\n\nPlease remove them from your bag.`,
+          "Sorry, one or more items in your bag just ran out of stock in your selected size.\n\nPlease review your bag.",
           "/cart"
         );
-        setPlacingOrder(false);
-        return;
+      } else {
+        showError(
+          "PLEASE TRY AGAIN",
+          "We could not confirm product availability. Please try again."
+        );
       }
-    } catch (stockCheckError) {
-      console.error("STOCK CHECK ERROR:", stockCheckError);
-      showError(
-        "PLEASE TRY AGAIN",
-        "We could not verify product availability. Please try again."
-      );
+
       setPlacingOrder(false);
       return;
     }
+
+    stockReserved = true;
 
     const generatedOrderNumber = `STK-${Date.now()
       .toString()
@@ -825,6 +815,17 @@ export default function CheckoutPage() {
       }, 700);
     } catch (error) {
       console.error("ORDER ERROR:", error);
+
+      // order fail holo, reserve kora stock ferot dao
+      if (stockReserved) {
+        const { error: restoreError } = await supabase.rpc("restore_stock", {
+          p_items: orderLines,
+        });
+
+        if (restoreError) {
+          console.error("RESTORE STOCK ERROR:", restoreError);
+        }
+      }
 
       showError(
         "ORDER FAILED",

@@ -44,6 +44,9 @@ const FONT = '"Space Grotesk", sans-serif';
 const CARD_BG =
   "linear-gradient(145deg, rgba(35,8,8,.75), rgba(7,3,3,.95))";
 
+/* cart localStorage key: tomar cart jei key te save hoy ota ekhane bosao */
+const CART_KEY = "cart";
+
 const SPIDER =
   "https://www.pngall.com/wp-content/uploads/13/Spiderman-Logo-No-Background.png";
 
@@ -109,6 +112,7 @@ export default function ShopView() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
 
   const selectedCategoryId = categories.find(
     (category) => category.name === selectedCategory
@@ -398,6 +402,42 @@ export default function ShopView() {
     setCurrentPage(1);
   }, [products, productsLoading, selectedCategory, categories]);
 
+  /* CART COUNT (BAG badge) */
+  useEffect(() => {
+    function readCartCount() {
+      try {
+        const raw = localStorage.getItem(CART_KEY);
+        const list = raw ? JSON.parse(raw) : [];
+
+        if (!Array.isArray(list)) {
+          setCartCount(0);
+          return;
+        }
+
+        const total = list.reduce(
+          (sum: number, item: any) => sum + (Number(item?.quantity) || 1),
+          0
+        );
+
+        setCartCount(total);
+      } catch {
+        setCartCount(0);
+      }
+    }
+
+    readCartCount();
+
+    window.addEventListener("storage", readCartCount);
+    window.addEventListener("cart-updated", readCartCount);
+    window.addEventListener("focus", readCartCount);
+
+    return () => {
+      window.removeEventListener("storage", readCartCount);
+      window.removeEventListener("cart-updated", readCartCount);
+      window.removeEventListener("focus", readCartCount);
+    };
+  }, []);
+
   useLayoutEffect(() => {
     const check = () => {
       const next = window.innerWidth <= 768;
@@ -641,7 +681,7 @@ export default function ShopView() {
                   background: "rgba(169,21,37,.8)",
                 }}
               >
-                00
+                {String(cartCount).padStart(2, "0")}
               </span>
             </Link>
 

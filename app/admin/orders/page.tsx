@@ -1,6 +1,7 @@
 "use client";
 
 import "./orders.css";
+import "../products/products.css";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -353,155 +354,129 @@ export default function AdminOrdersPage() {
 
   if (loading) {
     return (
-      <main className="admin-page">
-        <div className="admin-loading">
-          <span>LOADING ORDERS...</span>
-        </div>
+      <main className="products-page">
+        <div className="products-grid-bg" />
+        <div className="products-red-orb" />
+
+        <section className="products-main">
+          <div className="products-wrapper">
+            <div className="inventory-empty">
+              LOADING ORDERS...
+            </div>
+          </div>
+        </section>
       </main>
     );
   }
 
   return (
-    <main className="admin-page">
-      {/* BACKGROUND */}
-      <div className="admin-grid-bg" />
-      <div className="admin-red-orb" />
-      <div className="admin-noise" />
+    <main className="products-page">
+      <div className="products-grid-bg" />
+
+      <div className="products-red-orb" />
 
       {/* SIDEBAR */}
-      <aside className="admin-sidebar">
+
+      <aside className="products-sidebar">
         <div>
-          <div className="admin-brand">
-            STOKED
-            <span>BD</span>
-          </div>
+          <Link href="/admin" className="products-brand">
+            STOKED <span>BD</span>
+          </Link>
 
-          <div className="admin-sidebar-label">
-            CONTROL PANEL
-          </div>
+          <div className="products-sidebar-label">CONTROL PANEL</div>
 
-          <nav className="admin-nav">
-            <Link
-              href="/admin"
-              className="admin-nav-item"
-            >
-              <span className="admin-nav-number">
-                01
-              </span>
-
-              <span>DASHBOARD</span>
+          <nav className="products-nav">
+            <Link href="/admin" className="products-nav-item">
+              <span>01</span>
+              DASHBOARD
             </Link>
 
-            <Link
-              href="/admin/categories"
-              className="admin-nav-item"
-            >
-              <span className="admin-nav-number">
-                02
-              </span>
-
-              <span>CATEGORIES</span>
+            <Link href="/admin/categories" className="products-nav-item">
+              <span>02</span>
+              CATEGORIES
             </Link>
 
-            <Link
-              href="/admin/products"
-              className="admin-nav-item"
-            >
-              <span className="admin-nav-number">
-                03
-              </span>
-
-              <span>PRODUCTS</span>
+            <Link href="/admin/products" className="products-nav-item">
+              <span>03</span>
+              PRODUCTS
             </Link>
 
-            <Link
-              href="/admin/orders"
-              className="admin-nav-item active"
-            >
-              <span className="admin-nav-number">
-                04
-              </span>
-
-              <span>ORDERS</span>
+            <Link href="/admin/orders" className="products-nav-item active">
+              <span>04</span>
+              ORDERS
             </Link>
           </nav>
         </div>
 
-        <div className="admin-sidebar-bottom">
-          <div className="admin-status">
-            <span className="admin-status-dot" />
+        <div className="products-sidebar-bottom">
+          <div className="products-system-status">
+            <span />
             SYSTEM ONLINE
           </div>
 
-          <button
-            className="admin-logout"
-            onClick={logout}
+          <Link
+            href="/admin/login"
+            className="products-logout"
+            onClick={(event) => {
+              event.preventDefault();
+              logout();
+            }}
           >
-            LOG OUT
-          </button>
+            EXIT PANEL
+          </Link>
         </div>
       </aside>
 
       {/* MOBILE HEADER */}
-      <header className="admin-mobile-header">
-        <Link
-          href="/admin"
-          className="admin-mobile-brand"
-        >
+
+      <header className="products-mobile-header">
+        <Link href="/admin" className="products-mobile-brand">
           STOKED <span>BD</span>
         </Link>
 
-        <button
-          className="admin-mobile-logout"
-          onClick={logout}
+        <Link
+          href="/admin/login"
+          className="products-mobile-exit"
+          onClick={(event) => {
+            event.preventDefault();
+            logout();
+          }}
         >
           EXIT
-        </button>
+        </Link>
       </header>
 
       {/* MAIN */}
-      <section className="admin-main">
-        <div className="admin-wrapper">
 
-          {/* TOP LINE */}
-          <div className="admin-topline">
-            <span>
-              STOKED BD / ADMIN
-            </span>
+      <section className="products-main">
+        <div className="products-wrapper">
+          <div className="products-topline">
+            <span>STOKED BD / ADMIN</span>
 
-            <span>
-              ORDERS // 004
-            </span>
+            <span>CONTROL // 004</span>
           </div>
 
           {/* HERO */}
-          <section className="admin-hero orders-hero">
 
-            <div className="admin-kicker">
-              ORDER MANAGEMENT SYSTEM
-            </div>
+          <section className="products-hero">
+            <div className="products-kicker">ORDER MANAGEMENT SYSTEM</div>
 
-            <div className="orders-hero-row">
+            <div className="products-hero-bottom">
+              <h1>
+                ORD
+                <br />
+                ERS
+              </h1>
 
-              <div className="orders-title-wrap">
-                <h1>ORDERS</h1>
-
-                <p>
-                  VIEW AND MANAGE ALL CUSTOMER
-                  ORDERS FROM ONE PLACE.
-                </p>
-              </div>
-
-              <div className="orders-hero-meta">
-                <div className="admin-red-line" />
+              <div className="products-hero-meta">
+                <div className="products-red-line" />
 
                 <span>
-                  LIVE ORDER
+                  VIEW AND MANAGE
                   <br />
-                  CONTROL
+                  CUSTOMER ORDERS
                 </span>
               </div>
-
             </div>
           </section>
 
@@ -543,22 +518,16 @@ export default function AdminOrdersPage() {
           </section>
 
           {/* ORDERS SECTION */}
-          <section className="orders-section">
+          <section className="inventory-section">
 
-            <div className="orders-heading">
+            <div className="product-section-heading">
               <span>01</span>
               CUSTOMER ORDERS
             </div>
 
             {orders.length === 0 ? (
-              <div className="orders-empty">
-                <span>
-                  NO ORDERS FOUND
-                </span>
-
-                <small>
-                  CUSTOMER ORDERS WILL APPEAR HERE
-                </small>
+              <div className="inventory-empty">
+                NO ORDERS FOUND. CUSTOMER ORDERS WILL APPEAR HERE.
               </div>
             ) : (
               <div className="orders-list">
@@ -795,22 +764,14 @@ export default function AdminOrdersPage() {
           </section>
 
           {/* FOOTER */}
-          <footer className="admin-footer">
 
-            <span>
-              © 2026 STOKED BD
-            </span>
+          <footer className="products-footer">
+            <span>© 2026 STOKED BD</span>
 
-            <span>
-              ORDER MANAGEMENT SYSTEM
-            </span>
+            <span>ORDER MANAGEMENT SYSTEM</span>
 
-            <span>
-              EST. 2026
-            </span>
-
+            <span>EST. 2026</span>
           </footer>
-
         </div>
       </section>
 

@@ -16,6 +16,11 @@ type CartItem = {
 
 const CART_KEY = "stoked-cart";
 
+/* "productId|size" key, protiti product + size alada stock */
+function itemKey(item: { id: string; size?: string }) {
+  return `${item.id}|${item.size || ""}`;
+}
+
 const SPIDER_IMAGE =
   "https://www.pngall.com/wp-content/uploads/13/Spiderman-Logo-No-Background.png";
 
@@ -30,8 +35,11 @@ export default function CartPage() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
 
-  // STOCKED OUT product er id gulo
+  // STOCKED OUT item er key gulo ("productId|size")
   const [soldOutIds, setSoldOutIds] = useState<string[]>([]);
+
+  // "productId|size" => koyta stock ase
+  const [stockMap, setStockMap] = useState<Record<string, number>>({});
 
   useEffect(() => {
     try {
@@ -74,35 +82,75 @@ export default function CartPage() {
   }, []);
 
   /* =====================================================
-     STOCK CHECK: bag e thaka product ekhono available kina
+     STOCK CHECK: bag e thaka product + size ekhono available kina
   ===================================================== */
 
-  const cartIdsKey = cart.map((item) => item.id).join(",");
+  const cartSigKey = cart.map((item) => itemKey(item)).join(",");
 
   useEffect(() => {
     if (!loaded) return;
 
-    if (!cartIdsKey) {
+    if (!cartSigKey) {
       setSoldOutIds([]);
+      setStockMap({});
       return;
     }
 
     let active = true;
 
     async function checkStock() {
-      const ids = Array.from(new Set(cartIdsKey.split(",")));
+      const ids = Array.from(
+        new Set(cartSigKey.split(",").map((key) => key.split("|")[0]))
+      );
 
-      const { data, error } = await supabase
+      const { data: productRows, error: productError } = await supabase
         .from("products")
         .select("id, status")
         .in("id", ids);
 
-      if (!active || error) return;
+      const { data: sizeRows, error: sizeError } = await supabase
+        .from("product_sizes")
+        .select("product_id, size, stock")
+        .in("product_id", ids);
 
-      setSoldOutIds(
-        ids.filter((id) => {
-          const row = (data || []).find((p: any) => p.id === id);
-          return !row || row.status !== "AVAILABLE";
+      if (!active || productError || sizeError) return;
+
+      const map: Record<string, number> = {};
+
+      (sizeRows || []).forEach((row: any) => {
+        map[`${row.product_id}|${row.size}`] = Number(row.stock);
+      });
+
+      const soldOut: string[] = [];
+
+      cart.forEach((item) => {
+        const key = itemKey(item);
+        const product = (productRows || []).find(
+          (p: any) => p.id === item.id
+        );
+
+        const unavailable = !product || product.status !== "AVAILABLE";
+        const sizeStock = map[key];
+
+        const sizeOut =
+          Boolean(item.size) && (sizeStock === undefined || sizeStock <= 0);
+
+        if (unavailable || sizeOut) soldOut.push(key);
+      });
+
+      setStockMap(map);
+      setSoldOutIds(soldOut);
+
+      // bag e stock er cheye beshi quantity thakle komiye dao
+      setCart((prev) =>
+        prev.map((item) => {
+          const stock = map[itemKey(item)];
+
+          if (stock !== undefined && stock > 0 && item.quantity > stock) {
+            return { ...item, quantity: stock };
+          }
+
+          return item;
         })
       );
     }
@@ -112,9 +160,10 @@ export default function CartPage() {
     return () => {
       active = false;
     };
-  }, [loaded, cartIdsKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, cartSigKey]);
 
-  const hasSoldOut = cart.some((item) => soldOutIds.includes(item.id));
+  const hasSoldOut = cart.some((item) => soldOutIds.includes(itemKey(item)));
 
   function openMenu(e?: MouseEvent) {
     e?.preventDefault();
@@ -217,16 +266,20 @@ export default function CartPage() {
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
+  /* quantity stock er upore jabe na */
   function updateQuantity(index: number, change: number) {
     setCart((prev) =>
-      prev.map((item, itemIndex) =>
-        itemIndex !== index
-          ? item
-          : {
-              ...item,
-              quantity: Math.max(1, item.quantity + change),
-            }
-      )
+      prev.map((item, itemIndex) => {
+        if (itemIndex !== index) return item;
+
+        const stock = stockMap[itemKey(item)];
+        const max = stock !== undefined && stock > 0 ? stock : Infinity;
+
+        return {
+          ...item,
+          quantity: Math.min(max, Math.max(1, item.quantity + change)),
+        };
+      })
     );
   }
 
@@ -610,7 +663,7 @@ export default function CartPage() {
                           alt={item.name}
                           className="product-image"
                           style={
-                            soldOutIds.includes(item.id)
+                            soldOutIds.includes(itemKey(item))
                               ? { filter: "grayscale(100%)", opacity: 0.45 }
                               : undefined
                           }
@@ -629,7 +682,7 @@ export default function CartPage() {
                           {item.name}
                         </h3>
 
-                        {soldOutIds.includes(item.id) && (
+                        {soldOutIds.includes(itemKey(item)) && (
                           <span
                             style={{
                               marginTop: "7px",
