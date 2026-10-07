@@ -660,6 +660,12 @@ export default function ProductPage() {
 
   const selectedSizeData = sizes.find((size) => size.size === selectedSize);
 
+  /* total stock across all sizes (S + M + L ...) */
+  const totalStock = sizes.reduce(
+    (total, size) => total + Math.max(Number(size.stock) || 0, 0),
+    0
+  );
+
   const cannotAddToBag =
     isStockedOut || (hasSizeSelection && !selectedSize);
 
@@ -1265,10 +1271,11 @@ export default function ProductPage() {
                 ))}
               </div>
 
-              {selectedSizeData && selectedSizeData.stock > 0 && (
+              {/* TOTAL STOCK (all sizes combined, no size name) */}
+
+              {totalStock > 0 && !isStockedOut && (
                 <div className="selected-stock-note">
-                  ONLY {selectedSizeData.stock} LEFT IN SIZE{" "}
-                  {selectedSizeData.size}
+                  TOTAL STOCK {totalStock}
                 </div>
               )}
             </div>
