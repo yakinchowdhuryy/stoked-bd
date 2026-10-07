@@ -1250,27 +1250,6 @@ export default function ProductPage() {
                 })}
               </div>
 
-              {/* STOCK LIST: Small: 2 ta ase / Medium: 1 ta ase ... */}
-
-              <div className="stock-list">
-                {sizes.map((size) => (
-                  <div
-                    key={size.id}
-                    className={`stock-row ${
-                      size.stock > 0 ? "" : "stock-row-out"
-                    }`}
-                  >
-                    <span>{size.size}</span>
-
-                    <span>
-                      {size.stock > 0
-                        ? `${size.stock} IN STOCK`
-                        : "STOCK OUT"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
               {/* TOTAL STOCK (all sizes combined, no size name) */}
 
               {totalStock > 0 && !isStockedOut && (
@@ -2357,38 +2336,6 @@ export default function ProductPage() {
           box-shadow: 0 0 10px rgba(255, 36, 36, 0.8);
         }
 
-        /* STOCK LIST */
-
-        .stock-list {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 1px;
-          margin-top: 14px;
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .stock-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          padding: 11px 13px;
-          background: #090303;
-          color: rgba(255, 255, 255, 0.62);
-          font-size: 8.4px;
-          letter-spacing: 0.14em;
-        }
-
-        .stock-row span:first-child {
-          color: #fff;
-          font-weight: 600;
-        }
-
-        .stock-row-out span {
-          color: #ff4a4a !important;
-        }
-
         .selected-stock-note {
           margin-top: 12px;
           color: #ff3030;
@@ -2685,7 +2632,6 @@ export default function ProductPage() {
           .size-section { margin-bottom: 27px; }
           .sizes-grid { grid-template-columns: repeat(4, 1fr); }
           .size-button { height: 54px; }
-          .stock-row { padding: 10px 11px; font-size: 7.8px; }
           .details-divider { margin-bottom: 25px; }
           .description-section { margin-bottom: 30px; }
           .description { font-size: 13.2px; line-height: 1.8; }
