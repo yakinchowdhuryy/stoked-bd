@@ -6,11 +6,17 @@ import {
   ChangeEvent,
   FormEvent,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { isSaleName } from "@/lib/sale";
+import ImageManager, {
+  type ImgItem,
+  makeId,
+  revokeNewPreviews,
+} from "./ImageManager";
 
 type Category = {
   id: string;
@@ -391,10 +397,8 @@ export default function ProductsPage() {
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("AVAILABLE");
 
-  const [mainImage, setMainImage] = useState<File | null>(null);
-  const [moreImages, setMoreImages] = useState<File[]>([]);
-  const [mainPreview, setMainPreview] = useState("");
-  const [morePreviews, setMorePreviews] = useState<string[]>([]);
+  /* all product images in order. index 0 = main image */
+  const [addImages, setAddImages] = useState<ImgItem[]>([]);
 
   const [sizes, setSizes] = useState<ProductSize[]>(
     DEFAULT_SIZES.map((item) => ({ ...item }))
@@ -410,6 +414,10 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [message, setMessage] = useState("");
+
+  /* instant locks, so a double tap can never submit twice */
+  const addLock = useRef(false);
+  const editLock = useRef(false);
 
   /*
    * EDIT PRODUCT
@@ -429,11 +437,8 @@ export default function ProductsPage() {
     DEFAULT_SIZES.map((item) => ({ ...item }))
   );
 
-  const [editMainImage, setEditMainImage] = useState<File | null>(null);
-  const [editMainPreview, setEditMainPreview] = useState("");
-
-  const [editMoreImages, setEditMoreImages] = useState<File[]>([]);
-  const [editMorePreviews, setEditMorePreviews] = useState<string[]>([]);
+  /* all product images in order. index 0 = main image */
+  const [editImages, setEditImages] = useState<ImgItem[]>([]);
 
   const [editSizeChartImage, setEditSizeChartImage] =
     useState<File | null>(null);
@@ -570,53 +575,6 @@ export default function ProductsPage() {
   }
 
   /*
-   * MAIN IMAGE
-   */
-
-  function handleMainImage(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      setMessage("MAIN IMAGE MUST BE AN IMAGE FILE.");
-      return;
-    }
-
-    setMainImage(file);
-    setMainPreview(URL.createObjectURL(file));
-  }
-
-  function removeMainImage() {
-    setMainImage(null);
-    setMainPreview("");
-  }
-
-  /*
-   * MORE IMAGES
-   */
-
-  function handleMoreImages(e: ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files || []);
-
-    if (files.length === 0) return;
-
-    const invalidFile = files.find((file) => !file.type.startsWith("image/"));
-
-    if (invalidFile) {
-      setMessage("ALL ADDITIONAL FILES MUST BE IMAGES.");
-      return;
-    }
-
-    setMoreImages((prev) => [...prev, ...files]);
-
-    setMorePreviews((prev) => [
-      ...prev,
-      ...files.map((file) => URL.createObjectURL(file)),
-    ]);
-  }
-
-  /*
    * SIZE SELECTION
    */
 
@@ -670,7 +628,8 @@ export default function ProductsPage() {
 
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "-").toLowerCase();
 
-    const filePath = `${productId}/${sortOrder}-${Date.now()}-${safeName}`;
+    /* unique id in the path, so two files can never overwrite each other */
+    const filePath = `${productId}/${sortOrder}-${makeId()}-${safeName}`;
 
     const { error: uploadError } = await supabase.storage
       .from("product-images")
@@ -759,7 +718,7 @@ export default function ProductsPage() {
   async function addProduct(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (adding) return;
+    if (adding || addLock.current) return;
 
     setMessage("");
 
@@ -790,8 +749,8 @@ export default function ProductsPage() {
       return;
     }
 
-    if (!mainImage) {
-      setMessage("MAIN IMAGE IS REQUIRED.");
+    if (addImages.length === 0) {
+      setMessage("AT LEAST ONE PRODUCT IMAGE IS REQUIRED.");
       return;
     }
 
@@ -802,6 +761,7 @@ export default function ProductsPage() {
       return;
     }
 
+    addLock.current = true;
     setAdding(true);
 
     try {
@@ -830,17 +790,16 @@ export default function ProductsPage() {
       }
 
       /*
-       * MAIN IMAGE
+       * IMAGES (in the exact order shown in the manager)
+       * position 0 = main image
        */
 
-      await uploadImage(mainImage, product.id, 0);
+      for (let i = 0; i < addImages.length; i++) {
+        const file = addImages[i].file;
 
-      /*
-       * MORE IMAGES
-       */
-
-      for (let i = 0; i < moreImages.length; i++) {
-        await uploadImage(moreImages[i], product.id, i + 1);
+        if (file) {
+          await uploadImage(file, product.id, i);
+        }
       }
 
       /*
@@ -887,11 +846,8 @@ export default function ProductsPage() {
       setDescription("");
       setStatus("AVAILABLE");
 
-      setMainImage(null);
-      setMoreImages([]);
-
-      setMainPreview("");
-      setMorePreviews([]);
+      revokeNewPreviews(addImages);
+      setAddImages([]);
 
       setSizes(DEFAULT_SIZES.map((item) => ({ ...item })));
 
@@ -905,6 +861,7 @@ export default function ProductsPage() {
       setMessage((error?.message || "SOMETHING WENT WRONG.").toUpperCase());
     }
 
+    addLock.current = false;
     setAdding(false);
   }
 
@@ -914,6 +871,9 @@ export default function ProductsPage() {
 
   async function openEditProduct(product: Product) {
     setMessage("");
+
+    /* free previews of a previous edit session */
+    revokeNewPreviews(editImages);
 
     setEditingProduct(product);
 
@@ -937,22 +897,39 @@ export default function ProductsPage() {
     setEditDescription(product.description || "");
     setEditStatus(product.status);
 
-    setEditMainImage(null);
-    setEditMoreImages([]);
-    setEditMorePreviews([]);
     setEditSizeChartImage(null);
 
     /*
-     * MAIN IMAGE
+     * LOAD IMAGES (fresh from DB, in saved order)
      */
 
-    const productImages = product.product_images || [];
+    const { data: imageData, error: imageError } = await supabase
+      .from("product_images")
+      .select("id, image_url, sort_order")
+      .eq("product_id", product.id)
+      .order("sort_order", { ascending: true });
 
-    const sortedImages = [...productImages].sort(
-      (a, b) => a.sort_order - b.sort_order
+    if (imageError) {
+      console.error("EDIT IMAGE LOAD ERROR:", imageError);
+    }
+
+    const freshImages =
+      imageData && !imageError
+        ? imageData
+        : [...(product.product_images || [])].sort(
+            (a, b) => a.sort_order - b.sort_order
+          );
+
+    setEditImages(
+      freshImages.map(
+        (img): ImgItem => ({
+          id: `db-${img.id}`,
+          kind: "existing",
+          url: img.image_url,
+          dbId: img.id,
+        })
+      )
     );
-
-    setEditMainPreview(sortedImages[0]?.image_url || "");
 
     /*
      * LOAD SIZES (fresh from DB so orders that changed stock are reflected)
@@ -1012,48 +989,6 @@ export default function ProductsPage() {
   }
 
   /*
-   * EDIT MAIN IMAGE
-   */
-
-  function handleEditMainImage(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      setMessage("MAIN IMAGE MUST BE AN IMAGE FILE.");
-      return;
-    }
-
-    setEditMainImage(file);
-    setEditMainPreview(URL.createObjectURL(file));
-  }
-
-  /*
-   * EDIT MORE IMAGES
-   */
-
-  function handleEditMoreImages(e: ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files || []);
-
-    if (files.length === 0) return;
-
-    const invalid = files.find((file) => !file.type.startsWith("image/"));
-
-    if (invalid) {
-      setMessage("ALL ADDITIONAL FILES MUST BE IMAGES.");
-      return;
-    }
-
-    setEditMoreImages((prev) => [...prev, ...files]);
-
-    setEditMorePreviews((prev) => [
-      ...prev,
-      ...files.map((file) => URL.createObjectURL(file)),
-    ]);
-  }
-
-  /*
    * EDIT SIZE CHART
    */
 
@@ -1104,7 +1039,7 @@ export default function ProductsPage() {
   async function saveProductEdit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (!editingProduct || editSaving) return;
+    if (!editingProduct || editSaving || editLock.current) return;
 
     setMessage("");
 
@@ -1135,6 +1070,11 @@ export default function ProductsPage() {
       return;
     }
 
+    if (editImages.length === 0) {
+      setMessage("AT LEAST ONE PRODUCT IMAGE IS REQUIRED.");
+      return;
+    }
+
     const selectedEditSizes = editSizes.filter((item) => item.selected);
 
     if (selectedEditSizes.length === 0) {
@@ -1142,6 +1082,7 @@ export default function ProductsPage() {
       return;
     }
 
+    editLock.current = true;
     setEditSaving(true);
 
     try {
@@ -1170,42 +1111,71 @@ export default function ProductsPage() {
       }
 
       /*
-       * REPLACE MAIN IMAGE
+       * IMAGES
+       * 1) remove images that were removed in the manager
+       * 2) update the order of kept images
+       * 3) upload new images at their position
        */
 
-      if (editMainImage) {
-        const currentImages = editingProduct.product_images || [];
+      const { data: dbImages, error: dbImagesError } = await supabase
+        .from("product_images")
+        .select("id, image_url, sort_order")
+        .eq("product_id", editingProduct.id);
 
-        const oldMain = [...currentImages].sort(
-          (a, b) => a.sort_order - b.sort_order
-        )[0];
-
-        if (oldMain) {
-          const oldPath = getStoragePath(oldMain.image_url);
-
-          if (oldPath) {
-            await supabase.storage.from("product-images").remove([oldPath]);
-          }
-
-          await supabase.from("product_images").delete().eq("id", oldMain.id);
-        }
-
-        await uploadImage(editMainImage, editingProduct.id, 0);
+      if (dbImagesError) {
+        throw dbImagesError;
       }
 
-      /*
-       * ADD NEW MORE IMAGES
-       */
+      const savedImages = dbImages || [];
 
-      const currentImages = editingProduct.product_images || [];
+      const keepIds = new Set(
+        editImages
+          .filter((item) => item.kind === "existing" && item.dbId)
+          .map((item) => item.dbId as string)
+      );
 
-      let nextSortOrder = currentImages.length;
+      const removedImages = savedImages.filter((img) => !keepIds.has(img.id));
 
-      if (editMoreImages.length) {
-        for (let i = 0; i < editMoreImages.length; i++) {
-          await uploadImage(editMoreImages[i], editingProduct.id, nextSortOrder);
+      if (removedImages.length > 0) {
+        const removedPaths = removedImages
+          .map((img) => getStoragePath(img.image_url))
+          .filter((path): path is string => Boolean(path));
 
-          nextSortOrder++;
+        if (removedPaths.length > 0) {
+          await supabase.storage.from("product-images").remove(removedPaths);
+        }
+
+        const { error: removeError } = await supabase
+          .from("product_images")
+          .delete()
+          .in(
+            "id",
+            removedImages.map((img) => img.id)
+          );
+
+        if (removeError) {
+          throw removeError;
+        }
+      }
+
+      for (let i = 0; i < editImages.length; i++) {
+        const item = editImages[i];
+
+        if (item.kind === "existing" && item.dbId) {
+          const saved = savedImages.find((img) => img.id === item.dbId);
+
+          if (saved && saved.sort_order !== i) {
+            const { error: orderError } = await supabase
+              .from("product_images")
+              .update({ sort_order: i })
+              .eq("id", item.dbId);
+
+            if (orderError) {
+              throw orderError;
+            }
+          }
+        } else if (item.file) {
+          await uploadImage(item.file, editingProduct.id, i);
         }
       }
 
@@ -1270,11 +1240,10 @@ export default function ProductsPage() {
        * CLOSE EDITOR
        */
 
+      revokeNewPreviews(editImages);
+
       setEditingProduct(null);
-      setEditMainImage(null);
-      setEditMainPreview("");
-      setEditMoreImages([]);
-      setEditMorePreviews([]);
+      setEditImages([]);
       setEditSizeChartImage(null);
       setEditSizeChartPreview("");
 
@@ -1287,6 +1256,7 @@ export default function ProductsPage() {
       );
     }
 
+    editLock.current = false;
     setEditSaving(false);
   }
 
@@ -1399,11 +1369,10 @@ export default function ProductsPage() {
    */
 
   function cancelEdit() {
+    revokeNewPreviews(editImages);
+
     setEditingProduct(null);
-    setEditMainImage(null);
-    setEditMainPreview("");
-    setEditMoreImages([]);
-    setEditMorePreviews([]);
+    setEditImages([]);
     setEditSizeChartImage(null);
     setEditSizeChartPreview("");
   }
@@ -1627,94 +1596,23 @@ export default function ProductsPage() {
                   />
                 </div>
 
-                {/* MAIN IMAGE */}
+                {/* PRODUCT IMAGES (MANAGER) */}
 
-                <div className="product-field image-upload-field">
-                  <label>MAIN IMAGE / THUMBNAIL</label>
-
-                  <label className="product-upload-box">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleMainImage}
-                    />
-
-                    {mainPreview ? (
-                      <div className="product-upload-preview">
-                        <img src={mainPreview} alt="Main preview" />
-
-                        <span>MAIN IMAGE</span>
-                      </div>
-                    ) : (
-                      <div className="product-upload-placeholder">
-                        <strong>+ UPLOAD MAIN IMAGE</strong>
-
-                        <span>JPG / PNG / WEBP</span>
-                      </div>
-                    )}
+                <div
+                  className="product-field"
+                  style={{ gridColumn: "1 / -1" }}
+                >
+                  <label>
+                    PRODUCT IMAGES / FIRST IMAGE IS THE MAIN THUMBNAIL
+                    {addImages.length > 0 && ` / ${addImages.length} ADDED`}
                   </label>
 
-                  {mainImage && (
-                    <button
-                      type="button"
-                      className="remove-image-button"
-                      onClick={removeMainImage}
-                    >
-                      REMOVE MAIN IMAGE
-                    </button>
-                  )}
-                </div>
-
-                {/* MORE IMAGES */}
-
-                <div className="product-field image-upload-field">
-                  <label>UPLOAD MORE IMAGES</label>
-
-                  <label className="product-upload-box more-images-box">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={handleMoreImages}
-                    />
-
-                    {morePreviews.length > 0 ? (
-                      <div className="more-images-preview-grid">
-                        {morePreviews.map((preview, index) => (
-                          <div
-                            className="more-image-preview"
-                            key={`${preview}-${index}`}
-                          >
-                            <img
-                              src={preview}
-                              alt={`Additional ${index + 1}`}
-                            />
-
-                            <span>{index + 1}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="product-upload-placeholder">
-                        <strong>+ UPLOAD MORE IMAGES</strong>
-
-                        <span>SELECT MULTIPLE IMAGES</span>
-                      </div>
-                    )}
-                  </label>
-
-                  {moreImages.length > 0 && (
-                    <button
-                      type="button"
-                      className="remove-image-button"
-                      onClick={() => {
-                        setMoreImages([]);
-                        setMorePreviews([]);
-                      }}
-                    >
-                      CLEAR ADDITIONAL IMAGES
-                    </button>
-                  )}
+                  <ImageManager
+                    items={addImages}
+                    onChange={setAddImages}
+                    onError={setMessage}
+                    disabled={adding}
+                  />
                 </div>
 
                 {/* AVAILABLE SIZES / STOCK */}
@@ -2028,68 +1926,24 @@ export default function ProductsPage() {
                     />
                   </div>
 
-                  {/* MAIN IMAGE */}
+                  {/* PRODUCT IMAGES (MANAGER) */}
 
-                  <div className="product-field image-upload-field">
-                    <label>MAIN IMAGE</label>
-
-                    <label className="product-upload-box">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleEditMainImage}
-                      />
-
-                      {editMainPreview ? (
-                        <div className="product-upload-preview">
-                          <img src={editMainPreview} alt="Edit main" />
-
-                          <span>MAIN IMAGE</span>
-                        </div>
-                      ) : (
-                        <div className="product-upload-placeholder">
-                          <strong>+ REPLACE MAIN IMAGE</strong>
-
-                          <span>KEEP CURRENT IF EMPTY</span>
-                        </div>
-                      )}
+                  <div
+                    className="product-field"
+                    style={{ gridColumn: "1 / -1" }}
+                  >
+                    <label>
+                      PRODUCT IMAGES / FIRST IMAGE IS THE MAIN THUMBNAIL
+                      {editImages.length > 0 &&
+                        ` / ${editImages.length} IMAGES`}
                     </label>
-                  </div>
 
-                  {/* MORE IMAGES */}
-
-                  <div className="product-field image-upload-field">
-                    <label>ADD MORE IMAGES</label>
-
-                    <label className="product-upload-box">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleEditMoreImages}
-                      />
-
-                      {editMorePreviews.length > 0 ? (
-                        <div className="more-images-preview-grid">
-                          {editMorePreviews.map((preview, index) => (
-                            <div
-                              className="more-image-preview"
-                              key={`${preview}-${index}`}
-                            >
-                              <img src={preview} alt={`New ${index}`} />
-
-                              <span>NEW</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="product-upload-placeholder">
-                          <strong>+ ADD MORE IMAGES</strong>
-
-                          <span>CURRENT IMAGES WILL STAY</span>
-                        </div>
-                      )}
-                    </label>
+                    <ImageManager
+                      items={editImages}
+                      onChange={setEditImages}
+                      onError={setMessage}
+                      disabled={editSaving}
+                    />
                   </div>
 
                   {/* EDIT SIZES */}
