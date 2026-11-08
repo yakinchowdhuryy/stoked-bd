@@ -29,7 +29,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -212,30 +211,6 @@ export default function LoginPage() {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setError("");
-    setGoogleLoading(true);
-
-    try {
-      const { error: googleError } =
-        await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: `${window.location.origin}/auth/callback`,
-          },
-        });
-
-      if (googleError) {
-        setError(googleError.message);
-        setGoogleLoading(false);
-      }
-    } catch (err) {
-      console.error("GOOGLE LOGIN ERROR:", err);
-      setError("Google login failed. Please try again.");
-      setGoogleLoading(false);
     }
   };
 
@@ -719,29 +694,6 @@ export default function LoginPage() {
             <p className="subtitle">SIGN IN TO CONTINUE</p>
           </div>
 
-          {/* GOOGLE */}
-          <button
-            type="button"
-            className="google-button"
-            onClick={handleGoogleLogin}
-            disabled={googleLoading || loading}
-          >
-            <span className="google-icon">G</span>
-
-            <span>
-              {googleLoading ? "CONNECTING..." : "CONTINUE WITH GOOGLE"}
-            </span>
-
-            <span className="button-arrow">↗</span>
-          </button>
-
-          {/* DIVIDER */}
-          <div className="divider">
-            <span />
-            <p>OR</p>
-            <span />
-          </div>
-
           {/* LOGIN FORM */}
           <form onSubmit={handleLogin}>
             {/* EMAIL */}
@@ -755,7 +707,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                disabled={loading || googleLoading}
+                disabled={loading}
               />
             </div>
 
@@ -770,7 +722,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
-                disabled={loading || googleLoading}
+                disabled={loading}
               />
             </div>
 
@@ -786,7 +738,7 @@ export default function LoginPage() {
             <button
               type="submit"
               className="login-button"
-              disabled={loading || googleLoading}
+              disabled={loading}
             >
               <span>{loading ? "AUTHENTICATING..." : "SIGN IN"}</span>
 
@@ -1409,11 +1361,10 @@ export default function LoginPage() {
           letter-spacing: 0.18em;
         }
 
-        .google-button,
         .login-button {
           width: 100%;
           height: 54px;
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          border: 1px solid #9a111e;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1422,27 +1373,13 @@ export default function LoginPage() {
           font-family: inherit;
           letter-spacing: 0.12em;
           font-size: 10px;
+          background: #9a111e;
+          color: #fff;
+          font-weight: 600;
           transition:
             background 0.25s ease,
             border-color 0.25s ease,
             transform 0.25s ease;
-        }
-
-        .google-button {
-          background: rgba(255, 255, 255, 0.04);
-          color: #fff;
-          gap: 12px;
-        }
-
-        .google-button:hover:not(:disabled) {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.25);
-        }
-
-        .google-icon {
-          font-family: Arial, sans-serif;
-          font-weight: 700;
-          font-size: 17px;
         }
 
         .button-arrow {
@@ -1450,26 +1387,6 @@ export default function LoginPage() {
           right: 17px;
           font-size: 15px;
           opacity: 0.7;
-        }
-
-        .divider {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          margin: 25px 0;
-        }
-
-        .divider span {
-          flex: 1;
-          height: 1px;
-          background: rgba(255, 255, 255, 0.08);
-        }
-
-        .divider p {
-          margin: 0;
-          color: rgba(255, 255, 255, 0.25);
-          font-size: 8px;
-          letter-spacing: 0.15em;
         }
 
         .field {
@@ -1539,21 +1456,12 @@ export default function LoginPage() {
           flex-shrink: 0;
         }
 
-        .login-button {
-          margin-top: 8px;
-          border-color: #9a111e;
-          background: #9a111e;
-          color: #fff;
-          font-weight: 600;
-        }
-
         .login-button:hover:not(:disabled) {
           background: #b31524;
           border-color: #b31524;
           transform: translateY(-1px);
         }
 
-        .google-button:disabled,
         .login-button:disabled {
           opacity: 0.55;
           cursor: not-allowed;
@@ -1562,9 +1470,6 @@ export default function LoginPage() {
 
         /* =====================================================
            SIGN UP / CREATE ACCOUNT
-           NOTE: <Link> is a component, so styled-jsx can't scope
-           classes onto it. We use :global() so the styles (and the
-           WHITE text colour) are actually applied.
         ===================================================== */
 
         .signup-area {

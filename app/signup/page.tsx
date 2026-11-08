@@ -31,7 +31,6 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -261,33 +260,6 @@ export default function SignupPage() {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGoogleSignup = async () => {
-    setError("");
-    setGoogleLoading(true);
-
-    try {
-      const { error: googleError } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (googleError) {
-        console.error("GOOGLE SIGNUP ERROR:", googleError);
-
-        setError(googleError.message);
-        setGoogleLoading(false);
-      }
-    } catch (err) {
-      console.error("GOOGLE SIGNUP ERROR:", err);
-
-      setError("Google signup failed. Please try again.");
-
-      setGoogleLoading(false);
     }
   };
 
@@ -772,29 +744,6 @@ export default function SignupPage() {
             <p className="subtitle">JOIN THE STOKED COMMUNITY</p>
           </div>
 
-          {/* GOOGLE */}
-          <button
-            type="button"
-            className="google-button"
-            onClick={handleGoogleSignup}
-            disabled={loading || googleLoading}
-          >
-            <span className="google-icon">G</span>
-
-            <span>
-              {googleLoading ? "CONNECTING..." : "CONTINUE WITH GOOGLE"}
-            </span>
-
-            <span className="button-arrow">↗</span>
-          </button>
-
-          {/* DIVIDER */}
-          <div className="divider">
-            <span />
-            <p>OR</p>
-            <span />
-          </div>
-
           {/* FORM */}
           <form onSubmit={handleSignup}>
 
@@ -809,7 +758,7 @@ export default function SignupPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="name"
-                disabled={loading || googleLoading}
+                disabled={loading}
               />
             </div>
 
@@ -824,7 +773,7 @@ export default function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                disabled={loading || googleLoading}
+                disabled={loading}
               />
             </div>
 
@@ -839,7 +788,7 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
-                disabled={loading || googleLoading}
+                disabled={loading}
               />
             </div>
 
@@ -854,7 +803,7 @@ export default function SignupPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 autoComplete="new-password"
-                disabled={loading || googleLoading}
+                disabled={loading}
               />
             </div>
 
@@ -871,7 +820,7 @@ export default function SignupPage() {
             <button
               type="submit"
               className="signup-button"
-              disabled={loading || googleLoading}
+              disabled={loading}
             >
               <span>
                 {loading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
@@ -1498,11 +1447,10 @@ export default function SignupPage() {
           letter-spacing: 0.18em;
         }
 
-        .google-button,
         .signup-button {
           width: 100%;
           height: 54px;
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          border: 1px solid #9a111e;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1511,27 +1459,13 @@ export default function SignupPage() {
           font-family: inherit;
           letter-spacing: 0.12em;
           font-size: 10px;
+          background: #9a111e;
+          color: #fff;
+          font-weight: 600;
           transition:
             background 0.25s ease,
             border-color 0.25s ease,
             transform 0.25s ease;
-        }
-
-        .google-button {
-          background: rgba(255, 255, 255, 0.04);
-          color: #fff;
-          gap: 12px;
-        }
-
-        .google-button:hover:not(:disabled) {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.25);
-        }
-
-        .google-icon {
-          font-family: Arial, sans-serif;
-          font-weight: 700;
-          font-size: 17px;
         }
 
         .button-arrow {
@@ -1539,26 +1473,6 @@ export default function SignupPage() {
           right: 17px;
           font-size: 15px;
           opacity: 0.7;
-        }
-
-        .divider {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          margin: 24px 0;
-        }
-
-        .divider span {
-          flex: 1;
-          height: 1px;
-          background: rgba(255, 255, 255, 0.08);
-        }
-
-        .divider p {
-          margin: 0;
-          color: rgba(255, 255, 255, 0.25);
-          font-size: 8px;
-          letter-spacing: 0.15em;
         }
 
         .field {
@@ -1632,21 +1546,12 @@ export default function SignupPage() {
           margin: 1px 0 0;
         }
 
-        .signup-button {
-          margin-top: 6px;
-          border-color: #9a111e;
-          background: #9a111e;
-          color: #fff;
-          font-weight: 600;
-        }
-
         .signup-button:hover:not(:disabled) {
           background: #b31524;
           border-color: #b31524;
           transform: translateY(-1px);
         }
 
-        .google-button:disabled,
         .signup-button:disabled {
           opacity: 0.55;
           cursor: not-allowed;
@@ -1655,9 +1560,6 @@ export default function SignupPage() {
 
         /* =====================================================
            SIGN IN LINK BUTTON
-           NOTE: <Link> is a component, so styled-jsx can't scope
-           classes onto it. We use :global() so the styles (and the
-           WHITE text colour) are actually applied.
         ===================================================== */
 
         .login-area {

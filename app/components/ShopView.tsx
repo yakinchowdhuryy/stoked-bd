@@ -13,6 +13,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { getPricing, isSaleName } from "@/lib/sale";
 import SpiderLoader from "@/app/components/SpiderLoader";
+import Image from 'next/image';
 
 type Product = {
   id: string;
@@ -1082,21 +1083,17 @@ export default function ShopView() {
                       }}
                     >
                       {product.image ? (
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                            position: "relative",
-                            zIndex: 2,
-                            filter: product.soldOut
-                              ? "grayscale(100%)"
-                              : "none",
-                            opacity: product.soldOut ? 0.45 : 1,
-                          }}
-                        />
+                        <Image
+  src={product.image}
+  alt={product.name}
+  fill
+  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  style={{
+    objectFit: "cover",
+    filter: product.soldOut ? "grayscale(100%)" : "none",
+    opacity: product.soldOut ? 0.45 : 1,
+  }}
+/>
                       ) : (
                         <div
                           style={{
@@ -1520,19 +1517,17 @@ export default function ShopView() {
                     }}
                   >
                     {product.image ? (
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          filter: product.soldOut
-                            ? "grayscale(100%)"
-                            : "none",
-                          opacity: product.soldOut ? 0.45 : 1,
-                        }}
-                      />
+                      <Image
+  src={product.image}
+  alt={product.name}
+  fill
+  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  style={{
+    objectFit: "cover",
+    filter: product.soldOut ? "grayscale(100%)" : "none",
+    opacity: product.soldOut ? 0.45 : 1,
+  }}
+/>
                     ) : (
                       <div
                         style={{
