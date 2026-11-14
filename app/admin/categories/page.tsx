@@ -47,7 +47,7 @@ export default function CategoriesPage() {
       .order("created_at", { ascending: true });
 
     if (error) {
-      console.error("CATEGORY LOAD ERROR:", error);
+      console.error("CATEGORY LOAD ERROR:", JSON.stringify(error, null, 2));
       setMessage("FAILED TO LOAD CATEGORIES.");
       setLoading(false);
       return;
@@ -122,8 +122,8 @@ export default function CategoriesPage() {
       .single();
 
     if (error) {
-      console.error("CATEGORY ADD ERROR:", error);
-      setMessage(error.message.toUpperCase());
+      console.error("CATEGORY ADD ERROR:", JSON.stringify(error, null, 2));
+      setMessage(error.message ? error.message.toUpperCase() : "ADD FAILED.");
       setAdding(false);
       return;
     }
@@ -201,8 +201,8 @@ export default function CategoriesPage() {
       .single();
 
     if (error) {
-      console.error("CATEGORY UPDATE ERROR:", error);
-      setMessage(error.message.toUpperCase());
+      console.error("CATEGORY UPDATE ERROR:", JSON.stringify(error, null, 2));
+      setMessage(error.message ? error.message.toUpperCase() : "UPDATE FAILED.");
       return;
     }
 
@@ -229,8 +229,9 @@ export default function CategoriesPage() {
       .eq("id", id);
 
     if (error) {
-      console.error("CATEGORY DELETE ERROR:", error);
-      setMessage(error.message.toUpperCase());
+      console.error("CATEGORY DELETE ERROR:", JSON.stringify(error, null, 2));
+      console.error("ERROR MESSAGE:", error?.message);
+      setMessage(error.message ? error.message.toUpperCase() : "DELETE FAILED.");
       return;
     }
 
